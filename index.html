@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>RPG de Matemática · Protótipo v0.03</title>
+<title>RPG de Matemática · Protótipo v0.04</title>
 <meta name="theme-color" content="#0E0F1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
@@ -257,6 +257,63 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 .fx-ageB{animation:fx-auraB .7s steps(4)}
 .fx-popB{animation-delay:.5s;animation-fill-mode:both}
 
+/* v0.04 */
+.barra-nav{position:sticky;bottom:calc(-1 * max(16px,env(safe-area-inset-bottom)));z-index:20;background:var(--bg);margin:auto -16px calc(-1 * max(16px,env(safe-area-inset-bottom)));padding:8px 16px max(10px,env(safe-area-inset-bottom))}
+.topo2{display:flex;align-items:center;gap:10px;flex:none;min-height:48px}
+.mini-av{width:46px;height:46px;flex:none;position:relative;overflow:hidden;border:2px solid var(--ciano);background:#12142A}
+.mini-av>.av{position:absolute;left:-14px;top:-6px}
+.selo-nv{padding:1px 6px;background:rgba(94,230,255,.14);color:var(--ciano);font-size:11px;letter-spacing:1px}
+.moedas{margin:0;height:36px;padding:0 10px;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--borda);font-size:15px;color:var(--amarelo);flex:none}
+.missoes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.missao{padding:10px 8px;display:flex;flex-direction:column;gap:6px;min-height:124px;border:1px solid var(--borda);background:var(--card)}
+.missao.ok{border-color:var(--verde);background:rgba(111,227,193,.08)}
+.missao .txt{flex:1;font-size:13px;font-weight:600;line-height:1.25}
+.missao.ok .txt{color:var(--texto3);text-decoration:line-through}
+.bau-lin{display:flex;align-items:center;gap:10px;min-height:48px;padding:4px 10px;border:1px solid var(--borda);background:var(--card);width:100%}
+@keyframes balanca{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.balanca{animation:balanca .6s ease-in-out infinite;transform-origin:50% 90%}
+.mundo{flex:1;min-height:36px;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--borda);background:transparent;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--texto3)}
+.mundo[aria-pressed="true"]{border-color:var(--ciano);background:rgba(94,230,255,.12);color:var(--ciano)}
+.mapa{position:relative;width:354px;height:300px;max-width:100%;align-self:center;overflow:hidden;border:1px solid var(--borda);background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(94,230,255,.07) 1px,transparent 1px);background-size:12px 12px}
+.ilha{position:absolute;width:144px;height:50px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-radius:22px;text-align:left}
+.etapa{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:6px 10px;border:1px solid var(--borda);background:var(--card);text-align:left}
+.etapa.atual{border-color:var(--amarelo);background:rgba(255,210,63,.08)}
+@keyframes destaque{50%{box-shadow:0 0 0 3px rgba(94,230,255,.6)}}
+.etapa.destaque{border-color:var(--ciano);animation:destaque 1s ease-in-out 3}
+.etapa .bol{width:32px;height:32px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--bg)}
+#t-licao{gap:8px}
+@keyframes dispara{0%{transform:translate(0,0) scale(.6);opacity:1}90%{opacity:1}100%{transform:translate(122px,-38px) scale(1.2);opacity:0}}
+.lc-dispara{animation:dispara .45s ease-in both}
+@keyframes escudoLc{0%,100%{opacity:0}20%,70%{opacity:1}}
+.lc-escudo{animation:escudoLc .9s ease-out both}
+.lc-fim{position:absolute;inset:0;z-index:25;display:none;flex-direction:column;gap:10px;padding:max(24px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));background:var(--bg);overflow-y:auto}
+.lc-fim.on{display:flex}
+.lc-fim>*{flex-shrink:0}
+@keyframes estrela{0%{transform:scale(0) rotate(-40deg);opacity:0}70%{transform:scale(1.3)}100%{transform:scale(1);opacity:1}}
+.estrela-fim{display:block;width:44px;height:44px;clip-path:polygon(50% 0,62% 35%,100% 38%,70% 60%,80% 100%,50% 76%,20% 100%,30% 60%,0 38%,38% 35%);animation:estrela .45s ease-out both}
+.carteirinha{border:1px solid var(--borda);background:var(--card);flex:none}
+.palco-c{position:relative;height:170px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px;border-bottom:1px solid var(--borda);background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(94,230,255,.12) 1px,transparent 1px);background-size:14px 14px}
+.dado{display:flex;justify-content:space-between;gap:10px;min-height:40px;align-items:center;border-top:1px solid var(--borda);font-size:13px}
+.dado span{color:var(--texto2)}.dado b{text-align:right;font-weight:600}
+.ninho-grid{display:grid;grid-template-columns:96px 1fr 96px;gap:8px;align-items:center}
+.ninho-grid .col{display:flex;flex-direction:column;gap:8px}
+.cuidado{min-height:96px;padding:8px 4px;border:1px solid var(--borda);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cuidado .ic{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid}
+.cuidado b{font-family:'Chakra Petch',sans-serif;font-size:13px}
+.cuidado small{font-size:11px;color:var(--amarelo)}
+.cuidado.feito{opacity:.55}.cuidado.feito small{color:var(--verde)}
+.cuidado[aria-disabled="true"] small{color:var(--texto3)}
+.ninho{position:relative;height:230px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:28px}
+.ninho-base{position:absolute;bottom:10px;width:130px;height:34px;border-radius:50%;background:radial-gradient(closest-side,#7A5A44,#5A3F2E 70%,#3A281D);box-shadow:inset 0 4px 0 #9C7A5E}
+.ninho #ovo-k{position:relative;z-index:1}
+.fala-ovo{position:absolute;top:0;left:-6px;right:-6px;margin:0;padding:8px 10px;background:#F2F3FF;color:var(--escuro);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px;text-align:center;opacity:0;transition:opacity .2s}
+.fala-ovo.on{opacity:1}
+@keyframes pulaOvo{0%,100%{transform:translateY(0)}30%{transform:translateY(-18px)}60%{transform:translateY(0)}75%{transform:translateY(-6px)}}
+.pula-ovo{animation:pulaOvo .7s ease-out}
+.abas3{display:flex;flex:none;border:1px solid var(--borda);background:var(--escuro);padding:3px;gap:3px}
+.abas3 button{flex:1;height:40px;border:0;background:transparent;color:var(--texto2);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px}
+.abas3 button[aria-selected="true"]{background:var(--ciano);color:var(--bg)}
+.tile-c{min-height:92px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
 </style>
 </head>
 <body>
@@ -272,7 +329,7 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 <p class="aviso" style="text-align:center">Entre para batalhar resolvendo questões.</p>
 <button class="btn btn-claro" data-ir="entrar" data-modo="email"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="8" height="8" fill="#2A2E55"/><rect x="11" y="1" width="8" height="8" fill="#2A2E55"/><rect x="1" y="11" width="8" height="8" fill="#2A2E55"/><rect x="11" y="11" width="8" height="8" fill="#2A2E55"/></svg>Entrar com e-mail institucional</button>
 <button class="btn btn-escuro" data-ir="entrar" data-modo="usuario"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Entrar com usuário e senha</button>
-<p class="aviso" style="text-align:center;margin-top:8px;color:var(--texto3)">Protótipo v0.03 · multijogador · para testes</p>
+<p class="aviso" style="text-align:center;margin-top:8px;color:var(--texto3)">Protótipo v0.04 · multijogador · para testes</p>
 </section>
 
 <!-- 2. ENTRAR -->
@@ -315,27 +372,17 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 </section>
 
 <!-- 5. INÍCIO -->
-<section class="tela" id="t-inicio" aria-label="Início">
-<div class="topo">
-<div><p class="rot">BEM-VINDO(A)</p><h1 class="titulo" id="ini-nick" style="letter-spacing:2px;color:var(--amarelo)"></h1></div>
-<button class="voltar" id="ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2" stroke-linecap="round"><path d="M20 7h-9M14 17H4"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></button>
-</div>
-<div class="cartao cantos" style="flex:none">
-<p class="rot">SEU TIME</p>
-<div style="display:flex;align-items:flex-end;gap:12px;margin-top:6px">
-<div style="position:relative;width:210px;height:170px;flex:none" id="ini-time"></div>
-<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;padding-bottom:6px" id="ini-info"></div>
-</div>
-</div>
-<div class="cartao" style="flex:none"><p class="rot">NÍVEL E XP</p><div id="ini-nivel" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div></div>
-<div class="cartao" style="flex:none"><p class="rot">PRIMEIROS PASSOS</p><div id="ini-passos" style="margin-top:8px;display:flex;flex-direction:column;gap:8px"></div></div>
-<nav class="barra-nav" aria-label="Menu">
-<button class="nav" aria-current="page"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg>Início</button>
-<button class="nav" data-embreve="A aba Conta"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Conta</button>
-<button class="jogar" id="btn-jogar" aria-label="Jogar"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="#0E0F1E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="M14.5 6.5 18 3h3v3l-3.5 3.5"/><path d="m5 14 4 4"/><path d="m7 17-3 3"/></svg>JOGAR</button>
-<button class="nav" data-embreve="A aba Criatura"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3.5 0 6 6 6 10a6 6 0 0 1-12 0c0-4 2.5-10 6-10z"/></svg>Criatura</button>
-<button class="nav" data-embreve="A aba Estatísticas"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-7"/></svg>Estatísticas</button>
-</nav>
+<section class="tela" id="t-inicio" aria-label="Início"></section>
+<section class="tela" id="t-conta" aria-label="Conta"></section>
+<section class="tela" id="t-criatura" aria-label="Minha criatura"></section>
+<section class="tela" id="t-estat" aria-label="Estatísticas"></section>
+<section class="tela" id="t-licao" aria-label="Lição do Treino Solo">
+<div class="topo" style="gap:10px"><button class="voltar" id="lc-sair" aria-label="Sair da lição" style="background:transparent"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div id="lc-segs" role="img" style="flex:1;display:flex;gap:4px"></div><p class="cp" id="lc-cont" style="margin:0;font-size:13px;color:var(--texto2)"></p></div>
+<div id="lc-cena" style="position:relative;overflow:hidden;border:1px solid var(--borda);height:200px"></div>
+<p id="lc-narra" role="status" style="margin:0;padding:8px 12px;background:var(--escuro);border-left:3px solid var(--amarelo);font-size:14px;line-height:1.35"></p>
+<div id="lc-perg" style="display:flex;flex-direction:column;gap:6px;flex:1 0 auto;justify-content:center;min-height:70px"></div>
+<div id="lc-painel" style="display:flex;flex-direction:column;gap:8px"></div>
+<div class="lc-fim" id="lc-fim"></div>
 </section>
 
 <!-- 6. SALA -->
@@ -720,7 +767,8 @@ $('form-entrar').addEventListener('submit', e => {
   if (modoLogin === 'email' && !/^\S+@\S+\.\S+$/.test(id)) { $('ent-erro').textContent = 'Esse e-mail não parece válido.'; $('ent-id').focus(); return; }
   if (!s) { $('ent-erro').textContent = 'Digite sua senha.'; $('ent-senha').focus(); return; }
   $('ent-erro').textContent = '';
-  if (P && P.nick && P.el) { renderInicio(); mostrar('inicio'); }
+  ultimoLogin = id; if (P) { P.login = id; salvarPerfil(); }
+  if (P && P.nick && P.el) { irAba('inicio'); }
   else { iniciarRegistro(); mostrar('registro'); }
 });
 
@@ -786,7 +834,7 @@ $('girar').onclick = () => {
   const tr = $('trilho'); tr.style.transition = 'transform 3.2s cubic-bezier(.12,.8,.2,1)';
   requestAnimationFrame(() => { tr.style.transform = `translateX(${w / 2 - (idx * CAP + 42)}px)`; });
   depois(3400, () => {
-    P = { nick: rascunho.nick, av: rascunho.av, el, xp: 0, partidas: 0, criado: Date.now() }; salvarPerfil();
+    P = { nick: rascunho.nick, av: rascunho.av, el, xp: 0, partidas: 0, criado: Date.now(), login: ultimoLogin }; migrarPerfil(); salvarPerfil();
     const E = EL[el], unidade = (ELEMENTOS[el] || {}).unidade || '';
     const r = $('ovo-revela');
     r.innerHTML = `<p class="rot">VOCÊ GANHOU</p><div class="flutua" style="filter:drop-shadow(0 0 18px ${E.cor})">${ovoSVG(el, 84, 108)}</div>`
@@ -796,32 +844,18 @@ $('girar').onclick = () => {
     r.style.display = 'flex'; $('girar').style.display = 'none'; $('ovo-entrar').style.display = '';
   });
 };
-$('ovo-entrar').onclick = () => { limparTimers(); renderInicio(); mostrar('inicio'); };
+$('ovo-entrar').onclick = () => { limparTimers(); irAba('inicio'); };
 
 /* ================== 5. Início ================== */
-function renderInicio() {
-  const nv = nivelDe(P.xp), E = EL[P.el], pronto = nv.n >= 1;
-  $('ini-nick').textContent = P.nick;
-  $('ini-time').innerHTML = `<div style="position:absolute;left:10px;bottom:6px">${avatarHTML(P.av, 4)}</div>`
-    + `<div aria-hidden="true" style="position:absolute;left:4px;bottom:0;width:110px;height:14px;border-radius:50%;background:${E.cor}44;box-shadow:0 0 14px ${E.cor}66"></div>`
-    + `<div class="${pronto ? 'treme' : 'flutua'}" style="position:absolute;left:132px;top:46px;filter:drop-shadow(0 0 12px ${E.cor})">${ovoSVG(P.el, 46, 58, pronto)}</div>`;
-  $('ini-info').innerHTML = `<p class="rot">COMPANHEIRO</p><p class="cp" style="margin:0;font-size:16px;color:${E.cor}">Ovo de ${E.nome}</p>`
-    + `<p class="aviso">${pronto ? '<b style="color:var(--amarelo)">Pronto para chocar!</b> A eclosão chega com os desenhos das criaturas.' : 'Choca no nível 1. Jogue uma partida!'}</p>`;
-  $('ini-nivel').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:baseline"><p class="cp" style="margin:0;font-size:18px;letter-spacing:2px">NÍVEL ${nv.n}</p><p class="cp" style="margin:0;font-size:12px;color:var(--texto2)">${nv.r} / ${nv.need} XP</p></div>`
-    + `<div class="barra" role="progressbar" aria-label="XP do nível" aria-valuenow="${nv.r}" aria-valuemax="${nv.need}"><i style="width:${nv.r / nv.need * 100}%"></i></div>`
-    + `<p class="aviso">${P.partidas} partida${P.partidas === 1 ? '' : 's'} jogada${P.partidas === 1 ? '' : 's'} · ${P.xp} XP no total</p>`;
-  const passos = [['Criar sua conta', true], ['Ganhar seu ovo', true], ['Jogar a primeira partida', P.partidas > 0], ['Chegar ao nível 1 (o ovo choca)', nv.n >= 1]];
-  $('ini-passos').innerHTML = passos.map(([t, ok]) => `<div class="passo"><span class="ok" style="${ok ? 'background:var(--ciano);color:var(--bg)' : 'border:1px solid var(--borda);color:var(--texto3)'}">${ok ? '✓' : ''}</span><span style="${ok ? 'color:var(--texto2);text-decoration:line-through' : ''}">${t}</span></div>`).join('');
-}
 document.querySelectorAll('[data-embreve]').forEach(b => b.addEventListener('click', () => avisar(b.dataset.embreve + ' chega numa próxima versão.')));
-$('btn-jogar').onclick = () => abrirFolha(cabFolha('COMO VOCÊ QUER JOGAR?')
+function abrirJogar() { abrirFolha(cabFolha('COMO VOCÊ QUER JOGAR?')
   + `<button class="opcao" data-modo-jogo="codigo"><span class="ic" style="background:rgba(94,230,255,.12)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#5EE6FF" stroke-width="2" stroke-linecap="round"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg></span><span><b>Entrar com código</b><small>Digite o código que o professor ou um colega passou.</small></span></button>`
   + `<button class="opcao" data-modo-jogo="criar"><span class="ic" style="background:rgba(255,210,63,.12)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#FFD23F" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Criar sala</b><small>Você recebe um código para os colegas entrarem.</small></span></button>`
-  + `<button class="opcao" data-modo-jogo="treino"><span class="ic" style="background:rgba(54,196,107,.14)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#36C46B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/></svg></span><span><b>Treino Solo</b><small>Em breve: treinar sozinho por conteúdo.</small></span></button>`, 'Como você quer jogar');
+  + `<button class="opcao" data-modo-jogo="treino"><span class="ic" style="background:rgba(54,196,107,.14)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#36C46B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/></svg></span><span><b>Treino Solo</b><small>Siga a trilha de treino no mapa, sozinho e sem cronômetro.</small></span></button>`, 'Como você quer jogar'); }
 $('folha').addEventListener('click', e => {
   const b = e.target.closest('[data-modo-jogo]'); if (!b) return;
   const m = b.dataset.modoJogo;
-  if (m === 'treino') { fecharFolha(); avisar('O Treino Solo chega numa próxima versão.'); }
+  if (m === 'treino') { fecharFolha(); if (P.partidas === 0 || nivelDe(P.xp).n < 1) { avisar('O mapa de treino abre depois dos primeiros passos. Jogue sua primeira partida!'); return; } UI.regiao = null; UI.destaque = null; irAba('inicio'); const b = document.querySelector('#t-inicio .etapa.atual'); if (b) b.scrollIntoView({ block: 'center' }); }
   else if (m === 'codigo') folhaCodigo();
   else folhaCriar();
 });
@@ -850,21 +884,21 @@ function folhaCriar() {
   $('criar-ok').onclick = () => { fecharFolha(); criarSala(Object.assign({}, cfgCriar)); };
 }
 const codigoNovo = () => Array.from({ length: 5 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-$('ajustes').onclick = () => {
-  abrirFolha(cabFolha('AJUSTES') + `<p class="aviso">Protótipo v0.03 · RPG de Matemática · SESI Gama. O perfil fica salvo só neste aparelho e navegador.</p>`
+function abrirAjustes() {
+  abrirFolha(cabFolha('AJUSTES') + `<p class="aviso">Protótipo v0.04 · RPG de Matemática · SESI Gama. O perfil fica salvo só neste aparelho e navegador.</p>`
     + `<button class="btn btn-sec" id="apagar" style="flex:none;min-height:48px;color:var(--vermelho)">APAGAR MEU PERFIL E RECOMEÇAR</button>`, 'Ajustes');
   $('apagar').onclick = () => {
     if ($('apagar').dataset.conf) { try { localStorage.removeItem(CHAVE); } catch (e) { } P = null; fecharFolha(); mostrar('login'); avisar('Perfil apagado.'); return; }
     $('apagar').dataset.conf = '1'; $('apagar').textContent = 'TOQUE DE NOVO PARA CONFIRMAR';
   };
-};
+}
 function carregando(txt) { $('carregando-txt').textContent = txt || ''; $('carregando').classList.toggle('on', !!txt); }
 
 /* ================== Rede ==================
    Quem cria a sala vira o anfitrião. Os outros aparelhos se ligam direto a ele
    pelo código. O PeerJS só apresenta os aparelhos uns aos outros; a partida
    passa direto entre eles. Com ?local=1 tudo roda por abas do mesmo navegador. */
-const PREFIXO = 'rpgmat-sesi-v003-';
+const PREFIXO = 'rpgmat-sesi-v004-';
 const MODO_LOCAL = new URLSearchParams(location.search).has('local');
 let canal = null;
 function canalPeer() {
@@ -1016,7 +1050,7 @@ function svRodada() {
     if (j.tipo === 'robo') { const acc = Math.max(.15, Math.min(.97, nv.acc + (q.dif === 'facil' ? .1 : q.dif === 'dificil' ? -.15 : 0))); j.plano = { t: Math.min(44, rand(nv.tmin, nv.tmax)), ok: Math.random() < acc }; }
   });
   SV.t0 = performance.now();
-  svTodos({ t: 'rodada', r: SV.r, q: { texto: q.texto, conteudo: q.conteudo, elemento: q.elemento, dif: q.dif }, tempo: TEMPO, vivos: SV.jog.filter(j => j.hp > 0).map(j => j.id) });
+  svTodos({ t: 'rodada', r: SV.r, q: { texto: q.texto, conteudo: q.conteudo, conteudoId: q.conteudoId, elemento: q.elemento, dif: q.dif }, tempo: TEMPO, vivos: SV.jog.filter(j => j.hp > 0).map(j => j.id) });
   clearInterval(SV.tick); SV.tick = setInterval(svTique, 250);
 }
 function svResp(id, txt) {
@@ -1167,7 +1201,7 @@ function cliPerdeu() {
   const noResultado = $('t-resultado').classList.contains('ativa');
   limparTimers(); clearInterval(relogio); canal && canal.fechar(); C.fechada = true;
   if (noResultado) { avisar('O anfitrião fechou a sala.'); return; }
-  C = null; renderInicio(); mostrar('inicio'); avisar('A sala foi fechada pelo anfitrião.');
+  C = null; irAba('inicio'); avisar('A sala foi fechada pelo anfitrião.');
 }
 function sairDaSala(silencioso) {
   limparTimers(); clearInterval(relogio);
@@ -1175,7 +1209,7 @@ function sairDaSala(silencioso) {
   if (C) C.saindo = true;
   setTimeout(() => { canal && canal.fechar(); }, 150);
   C = null; B = null;
-  carregando(''); renderInicio(); mostrar('inicio');
+  carregando(''); irAba('inicio');
 }
 function cliRecebe(m) {
   if (!C || !m) return;
@@ -1428,7 +1462,7 @@ function corrigido(ok) {
 function escolherAcao(a) {
   if (!B || B.fase !== 'acao') return;
   if (a === 'atk') { B.fase = 'alvo'; renderMsg([{ t: 'Quem você vai atacar? ' }, { t: 'Toque num adversário.', c: 'nome' }]); }
-  else { cliEnviar({ t: 'acao', tipo: a }); irEspera(); }
+  else { if (a === 'esc') { const mm = progredirMissao('escudo', 1); if (mm) depois(300, () => avisar('Missão concluída: ' + mm.txt + ' · ' + recompensa(mm))); } cliEnviar({ t: 'acao', tipo: a }); irEspera(); }
   atualizarCena(); renderPainel();
 }
 function escolherAlvo(id) {
@@ -1442,6 +1476,11 @@ function narrar(m) {
   const me = C.meuId, eu = EU(), meu = m.res[me] || { ok: false, tempo: true };
   B.jog.forEach(j => { j.hp = m.inicio.hp[j.id]; j.esc = false; j.furia = m.furia[j.id]; });
   B.hist.push({ texto: m.texto, resposta: m.resposta, sua: B.meuTxt || 'sem resposta', ok: !!meu.ok });
+  registrarResposta(B.q && B.q.conteudoId, !!meu.ok);
+  if (meu.ok) { const mm = progredirMissao('acertos', 1); if (mm) depois(400, () => avisar('Missão concluída: ' + mm.txt + ' · ' + recompensa(mm))); }
+  if (B.meuTempo != null && B.meuTxt) (B.tempos = B.tempos || []).push(B.meuTempo);
+  m.falas.forEach(f => { if (f.ef && f.ef.tipo === 'atk' && f.ef.alvo === me) B.recebido = (B.recebido || 0) + (parseInt(String(f.ef.valor).replace(/[^0-9]/g, ''), 10) || 0); });
+  salvarPerfil();
   const linhas = [], fur = eu.furia >= 2 && meu.ok && m.vivos.includes(me) ? [{ t: ' Fúria ' + Math.min(eu.furia, 3) + '!', c: 'rapido' }] : [];
   const base = { hp: m.inicio.hp, esc: Object.fromEntries(B.jog.map(j => [j.id, false])) };
   if (!m.vivos.includes(me)) linhas.push(Object.assign({ partes: meu.ok ? [{ t: 'Você acertou! ', c: 'eu' }, { t: 'Ganha XP como espectador.' }] : [{ t: meu.tempo ? 'Tempo esgotado! ' : 'Você errou. ', c: 'dano' }, { t: 'A resposta era ' + m.resposta + '.' }] }, base));
@@ -1498,7 +1537,7 @@ function abrirResultado(m) {
   if (eu.acertos === RODADAS && jogadas === RODADAS) itens.push({ rot: 'Partida perfeita (5 de 5)', v: 20 });
   itens.push({ rot: eu.pos + 'º lugar', v: PONTOS_POS[eu.pos - 1] || 5 });
   const total = itens.reduce((a, i) => a + i.v, 0), xp0 = P.xp;
-  P.xp += total; P.partidas++; salvarPerfil();
+  P.xp += total; P.partidas++; salvarPerfil(); registrarPartida(m);
   R = { itens, total, xp0, mostrado: 0, nivel: nivelDe(xp0).n, alvo: 0 };
   const MED = { 1: '#FFD23F', 2: '#C9CDF0', 3: '#C29A7E', 4: '#62668F' }, ALT = { 1: 92, 2: 70, 3: 54 };
   $('res-sub').textContent = 'ARENA · ' + B.codigo;
@@ -1561,6 +1600,624 @@ window.addEventListener('beforeunload', () => { if (C && C.host) svEncerrar(); }
 carregarPerfil();
 mostrar('login');
 if (MODO_LOCAL) avisar('Modo de teste local: as salas funcionam entre abas deste navegador.');
+
+/* ================== Trilha do Treino Solo ==================
+   Mundo 1 = 6º ano, Mundo 2 = 7º ano. Todos começam na Adição e só liberam a
+   próxima etapa concluindo a anterior. Cada etapa tem uma chave de conteúdo (st),
+   usada nas Estatísticas e no botão Treinar. */
+const NOMES_ST = {
+  '6op': 'Operações com naturais', '6pot': 'Potências', '6mult': 'Múltiplos e divisores', '6fr': 'Frações', '6dec': 'Números decimais', '6pct': 'Porcentagem',
+  '6geo': 'Polígonos e ângulos', '6cart': 'Plano cartesiano', '6med': 'Perímetro e área', '6massa': 'Massa e capacidade', '6tempo': 'Tempo', '6alg': 'Igualdades e sequências', '6part': 'Partilha e proporção',
+  '7int': 'Números inteiros', '7fr': 'Operações com frações', '7pct': 'Porcentagem (7º)', '7eq': 'Equações do 1º grau', '7prop': 'Razão e proporção', '7ang': 'Ângulos', '7med': 'Área e volume'
+};
+const ST_EL = { '6op': 'fogo', '6pot': 'fogo', '6mult': 'fogo', '6fr': 'agua', '6dec': 'agua', '6pct': 'agua', '6geo': 'planta', '6cart': 'planta', '6med': 'pedra', '6massa': 'pedra', '6tempo': 'pedra', '6alg': 'raio', '6part': 'raio', '7int': 'fogo', '7fr': 'agua', '7pct': 'agua', '7eq': 'raio', '7prop': 'raio', '7ang': 'planta', '7med': 'pedra' };
+const nv3 = (k) => k < 2 ? 'facil' : k < 4 ? 'media' : 'dificil';
+const doBanco = (serie, id) => (k) => { const c = CONTEUDOS[serie].find(x => x.id === id); const q = c.g[nv3(k)](); return { t: q.t, v: q.v, s: q.s }; };
+const mil = (n) => fmtN(n);
+
+const GEN = {
+  adicao: (k) => {
+    if (k === 5) { const a = r(120, 480), b = r(60, 380); return { t: `Uma escola tem ${a} alunos de manhã e ${b} à tarde. Quantos alunos são ao todo?`, v: a + b, exp: `${mil(a)} + ${mil(b)} = ${mil(a + b)}.` }; }
+    const a = k < 2 ? r(12, 89) : r(105, 2900), b = k < 2 ? r(11, 89) : r(58, 1900);
+    return { t: `${mil(a)} + ${mil(b)} = ?`, v: a + b, exp: `Some as unidades, dezenas e centenas: ${mil(a)} + ${mil(b)} = ${mil(a + b)}.` };
+  },
+  subtracao: (k) => {
+    if (k === 5) { const a = r(300, 900), b = r(80, a - 50); return { t: `Uma loja tinha ${a} figurinhas e vendeu ${b}. Quantas sobraram?`, v: a - b, exp: `${a} − ${b} = ${a - b}. Confira: ${b} + ${a - b} = ${a}.` }; }
+    const a = k < 2 ? r(40, 99) : r(300, 5000), b = k < 2 ? r(11, a - 5) : r(99, a - 50);
+    return { t: `${mil(a)} − ${mil(b)} = ?`, v: a - b, exp: `${mil(a)} − ${mil(b)} = ${mil(a - b)}. Confira somando: ${mil(b)} + ${mil(a - b)} = ${mil(a)}.` };
+  },
+  multiplicacao: (k) => {
+    if (k === 5) { const c = r(4, 9), p = r(12, 30); return { t: `Uma caixa tem ${p} lápis. Quantos lápis há em ${c} caixas?`, v: c * p, exp: `${c} × ${p} = ${c * p}.` }; }
+    const a = k < 2 ? r(3, 9) : k < 4 ? r(12, 49) : r(23, 99), b = k < 2 ? r(3, 9) : r(3, 9) + (k >= 4 ? 10 : 0);
+    return { t: `${a} × ${b} = ?`, v: a * b, exp: `${a} × ${b} = ${a * b}.` };
+  },
+  divisao: (k) => {
+    if (k === 3) { const b = r(3, 9), q = r(5, 15), resto = r(1, b - 1), n = b * q + resto; return { t: `Qual é o resto da divisão de ${n} por ${b}?`, v: resto, exp: `${b} × ${q} = ${b * q} e ${n} − ${b * q} = ${resto}. O resto é ${resto}.` }; }
+    if (k === 5) { const b = r(25, 45), q = r(3, 9); return { t: `Um ônibus leva ${b} alunos. Quantos ônibus são precisos para levar ${b * q} alunos?`, v: q, exp: `${b * q} ÷ ${b} = ${q}, porque ${b} × ${q} = ${b * q}.` }; }
+    const b = k < 2 ? r(3, 9) : r(4, 25), q = k < 2 ? r(3, 9) : r(11, 60);
+    return { t: `${mil(b * q)} ÷ ${b} = ?`, v: q, exp: `${b} × ${q} = ${mil(b * q)}, então ${mil(b * q)} ÷ ${b} = ${q}.` };
+  },
+  potencias: (k) => {
+    if (k < 2) { const b = r(2, 12); return { t: `Quanto é ${b}<sup>2</sup>?`, v: b * b, exp: `${b}² = ${b} × ${b} = ${b * b}.` }; }
+    if (k < 4) { const b = r(2, 6); return { t: `Quanto é ${b}<sup>3</sup>?`, v: b ** 3, exp: `${b}³ = ${b} × ${b} × ${b} = ${b ** 3}.` }; }
+    const n = r(2, 5); return { t: `Quanto é 10<sup>${n}</sup>?`, v: 10 ** n, exp: `10 elevado a ${n} é 1 seguido de ${n} zeros: ${mil(10 ** n)}.` };
+  },
+  expressoes: (k) => {
+    const a = r(5, 40), b = r(2, 9), c = r(2, 9);
+    if (k < 2) return { t: `${a} + ${b} × ${c} = ?`, v: a + b * c, exp: `Primeiro a multiplicação: ${b} × ${c} = ${b * c}. Depois ${a} + ${b * c} = ${a + b * c}.` };
+    if (k < 4) return { t: `(${a} + ${b}) × ${c} = ?`, v: (a + b) * c, exp: `Primeiro o parêntese: ${a} + ${b} = ${a + b}. Depois ${a + b} × ${c} = ${(a + b) * c}.` };
+    const d = r(2, 6), e = d * r(2, 8), b2 = Math.min(b, a); return { t: `${a} + ${e} ÷ ${d} − ${b2} = ?`, v: a + e / d - b2, exp: `Primeiro a divisão: ${e} ÷ ${d} = ${e / d}. Depois ${a} + ${e / d} − ${b2} = ${a + e / d - b2}.` };
+  },
+  multiplos: (k) => {
+    if (k < 2) { const m = r(3, 9), n = r(30, 80); const prox = (Math.floor(n / m) + 1) * m; return { t: `Qual é o primeiro múltiplo de ${m} depois de ${n}?`, v: prox, exp: `${m} × ${prox / m} = ${prox}, e ele é o primeiro que passa de ${n}.` }; }
+    if (k < 4) { const [a, b] = pick([[4, 6], [6, 8], [3, 4], [6, 10], [4, 10], [8, 12], [9, 12], [5, 6]]); const mmc = a * b / mdc(a, b); return { t: `Qual é o MMC de ${a} e ${b}?`, v: mmc, exp: `Múltiplos de ${a}: ${[1, 2, 3, 4, 5, 6].map(i => a * i).filter(x => x <= mmc).join(', ')}… O primeiro que também é múltiplo de ${b} é ${mmc}.` }; }
+    const [a, b] = pick([[12, 18], [16, 24], [20, 30], [18, 27], [24, 36], [15, 25], [14, 21]]); const g = mdc(a, b);
+    return { t: `Qual é o MDC de ${a} e ${b}?`, v: g, exp: `${g} é o maior número que divide ${a} e ${b} sem deixar resto.` };
+  },
+  fracoes: (k) => {
+    if (k < 3) { const d = pick([2, 3, 4, 5, 6, 8, 10]), n = r(1, d - 1), q = r(2, 12); return { t: `Quanto é ${n}/${d} de ${d * q}?`, v: n * q, exp: `${d * q} ÷ ${d} = ${q}, e ${q} × ${n} = ${n * q}.` }; }
+    const d = r(5, 12), n = r(1, d - 2); return { t: `Uma pizza foi cortada em ${d} pedaços iguais e comeram ${n}. Que fração da pizza sobrou?`, v: (d - n) / d, s: frac(d - n, d), exp: `Sobraram ${d - n} de ${d} pedaços: ${d - n}/${d}.` };
+  },
+  equivalentes: (k) => {
+    const d = pick([2, 3, 4, 5, 6]), n = r(1, d - 1), m = r(2, 6);
+    if (k % 2 === 0) return { t: `Complete: ${n}/${d} = ?/${d * m}`, v: n * m, exp: `O denominador foi multiplicado por ${m} (${d} × ${m} = ${d * m}). Faça o mesmo no numerador: ${n} × ${m} = ${n * m}.` };
+    return { t: `Complete: ${n * m}/${d * m} = ${n}/?`, v: d, exp: `O numerador foi dividido por ${m} (${n * m} ÷ ${m} = ${n}). Faça o mesmo no denominador: ${d * m} ÷ ${m} = ${d}.` };
+  },
+  opfracoes: (k) => {
+    if (k < 4) { const d = r(5, 12), a = r(1, d - 3), b = r(1, d - 1 - a); const sub = k % 2 === 1; return sub ? { t: `${a + b}/${d} − ${b}/${d} = ?`, v: a / d, s: frac(a, d), exp: `Com o mesmo denominador, subtraia os numeradores: ${a + b} − ${b} = ${a}. Resposta: ${a}/${d}.` } : { t: `${a}/${d} + ${b}/${d} = ?`, v: (a + b) / d, s: frac(a + b, d), exp: `Com o mesmo denominador, some os numeradores: ${a} + ${b} = ${a + b}. Resposta: ${a + b}/${d}.` }; }
+    const [d1, d2] = pick([[2, 4], [3, 6], [2, 3], [4, 8], [2, 5]]); const a = r(1, d1 - 1), b = r(1, d2 - 1), den = d1 * d2 / mdc(d1, d2), num = a * den / d1 + b * den / d2;
+    return { t: `${a}/${d1} + ${b}/${d2} = ?`, v: num / den, s: frac(num, den), exp: `Use o denominador ${den}: ${a}/${d1} = ${a * den / d1}/${den} e ${b}/${d2} = ${b * den / d2}/${den}. Somando: ${num}/${den}.` };
+  },
+  decimais: (k) => { const q = doBanco('6', '6dec')(k); return Object.assign(q, { exp: `Alinhe as vírgulas e faça a conta: o resultado é ${fmtN(q.v)}.` }); },
+  porcentagem: (k) => { const q = doBanco('6', '6pct')(k); return Object.assign(q, { exp: `Lembre: 10% é dividir por 10, 50% é a metade e 25% é a quarta parte. O resultado é ${fmtN(q.v)}.` }); },
+  angulos: (k) => {
+    if (k < 2) { const t = pick([['reto', 90], ['raso', 180], ['de uma volta completa', 360]]); return { t: `Quantos graus tem um ângulo ${t[0]}?`, v: t[1], exp: `Um ângulo ${t[0]} mede ${t[1]}°.` }; }
+    if (k < 4) { const a = r(10, 80); return { t: `Dois ângulos complementares somam 90°. Um deles mede ${a}°. Quanto mede o outro?`, v: 90 - a, exp: `90 − ${a} = ${90 - a}.` }; }
+    const a = r(20, 160); return { t: `Dois ângulos suplementares somam 180°. Um deles mede ${a}°. Quanto mede o outro?`, v: 180 - a, exp: `180 − ${a} = ${180 - a}.` };
+  },
+  poligonos: (k) => {
+    const P = [['triângulo', 3], ['quadrilátero', 4], ['pentágono', 5], ['hexágono', 6], ['heptágono', 7], ['octógono', 8], ['decágono', 10]];
+    if (k < 3) { const [n, l] = pick(P); return { t: `Quantos ${k === 1 ? 'vértices' : 'lados'} tem um ${n}?`, v: l, exp: `Um ${n} tem ${l} lados e ${l} vértices.` }; }
+    const [n, l] = pick(P.slice(1)), L = r(3, 15); return { t: `Qual é o perímetro de um ${n} regular de lado ${L} cm? (em cm)`, v: l * L, exp: `São ${l} lados iguais: ${l} × ${L} = ${l * L} cm.` };
+  },
+  triangulos: (k) => {
+    if (k < 2) return { t: 'Quanto mede cada ângulo de um triângulo equilátero? (em graus)', v: 60, exp: 'Os três ângulos são iguais e somam 180°: 180 ÷ 3 = 60.' };
+    if (k < 4) { const a = r(30, 100), b = r(20, 150 - a); return { t: `Um triângulo tem ângulos de ${a}° e ${b}°. Quanto mede o terceiro? (em graus)`, v: 180 - a - b, exp: `Os ângulos de um triângulo somam 180°: 180 − ${a} − ${b} = ${180 - a - b}.` }; }
+    const a = r(60, 120), b = r(60, 120), c = r(50, 100); return { t: `Um quadrilátero tem ângulos de ${a}°, ${b}° e ${c}°. Quanto mede o quarto? (em graus)`, v: 360 - a - b - c, exp: `Os ângulos de um quadrilátero somam 360°: 360 − ${a} − ${b} − ${c} = ${360 - a - b - c}.` };
+  },
+  cartesiano: (k) => {
+    const x = r(1, 9), y = r(1, 9);
+    if (k < 2) { const qual = k === 0 ? 'x' : 'y'; return { t: `O ponto A tem coordenadas (${x}, ${y}). Qual é a coordenada ${qual} de A?`, v: qual === 'x' ? x : y, exp: `No par (${x}, ${y}), o primeiro número é o x e o segundo é o y.` }; }
+    if (k < 4) { const d = r(2, 6); return { t: `Saindo do ponto (${x}, ${y}), ande ${d} casas para a direita. Qual é o novo x?`, v: x + d, exp: `Andar para a direita aumenta o x: ${x} + ${d} = ${x + d}.` }; }
+    const x2 = x + r(2, 8); return { t: `Os pontos (${x}, ${y}) e (${x2}, ${y}) estão na mesma linha. Qual é a distância entre eles?`, v: x2 - x, exp: `Só o x muda: ${x2} − ${x} = ${x2 - x}.` };
+  },
+  perimetro: (k) => {
+    if (k < 2) { const m = r(2, 9); return { t: `Quantos centímetros há em ${m} metros?`, v: m * 100, exp: `1 m = 100 cm, então ${m} m = ${m * 100} cm.` }; }
+    if (k < 4) { const km = r(2, 9); return { t: `Quantos metros há em ${km} km?`, v: km * 1000, exp: `1 km = 1.000 m, então ${km} km = ${mil(km * 1000)} m.` }; }
+    const b = r(4, 20), h = r(2, 15); return { t: `Qual é o perímetro de um retângulo de ${b} cm por ${h} cm? (em cm)`, v: 2 * (b + h), exp: `Some os 4 lados: ${b} + ${h} + ${b} + ${h} = ${2 * (b + h)} cm.` };
+  },
+  area: (k) => {
+    if (k < 2) { const L = r(2, 12); return { t: `Qual é a área de um quadrado de lado ${L} cm? (em cm²)`, v: L * L, exp: `Área do quadrado = lado × lado: ${L} × ${L} = ${L * L} cm².` }; }
+    if (k < 4) { const b = r(3, 15), h = r(2, 12); return { t: `Qual é a área de um retângulo de ${b} cm por ${h} cm? (em cm²)`, v: b * h, exp: `Área = base × altura: ${b} × ${h} = ${b * h} cm².` }; }
+    const b = r(3, 12), A = b * r(2, 10); return { t: `Um retângulo tem área de ${A} cm² e base de ${b} cm. Qual é a altura? (em cm)`, v: A / b, exp: `Altura = área ÷ base: ${A} ÷ ${b} = ${A / b} cm.` };
+  },
+  massa: (k) => {
+    if (k < 2) { const kg = r(2, 9); return { t: `Quantos gramas há em ${kg} kg?`, v: kg * 1000, exp: `1 kg = 1.000 g, então ${kg} kg = ${mil(kg * 1000)} g.` }; }
+    if (k < 4) { const L = r(2, 6); return { t: `Quantos mililitros há em ${L} litros?`, v: L * 1000, exp: `1 L = 1.000 mL, então ${L} L = ${mil(L * 1000)} mL.` }; }
+    const copo = pick([200, 250, 500]), L = r(1, 4); return { t: `Quantos copos de ${copo} mL enchem ${L} L de suco?`, v: L * 1000 / copo, exp: `${L} L = ${mil(L * 1000)} mL, e ${mil(L * 1000)} ÷ ${copo} = ${L * 1000 / copo}.` };
+  },
+  tempo: (k) => {
+    if (k < 2) { const h = r(2, 6); return { t: `Quantos minutos há em ${h} horas?`, v: h * 60, exp: `1 h = 60 min, então ${h} h = ${h * 60} min.` }; }
+    if (k < 4) { const h = r(1, 3), m = r(5, 55); return { t: `Quantos minutos há em ${h} h e ${m} min?`, v: h * 60 + m, exp: `${h} × 60 = ${h * 60}, e ${h * 60} + ${m} = ${h * 60 + m} min.` }; }
+    const min = r(2, 9); return { t: `Quantos segundos há em ${min} minutos?`, v: min * 60, exp: `1 min = 60 s, então ${min} min = ${min * 60} s.` };
+  },
+  sequencias: (k) => {
+    if (k < 4) { const s = r(1, 20), d = r(2, 9); return { t: `Qual é o próximo número? ${s}, ${s + d}, ${s + 2 * d}, ${s + 3 * d}, …`, v: s + 4 * d, exp: `A sequência cresce de ${d} em ${d}: ${s + 3 * d} + ${d} = ${s + 4 * d}.` }; }
+    const s = r(1, 5), m = pick([2, 3]); return { t: `Qual é o próximo número? ${s}, ${s * m}, ${s * m * m}, ${s * m ** 3}, …`, v: s * m ** 4, exp: `Cada número é o anterior vezes ${m}: ${s * m ** 3} × ${m} = ${s * m ** 4}.` };
+  },
+  igualdade: (k) => {
+    if (k < 2) { const x = r(5, 60), b = r(5, 40); return { t: `Qual número falta? ___ + ${b} = ${x + b}`, v: x, exp: `${x + b} − ${b} = ${x}.` }; }
+    if (k < 4) { const kk = r(3, 9), x = r(4, 15); return { t: `Qual número falta? ${kk} × ___ = ${kk * x}`, v: x, exp: `${kk * x} ÷ ${kk} = ${x}.` }; }
+    const a = r(2, 6), x = r(3, 12), b = r(1, 20); return { t: `Qual número falta? ${a} × ___ + ${b} = ${a * x + b}`, v: x, exp: `Tire ${b}: ${a * x + b} − ${b} = ${a * x}. Depois divida por ${a}: ${a * x} ÷ ${a} = ${x}.` };
+  },
+  partilha: (k) => {
+    if (k < 3) { const ovos = r(2, 4), bolos = r(1, 3), mult = r(2, 4); return { t: `Uma receita usa ${ovos} ovos para ${bolos} bolo${bolos > 1 ? 's' : ''}. Quantos ovos são precisos para ${bolos * mult} bolos?`, v: ovos * mult, exp: `${bolos * mult} bolos é ${mult} vezes a receita: ${ovos} × ${mult} = ${ovos * mult} ovos.` }; }
+    const parte = r(5, 40); const total = parte * 3; return { t: `Ana e Bia dividiram R$ ${total} de modo que Ana ficou com o dobro de Bia. Quanto Bia recebeu? (em reais)`, v: parte, exp: `Bia tem 1 parte e Ana tem 2: são 3 partes. ${total} ÷ 3 = ${parte}.` };
+  }
+};
+const GEN7 = (id) => (k) => { const q = doBanco('7', id)(k); return Object.assign(q, { exp: 'A resposta certa é ' + (q.s || fmtN(q.v)) + '. Refaça a conta com calma no caderno.' }); };
+
+const MUNDOS = [
+  { n: 1, nome: 'Mundo 1 · 6º ano', regioes: [
+    { el: 'fogo', unidade: 'Números naturais', etapas: [['Adição', 'adicao', '6op'], ['Subtração', 'subtracao', '6op'], ['Multiplicação', 'multiplicacao', '6op'], ['Divisão', 'divisao', '6op'], ['Potências', 'potencias', '6pot'], ['Expressões numéricas', 'expressoes', '6op'], ['Múltiplos e divisores', 'multiplos', '6mult']] },
+    { el: 'agua', unidade: 'Frações e decimais', etapas: [['Frações', 'fracoes', '6fr'], ['Frações equivalentes', 'equivalentes', '6fr'], ['Operações com frações', 'opfracoes', '6fr'], ['Números decimais', 'decimais', '6dec'], ['Porcentagem', 'porcentagem', '6pct']] },
+    { el: 'planta', unidade: 'Geometria', etapas: [['Retas e ângulos', 'angulos', '6geo'], ['Polígonos', 'poligonos', '6geo'], ['Triângulos e quadriláteros', 'triangulos', '6geo'], ['Plano cartesiano', 'cartesiano', '6cart']] },
+    { el: 'pedra', unidade: 'Grandezas e medidas', etapas: [['Comprimento e perímetro', 'perimetro', '6med'], ['Área', 'area', '6med'], ['Massa e capacidade', 'massa', '6massa'], ['Tempo', 'tempo', '6tempo']] },
+    { el: 'raio', unidade: 'Álgebra e proporção', etapas: [['Sequências', 'sequencias', '6alg'], ['Propriedades da igualdade', 'igualdade', '6alg'], ['Partilha e proporção', 'partilha', '6part']] }
+  ] },
+  { n: 2, nome: 'Mundo 2 · 7º ano', regioes: [
+    { el: 'fogo', unidade: 'Números inteiros', etapas: [['Adição de inteiros', '7int-a', '7int'], ['Multiplicação de inteiros', '7int-b', '7int'], ['Expressões com inteiros', '7int-c', '7int']] },
+    { el: 'agua', unidade: 'Frações e porcentagem', etapas: [['Operações com frações', '7fr', '7fr'], ['Porcentagem e descontos', '7pct', '7pct']] },
+    { el: 'raio', unidade: 'Equações e proporção', etapas: [['Equações do 1º grau', '7eq', '7eq'], ['Razão e proporção', '7prop', '7prop']] },
+    { el: 'planta', unidade: 'Ângulos', etapas: [['Ângulos e polígonos', '7ang', '7ang']] },
+    { el: 'pedra', unidade: 'Área e volume', etapas: [['Área e volume', '7med', '7med']] }
+  ] }
+];
+['7fr', '7pct', '7eq', '7prop', '7ang', '7med'].forEach(id => { GEN[id] = GEN7(id); });
+GEN['7int-a'] = (k) => { const c = CONTEUDOS['7'].find(x => x.id === '7int'); const q = c.g.facil(); return Object.assign({ t: q.t, v: q.v }, { exp: 'Sinais diferentes: subtraia e fique com o sinal do maior. A resposta é ' + fmtN(q.v) + '.' }); };
+GEN['7int-b'] = (k) => { const c = CONTEUDOS['7'].find(x => x.id === '7int'); const q = c.g.media(); return Object.assign({ t: q.t, v: q.v }, { exp: 'Sinais iguais dão positivo; sinais diferentes dão negativo. A resposta é ' + fmtN(q.v) + '.' }); };
+GEN['7int-c'] = (k) => { const c = CONTEUDOS['7'].find(x => x.id === '7int'); const q = c.g[k < 3 ? 'media' : 'dificil'](); return Object.assign({ t: q.t, v: q.v }, { exp: 'Faça primeiro as multiplicações e divisões, depois as somas. A resposta é ' + fmtN(q.v) + '.' }); };
+
+// Lista única de etapas, na ordem em que liberam (mundo 1 inteiro, depois mundo 2)
+const ETAPAS = [];
+MUNDOS.forEach((M, mi) => M.regioes.forEach((R, ri) => {
+  R.mi = mi; R.ri = ri; R.inicio = ETAPAS.length;
+  R.etapas.forEach(([nome, gen, st], i) => ETAPAS.push({ nome, gen, st, mi, ri, i, chefe: false }));
+  ETAPAS.push({ nome: 'Chefão ' + (R.el === 'agua' || R.el === 'planta' || R.el === 'pedra' ? 'da ' : 'do ') + EL[R.el].nome, mi, ri, i: R.etapas.length, chefe: true, st: null });
+  R.total = R.etapas.length + 1;
+}));
+const nomeRegiao = (el) => 'Região ' + (el === 'fogo' || el === 'raio' ? 'do ' : 'da ') + EL[el].nome;
+const QTD = (e) => e.chefe ? 10 : 6;
+const estrelasDe = (acertos, total) => total === 10 ? (acertos >= 10 ? 3 : acertos >= 9 ? 2 : acertos >= 7 ? 1 : 0) : (acertos >= 6 ? 3 : acertos >= 5 ? 2 : acertos >= 4 ? 1 : 0);
+const minimo = (e) => e.chefe ? 7 : 4;
+
+function questaoDaEtapa(g, k) {
+  const e = ETAPAS[g];
+  let fonte = e;
+  if (e.chefe) { const doReg = ETAPAS.filter(x => x.mi === e.mi && x.ri === e.ri && !x.chefe); fonte = doReg[k % doReg.length]; }
+  const q = GEN[fonte.gen](e.chefe ? Math.min(5, Math.floor(k / 2)) : k);
+  const resposta = q.s || fmtN(q.v);
+  return { texto: q.t, valor: q.v, resposta, exp: q.exp || ('A resposta certa é ' + resposta + '.'), st: fonte.st };
+}
+
+/* ================== v0.04: abas, missões, trilha e Treino Solo ================== */
+const hojeStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const LIMITE_TREINO = 100, BAU = 30;
+const MISSOES = [
+  { id: 'acertos', txt: 'Acerte 10 questões', meta: 10, xp: 20, moedas: 0, cor: '#5EE6FF', ic: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
+  { id: 'etapa', txt: 'Complete 1 etapa do mapa', meta: 1, xp: 0, moedas: 15, cor: '#FFD23F', ic: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>' },
+  { id: 'escudo', txt: 'Use um Escudo numa partida', meta: 1, xp: 10, moedas: 5, cor: '#4AA8FF', ic: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>' }
+];
+const recompensa = (m) => [m.xp ? '+' + m.xp + ' XP' : '', m.moedas ? '+' + m.moedas + ' moedas' : ''].filter(Boolean).join(' · ');
+const MOEDA = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" style="flex:none"><circle cx="8" cy="8" r="7" fill="#FFD23F"/><circle cx="8" cy="8" r="4.5" fill="none" stroke="#C8962A" stroke-width="1.5"/></svg>';
+const ICO = (d, cor, t) => `<svg viewBox="0 0 24 24" width="${t || 18}" height="${t || 18}" aria-hidden="true" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none">${d}</svg>`;
+const CADEADO = (cor, t) => ICO('<rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', cor || '#6E7299', t || 14);
+const COROA = (cor, t) => `<svg viewBox="0 0 24 24" width="${t || 16}" height="${t || 16}" aria-hidden="true" fill="${cor}" style="flex:none"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>`;
+const ESTRELA_CSS = 'clip-path:polygon(50% 0,62% 35%,100% 38%,70% 60%,80% 100%,50% 76%,20% 100%,30% 60%,0 38%,38% 35%)';
+const estrelasHTML = (n, t, apagada) => `<span aria-hidden="true" style="display:inline-flex;gap:2px">${[0, 1, 2].map(i => `<i style="display:block;width:${t}px;height:${t}px;${ESTRELA_CSS};background:${i < n ? '#FFD23F' : (apagada || '#2A2E55')}"></i>`).join('')}</span>`;
+const BAU_SVG = (cor) => `<svg viewBox="0 0 32 28" width="30" height="26" aria-hidden="true" style="flex:none"><rect x="3" y="11" width="26" height="15" fill="${cor}"/><path d="M3 11c0-6 4-9 13-9s13 3 13 9z" fill="${cor}" opacity=".8"/><rect x="3" y="10" width="26" height="3" fill="#0E0F1E" opacity=".35"/><rect x="13" y="9" width="6" height="8" fill="#0E0F1E" opacity=".55"/></svg>`;
+
+/* ---------- Perfil: campos novos ---------- */
+let ultimoLogin = '';
+function migrarPerfil() {
+  if (!P) return;
+  if (P.moedas == null) P.moedas = 40;
+  if (!Array.isArray(P.estrelas)) P.estrelas = [];
+  if (P.vinculo == null) P.vinculo = 20;
+  if (!P.st) P.st = { cont: {}, dias: {}, partidas: 0, vitorias: 0, dano: 0, recebido: 0, rapidos: 0, tempo: 0, tempoN: 0, rivais: {} };
+  if (!P.login && ultimoLogin) P.login = ultimoLogin;
+  checarDia();
+}
+function checarDia() {
+  const h = hojeStr();
+  if (!P.dia || P.dia.data !== h) P.dia = { data: h, xpTreino: 0, prog: { acertos: 0, etapa: 0, escudo: 0 }, bau: false, cuidados: {} };
+}
+function progredirMissao(id, n) {
+  if (!P) return null; checarDia();
+  const m = MISSOES.find(x => x.id === id), antes = P.dia.prog[id] >= m.meta;
+  P.dia.prog[id] = Math.min(m.meta, P.dia.prog[id] + n);
+  if (!antes && P.dia.prog[id] >= m.meta) { P.xp += m.xp; P.moedas += m.moedas; salvarPerfil(); return m; }
+  salvarPerfil(); return null;
+}
+function registrarResposta(st, ok) {
+  if (!P || !st) return;
+  const c = P.st.cont[st] || [0, 0]; c[1]++; if (ok) c[0]++; P.st.cont[st] = c;
+  const h = hojeStr(), d = P.st.dias[h] || [0, 0]; d[1]++; if (ok) d[0]++; P.st.dias[h] = d;
+}
+const missoesFeitas = () => MISSOES.filter(m => P.dia.prog[m.id] >= m.meta).length;
+
+/* ---------- Navegação entre abas ---------- */
+const ABAS = [['inicio', 'Início', '<path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/>'], ['conta', 'Conta', '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'], null, ['criatura', 'Criatura', '<path d="M12 3c3.5 0 6 6 6 10a6 6 0 0 1-12 0c0-4 2.5-10 6-10z"/>'], ['estat', 'Estatísticas', '<path d="M5 20V11M12 20V5M19 20v-7"/>']];
+function navHTML(ativa) {
+  return ABAS.map(a => a ? `<button class="nav" data-aba="${a[0]}" aria-current="${a[0] === ativa ? 'page' : 'false'}">${ICO(a[2], 'currentColor', 22)}${a[1]}</button>`
+    : `<button class="jogar" data-jogar aria-label="Jogar"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="#0E0F1E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="M14.5 6.5 18 3h3v3l-3.5 3.5"/><path d="m5 14 4 4"/><path d="m7 17-3 3"/></svg>JOGAR</button>`).join('');
+}
+function irAba(aba) {
+  checarDia();
+  if (aba === 'inicio') renderInicio(); else if (aba === 'conta') renderConta(); else if (aba === 'criatura') renderCriatura(); else if (aba === 'estat') renderEstat();
+  mostrar(aba);
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-aba]'); if (a && a.getAttribute('aria-current') !== 'page') { irAba(a.dataset.aba); return; }
+  if (e.target.closest('[data-jogar]')) abrirJogar();
+});
+function topoHTML(titulo) {
+  const nv = nivelDe(P.xp);
+  return `<div class="topo2"><div class="mini-av">${avatarHTML(P.av, 3)}</div><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">`
+    + `<p class="cp" style="margin:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${titulo || esc(P.nick)}</p>`
+    + `<div style="display:flex;align-items:center;gap:6px"><span class="cp selo-nv">NÍVEL ${nv.n}</span><div class="barra" style="flex:1;max-width:120px;height:7px" role="progressbar" aria-label="Nível ${nv.n}: ${nv.r} de ${nv.need} XP"><i style="width:${nv.r / nv.need * 100}%"></i></div></div></div>`
+    + `<p class="cp moedas" aria-label="Moedas: ${P.moedas}">${MOEDA}${P.moedas}</p>`
+    + `<button class="voltar" data-ajustes aria-label="Ajustes" style="width:40px;height:40px">${ICO('<path d="M20 7h-9M14 17H4"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>', '#A9ADD6')}</button></div>`;
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-ajustes]')) abrirAjustes(); });
+
+/* ---------- 5. Início ---------- */
+const UI = { regiao: null, destaque: null };
+const atual = () => P.estrelas.length;
+const mundoLiberado = (mi) => mi === 0 || atual() >= MUNDOS[0].regioes.reduce((a, R) => a + R.total, 0);
+const ILHA = [[14, 238], [196, 182], [14, 126], [196, 70], [105, 12]];
+function renderInicio() {
+  migrarPerfil();
+  const nv = nivelDe(P.xp), E = EL[P.el], pronto = nv.n >= 1, novato = P.partidas === 0 || !pronto;
+  let h = topoHTML();
+  if (novato) {
+    h += `<div class="cartao cantos"><p class="rot">SEU TIME</p><div style="display:flex;align-items:flex-end;gap:12px;margin-top:6px"><div style="position:relative;width:200px;height:160px;flex:none">`
+      + `<div style="position:absolute;left:6px;bottom:6px">${avatarHTML(P.av, 4)}</div><div aria-hidden="true" style="position:absolute;left:0;bottom:0;width:110px;height:14px;border-radius:50%;background:${E.cor}44;box-shadow:0 0 14px ${E.cor}66"></div>`
+      + `<div class="${pronto ? 'treme' : 'flutua'}" style="position:absolute;left:128px;top:40px;filter:drop-shadow(0 0 12px ${E.cor})">${ovoSVG(P.el, 46, 58, pronto)}</div></div>`
+      + `<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;padding-bottom:6px"><p class="rot">COMPANHEIRO</p><p class="cp" style="margin:0;font-size:16px;color:${E.cor}">Ovo de ${E.nome}</p><p class="aviso">Choca no nível 1. Jogue uma partida!</p></div></div></div>`;
+    const passos = [['Criar sua conta', true], ['Ganhar seu ovo', true], ['Jogar a primeira partida', P.partidas > 0], ['Chegar ao nível 1 (o ovo choca)', pronto]];
+    h += `<div class="cartao"><p class="rot">PRIMEIROS PASSOS · ${passos.filter(p => p[1]).length}/4</p><div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">`
+      + passos.map(([t, ok]) => `<div class="passo"><span class="ok" style="${ok ? 'background:var(--ciano);color:var(--bg)' : 'border:1px solid var(--borda);color:var(--texto3)'}">${ok ? '✓' : ''}</span><span style="${ok ? 'color:var(--texto2);text-decoration:line-through' : ''}">${t}</span></div>`).join('')
+      + `</div></div><div class="cartao" style="display:flex;align-items:center;gap:12px;border-style:dashed">${CADEADO('#8B8FB8', 22)}<div><p class="cp" style="margin:0;font-size:14px;letter-spacing:1px;color:var(--texto2)">MISSÕES E MAPA DE TREINO</p><p class="aviso" style="font-size:12px">Abrem quando você terminar os primeiros passos.</p></div></div>`;
+  } else {
+    const feitas = missoesFeitas();
+    h += `<div style="display:flex;justify-content:space-between;align-items:center"><p class="rot">MISSÕES DE HOJE · ${feitas}/3</p><p style="margin:0;font-size:11px;color:var(--texto3)">Novas missões amanhã</p></div>`
+      + `<div class="missoes">${MISSOES.map(m => { const v = P.dia.prog[m.id], ok = v >= m.meta; return `<div class="missao${ok ? ' ok' : ''}" role="group" aria-label="${m.txt}: ${v} de ${m.meta}${ok ? ', concluída' : ''}"><span style="display:flex;justify-content:space-between">${ICO(m.ic, m.cor)}${ok ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 16) : ''}</span><span class="txt">${m.txt}</span><span class="barra" style="height:5px;border:0;background:#22264A"><i style="width:${v / m.meta * 100}%;background:${ok ? '#6FE3C1' : '#5EE6FF'}"></i></span><span style="display:flex;justify-content:space-between;gap:4px"><span style="font-size:11px;font-weight:600;color:var(--texto2)">${v}/${m.meta}</span><span style="font-size:10px;font-weight:700;color:var(--amarelo);text-align:right">${recompensa(m)}</span></span></div>`; }).join('')}</div>`
+      + `<button class="bau-lin" id="bau" aria-label="Baú do dia">${P.dia.bau ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 24) : `<span class="${feitas === 3 ? 'balanca' : ''}" style="display:flex;${feitas === 3 ? '' : 'opacity:.5'}">${BAU_SVG(feitas === 3 ? '#FFD23F' : '#A9ADD6')}</span>`}<span style="flex:1;display:flex;flex-direction:column;gap:5px;text-align:left"><span style="font-size:12px;font-weight:600">${P.dia.bau ? 'Baú aberto: +' + BAU + ' moedas' : feitas === 3 ? 'Baú pronto! Toque para abrir.' : 'Faça as 3 missões e abra o baú (+' + BAU + ' moedas)'}</span><span style="display:flex;gap:3px">${[0, 1, 2].map(i => `<i style="flex:1;height:6px;background:${i < feitas ? '#6FE3C1' : '#2A2E55'}"></i>`).join('')}</span></span></button>`;
+    h += mapaHTML();
+  }
+  h += `<nav class="barra-nav" aria-label="Menu">${navHTML('inicio')}</nav>`;
+  $('t-inicio').innerHTML = h;
+  if (!novato) ligarMapa();
+}
+function mapaHTML() {
+  const a = atual(), cur = ETAPAS[Math.min(a, ETAPAS.length - 1)];
+  if (UI.regiao === null || !MUNDOS[UI.regiao[0]]) UI.regiao = [cur.mi, cur.ri];
+  const [mi, ri] = UI.regiao, M = MUNDOS[mi];
+  let h = `<p class="rot" style="margin-top:4px">MAPA DE TREINO</p>`
+    + `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--texto2);white-space:nowrap">Treino de hoje: ${P.dia.xpTreino}/${LIMITE_TREINO} XP</span><span class="barra" style="flex:1;height:5px;border:0;background:#22264A"><i style="width:${P.dia.xpTreino}%;background:#36C46B"></i></span></div>`
+    + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${W.nome.toUpperCase()}</button>`).join('')}</div>`;
+  const pts = M.regioes.map((R, k) => (ILHA[k][0] + 72) + ',' + (ILHA[k][1] + 25));
+  const livres = M.regioes.filter(R => a >= R.inicio).length;
+  h += `<div class="mapa"><svg viewBox="0 0 354 300" width="354" height="300" aria-hidden="true" style="position:absolute;left:0;top:0"><polyline points="${pts.join(' ')}" fill="none" stroke="#2A2E55" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/><polyline points="${pts.slice(0, livres).join(' ')}" fill="none" stroke="#FFD23F" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/></svg>`
+    + M.regioes.map((R, k) => {
+      const E = EL[R.el], feitasR = Math.max(0, Math.min(R.total, a - R.inicio)), bloq = a < R.inicio, sel = k === ri, aqui = a >= R.inicio && a < R.inicio + R.total;
+      return `<button class="ilha" data-regiao="${k}" aria-pressed="${sel}" aria-label="${nomeRegiao(R.el)}, ${R.unidade}, ${feitasR} de ${R.total}${bloq ? ', bloqueada' : ''}" style="left:${ILHA[k][0]}px;top:${ILHA[k][1]}px;border:${sel ? '2px solid #F2F3FF' : '1px solid ' + (bloq ? '#2A2E55' : E.cor)};background:${bloq ? '#15172C' : E.cor + '2E'}">`
+        + `<span style="display:flex;align-items:center;gap:6px;width:100%"><i style="width:10px;height:10px;flex:none;background:${E.cor}"></i><span class="cp" style="flex:1;font-size:13px">${E.nome}</span>${bloq ? CADEADO() : ''}<span class="cp" style="font-size:11px;color:var(--texto2)">${feitasR}/${R.total}</span></span>`
+        + `<span style="display:block;width:100%;height:4px;background:#0E0F1E"><span style="display:block;height:100%;width:${feitasR / R.total * 100}%;background:${E.cor}"></span></span></button>`
+        + (aqui ? `<div class="flutua" style="position:absolute;left:${ILHA[k][0] + (k % 2 ? -30 : 150)}px;top:${ILHA[k][1] - 16}px;pointer-events:none">${avatarHTML(P.av, 1)}</div>` : '');
+    }).join('') + `</div>`;
+  const R = M.regioes[ri], E = EL[R.el], feitasR = Math.max(0, Math.min(R.total, a - R.inicio));
+  h += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><i style="width:10px;height:10px;background:${E.cor}"></i><span style="flex:1;display:flex;flex-direction:column;gap:1px"><span class="cp" style="font-size:13px;letter-spacing:2px">${nomeRegiao(R.el).toUpperCase()}</span><span style="font-size:12px;color:var(--texto2)">${R.unidade}</span></span><span class="cp" style="font-size:13px;color:var(--texto2)">${feitasR}/${R.total}</span></div>`
+    + ETAPAS.map((e, g) => [e, g]).filter(([e]) => e.mi === mi && e.ri === ri).map(([e, g]) => {
+      const st = g < a ? 'feita' : g === a ? 'atual' : 'bloq', dest = UI.destaque === g;
+      return `<button class="etapa${st === 'atual' ? ' atual' : ''}${dest ? ' destaque' : ''}" data-etapa="${g}" aria-label="${e.nome}${st === 'feita' ? ', ' + P.estrelas[g] + ' de 3 estrelas' : st === 'atual' ? ', próxima etapa' : ', bloqueada'}">`
+        + `<span class="bol cp" style="background:${st === 'bloq' ? '#22264A' : E.cor}">${e.chefe ? COROA('#0E0F1E') : st === 'bloq' ? CADEADO() : e.i + 1}</span>`
+        + `<span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:${st === 'bloq' ? '#6E7299' : 'var(--texto)'}">${e.nome}</span>`
+        + (st === 'feita' ? estrelasHTML(P.estrelas[g], 12) : st === 'atual' ? `<span class="cp" style="padding:6px 10px;background:var(--amarelo);color:var(--bg);font-size:11px;letter-spacing:1px">COMEÇAR</span>` : '') + `</button>`;
+    }).join('') + `</div>`;
+  if (mi === 0) h += `<button class="cartao" data-mundo="1" style="display:flex;align-items:center;gap:12px;border-style:dashed;text-align:left">${mundoLiberado(1) ? ICO('<path d="M9 6l6 6-6 6"/>', '#5EE6FF', 22) : CADEADO('#8B8FB8', 22)}<span><span class="cp" style="display:block;font-size:14px;letter-spacing:1px;color:var(--texto2)">MUNDO 2 · 7º ANO</span><span style="font-size:12px;color:var(--texto3)">${mundoLiberado(1) ? 'Liberado! Toque para ver.' : 'Abre depois do Chefão do Raio'}</span></span></button>`;
+  return h;
+}
+function ligarMapa() {
+  const t = $('t-inicio');
+  t.querySelectorAll('[data-mundo]').forEach(b => b.onclick = () => {
+    const k = +b.dataset.mundo;
+    if (!mundoLiberado(k)) { avisar('O Mundo 2 (7º ano) abre quando você vencer o Chefão do Raio do Mundo 1.'); return; }
+    UI.regiao = [k, 0]; UI.destaque = null; renderInicio(); const m = $('t-inicio').querySelector('.mapa'); if (m) m.scrollIntoView({ block: 'start' });
+  });
+  t.querySelectorAll('[data-regiao]').forEach(b => b.onclick = () => { UI.regiao = [UI.regiao[0], +b.dataset.regiao]; UI.destaque = null; const y = t.scrollTop; renderInicio(); $('t-inicio').scrollTop = y; });
+  t.querySelectorAll('[data-etapa]').forEach(b => b.onclick = () => abrirEtapa(+b.dataset.etapa));
+  const bau = $('bau'); if (bau) bau.onclick = () => {
+    const f = missoesFeitas();
+    if (P.dia.bau) { avisar('Você já abriu o baú de hoje. Amanhã tem mais!'); return; }
+    if (f < 3) { avisar('Faltam ' + (3 - f) + ' missões para abrir o baú.'); return; }
+    P.dia.bau = true; P.moedas += BAU; salvarPerfil(); const y = t.scrollTop; renderInicio(); $('t-inicio').scrollTop = y; avisar('Baú aberto! +' + BAU + ' moedas.');
+  };
+}
+function abrirEtapa(g) {
+  const a = atual(), e = ETAPAS[g];
+  if (g > a) { avisar('Termine “' + ETAPAS[a].nome + '” para liberar esta etapa.'); return; }
+  const R = MUNDOS[e.mi].regioes[e.ri], E = EL[R.el], feita = g < a, n = QTD(e), min = minimo(e);
+  abrirFolha(`<div style="display:flex;align-items:center;gap:8px;border-top:3px solid ${E.cor};margin:-18px -18px 0;padding:14px 18px 0"><i style="width:10px;height:10px;background:${E.cor}"></i><p class="rot" style="flex:1">${nomeRegiao(R.el).toUpperCase()} · ${e.chefe ? 'CHEFÃO' : 'ETAPA ' + (e.i + 1) + ' DE ' + R.total}</p><button class="voltar" style="background:transparent" data-fechar aria-label="Fechar">${ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#A9ADD6', 20)}</button></div>`
+    + `<p class="cp" style="margin:0;font-size:24px">${e.nome}</p>`
+    + (feita ? `<div style="display:flex;align-items:center;gap:10px">${estrelasHTML(P.estrelas[g], 18)}<p class="aviso">Sua marca: ${P.estrelas[g]} de 3 estrelas.${P.estrelas[g] < 3 ? ' Refaça para buscar as 3.' : ''}</p></div>` : '')
+    + `<p style="margin:0;font-size:14px">${e.chefe ? n + ' questões de toda a região' : n + ' questões de ' + e.nome.toLowerCase()} · sem cronômetro</p>`
+    + `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:var(--bg);border:1px solid var(--borda)"><p class="aviso">★ 1 estrela: ${min} acertos (${e.chefe ? 'abre a próxima região' : 'libera a próxima etapa'})</p><p class="aviso">★ 2 estrelas: ${n - 1} acertos</p><p class="aviso">★ 3 estrelas: ${n} acertos</p></div>`
+    + `<p style="margin:0;font-size:13px;color:var(--amarelo);display:flex;align-items:center;gap:6px">${MOEDA}+5 XP por acerto · ${e.chefe ? '+20' : '+5'} moedas na primeira vez</p>`
+    + (P.dia.xpTreino >= LIMITE_TREINO ? `<p class="aviso" style="font-size:12px">Você já chegou aos ${LIMITE_TREINO} XP de treino hoje. A etapa ainda libera e dá moedas, mas o XP volta amanhã.</p>` : '')
+    + `<button class="btn btn-prim" id="etapa-ir">${feita ? 'REFAZER' : e.chefe ? 'ENFRENTAR' : 'COMEÇAR'}</button>`, e.nome);
+  $('etapa-ir').onclick = () => { fecharFolha(); iniciarLicao(g); };
+}
+function irParaEtapa(st) {
+  const a = atual();
+  const cands = ETAPAS.map((e, g) => [e, g]).filter(([e, g]) => e.st === st && g <= a);
+  let g;
+  if (cands.length) g = cands[cands.length - 1][1];
+  else { g = a; avisar('Esse conteúdo aparece mais à frente na trilha. Continue de onde parou!'); }
+  const e = ETAPAS[g]; UI.regiao = [e.mi, e.ri]; UI.destaque = g;
+  irAba('inicio');
+  const b = $('t-inicio').querySelector('[data-etapa="' + g + '"]'); if (b) b.scrollIntoView({ block: 'center' });
+  if (cands.length) setTimeout(() => abrirEtapa(g), 350);
+}
+
+/* ---------- Treino Solo: a lição (arena de treino) ---------- */
+let L = null;
+const BONECO = '<svg viewBox="0 0 64 110" width="64" height="110" role="img" aria-label="Boneco de treino"><rect x="29" y="70" width="6" height="36" fill="#7A5A44"/><rect x="16" y="104" width="32" height="6" fill="#5A3F2E"/><rect x="10" y="32" width="44" height="42" fill="#C29A7E"/><rect x="2" y="40" width="60" height="8" fill="#A47E63"/><circle cx="32" cy="18" r="15" fill="#C29A7E"/><circle cx="32" cy="18" r="9" fill="none" stroke="#FF4D6D" stroke-width="3"/><circle cx="32" cy="18" r="3" fill="#FF4D6D"/><rect x="18" y="38" width="28" height="30" fill="none" stroke="#5A3F2E" stroke-width="2" stroke-dasharray="4 3"/></svg>';
+function iniciarLicao(g) {
+  checarDia(); $('toast').classList.remove('on');
+  const e = ETAPAS[g], n = QTD(e);
+  const qs = []; const vistos = new Set();
+  for (let k = 0; k < n; k++) { let q, tent = 0; do { q = questaoDaEtapa(g, k); tent++; } while (vistos.has(q.texto) && tent < 12); vistos.add(q.texto); qs.push(q); }
+  L = { g, qs, i: 0, dig: '', erro: '', fase: 'pergunta', hist: [], xp: 0, missoes: [], capou: false, nivel0: nivelDe(P.xp).n };
+  mostrar('licao'); montarLicao(); renderLicao(); requestAnimationFrame(ajustarLicao);
+}
+function montarLicao() {
+  const e = ETAPAS[L.g], R = MUNDOS[e.mi].regioes[e.ri], C = EL[R.el].cor, E = EL[P.el];
+  $('lc-cena').innerHTML = `<div id="lc-in" style="position:absolute;left:0;top:0;width:358px;height:200px;transform-origin:0 0">`
+    + `<div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,#2A1420 0%,#1A1430 55%,#12142A 100%)"></div>`
+    + `<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:52px;background-color:#1C1630;background-image:linear-gradient(90deg,${C}1F 1px,transparent 1px);background-size:16px 16px;border-top:2px solid ${C}66"></div>`
+    + `<p class="cp" style="position:absolute;left:10px;top:10px;margin:0;padding:3px 8px;background:var(--card);border:1px solid ${C};font-size:10px;letter-spacing:2px;color:${C}">ARENA DE TREINO</p>`
+    + `<div style="position:absolute;left:198px;top:12px;width:124px;display:flex;flex-direction:column;gap:3px"><p class="cp" style="margin:0;display:flex;justify-content:space-between;font-size:11px"><span>ARMADURA</span><span id="lc-arm-n"></span></p><div id="lc-arm" role="img" style="display:flex;gap:2px"></div></div>`
+    + `<div aria-hidden="true" style="position:absolute;left:224px;top:138px;width:72px;height:10px;border-radius:50%;background:rgba(0,0,0,.4)"></div>`
+    + `<div style="position:absolute;left:228px;top:32px;width:64px;height:110px"><div id="lc-boneco">${BONECO}</div><div id="lc-fx" aria-hidden="true" style="position:absolute;left:50%;top:50%;width:100px;height:140px;margin:-70px 0 0 -50px;pointer-events:none;z-index:4"></div><div id="lc-esc" aria-hidden="true" style="position:absolute;left:-12px;top:-4px;width:88px;height:118px;border:3px solid #A9ADD6;border-radius:40% 40% 50% 50%;background:rgba(169,173,214,.15);opacity:0"></div></div>`
+    + `<div style="position:absolute;left:14px;bottom:4px">${avatarHTML(P.av, 3, 'costas')}</div>`
+    + `<div aria-hidden="true" style="position:absolute;left:110px;bottom:12px;width:34px;height:7px;border-radius:50%;background:${E.cor}55"></div>`
+    + `<div class="flutua" style="position:absolute;left:104px;bottom:24px;width:46px;height:58px"><div id="lc-ovo" style="--fx:${E.cor};filter:drop-shadow(0 0 10px ${E.cor})">${ovoSVG(P.el, 40, 52, nivelDe(P.xp).n >= 1)}</div></div>`
+    + `<div id="lc-bola" aria-hidden="true" style="position:absolute;left:116px;top:100px;width:24px;height:24px;border-radius:50%;opacity:0;background:radial-gradient(circle,#fff 0 22%,${E.grad[0]} 40%,${E.cor} 68%,transparent 72%);box-shadow:0 0 16px ${E.cor}"></div>`
+    + `<div id="lc-tela" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;opacity:0;background:${E.tela}"></div></div>`;
+  ajustarLicao();
+}
+function ajustarLicao() { const c = $('lc-cena'), i = $('lc-in'); if (!c || !i || !c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
+window.addEventListener('resize', ajustarLicao);
+function quebradas() { return L.hist.filter(Boolean).length - (L.fase === 'certo' && !L.impacto ? 1 : 0); }
+function renderLicao() {
+  const n = L.qs.length, q = L.qs[L.i], e = ETAPAS[L.g], resp = L.fase === 'certo' || L.fase === 'errado';
+  $('lc-segs').innerHTML = L.qs.map((_, k) => { const h = L.hist[k]; return `<i style="flex:1;height:10px;${h === true ? 'background:#6FE3C1' : h === false ? 'background:#FF4D6D' : k === L.i ? 'border:2px solid #F2F3FF' : 'background:#22264A'}"></i>`; }).join('');
+  $('lc-segs').setAttribute('aria-label', 'Questão ' + (L.i + 1) + ' de ' + n + ', ' + L.hist.filter(Boolean).length + ' acertos');
+  $('lc-cont').textContent = (L.i + 1) + '/' + n;
+  const qb = quebradas(), C = EL[MUNDOS[e.mi].regioes[e.ri].el].cor;
+  $('lc-arm').innerHTML = L.qs.map((_, k) => `<i style="flex:1;height:8px;background:${k < qb ? '#2A2E55' : C}"></i>`).join('');
+  $('lc-arm-n').textContent = (n - qb) + '/' + n; $('lc-arm').setAttribute('aria-label', 'Armadura do boneco: ' + (n - qb) + ' de ' + n + ' placas');
+  const ac = L.hist.filter(Boolean).length, min = minimo(e), E = EL[P.el];
+  $('lc-narra').textContent = L.fase === 'certo' ? 'Você acertou! Seu ovo lançou ' + (E.art === 'o' ? 'um ' : 'uma ') + E.golpe + ' e quebrou uma placa da armadura.'
+    : L.fase === 'errado' ? 'O boneco bloqueou. A resposta é ' + q.resposta + '.'
+      : ac >= min ? 'Etapa garantida! Quebre mais placas para ganhar estrelas.' : 'Acerte para seu ovo atacar. Quebre ' + min + ' placas para ' + (e.chefe ? 'abrir a próxima região.' : 'liberar a próxima etapa.');
+  $('lc-perg').innerHTML = `<p class="rot">${e.chefe ? 'CHEFÃO · ' : ''}${esc(e.nome.toUpperCase())} · QUESTÃO ${L.i + 1} DE ${n}</p><p class="pergunta" style="${q.texto.length > 34 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:18px' : 'font-size:34px'}">${fracHTML(q.texto)}</p>`
+    + (L.fase === 'errado' ? `<p class="aviso entra" style="padding:8px 10px;color:var(--texto);background:rgba(255,77,109,.10);border-left:3px solid var(--vermelho)">${fracHTML(esc(q.exp))}</p>` : '');
+  const p = $('lc-painel'), d = L.dig;
+  const val = !d ? `<span style="font-size:14px;font-weight:600;color:#62668F">toque nos números</span>` : d.includes('/') ? (() => { const [a, b] = d.split('/'); return `<span class="fr" style="font-size:19px"><span>${esc(a)}</span><span style="min-width:22px;border-top-color:var(--amarelo)">${esc(b)}${b || resp ? '' : '<span class="cursor">_</span>'}</span></span>`; })() : esc(d) + (resp ? '' : '<span class="cursor">_</span>');
+  const marca = L.fase === 'certo' ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 22) : L.fase === 'errado' ? ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D', 22) : '';
+  p.innerHTML = `<div class="resposta" style="border-color:${L.fase === 'certo' ? 'var(--verde)' : L.fase === 'errado' ? 'var(--vermelho)' : 'var(--ciano)'}"><p class="rot" style="${L.erro ? 'color:var(--vermelho)' : ''}">${L.erro || 'SUA RESPOSTA'}</p><div class="val" aria-live="polite">${val}<span style="margin-left:8px;display:flex">${marca}</span></div></div>`
+    + (resp ? `<button class="btn btn-prim entra" id="lc-seguir" style="min-height:${L.fase === 'certo' ? 150 : 120}px;font-size:18px">${L.i >= n - 1 ? 'VER RESULTADO' : 'CONTINUAR'}</button>`
+      : `<div class="teclado">${TECLAS.map(k => `<button class="tecla${NOME_TECLA[k] ? ' esp' : ''}" data-lk="${k}" aria-label="${NOME_TECLA[k] || k}">${k}</button>`).join('')}<button class="btn btn-prim" id="lc-conferir" style="grid-column:span 2;min-height:46px;font-size:17px${d ? '' : ';opacity:.45'}">CONFERIR</button></div>`);
+  p.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => teclaLicao(b.dataset.lk));
+  if ($('lc-conferir')) $('lc-conferir').onclick = conferirLicao;
+  if ($('lc-seguir')) $('lc-seguir').onclick = seguirLicao;
+}
+function teclaLicao(k) {
+  if (!L || L.fase !== 'pergunta') return;
+  let r = L.dig;
+  if (k === '⌫') r = r.slice(0, -1);
+  else if (k === '−') r = r.startsWith('−') ? r.slice(1) : '−' + r;
+  else if (k === '/') { if (r.includes('/') || !/[0-9]$/.test(r)) return; r += '/'; }
+  else if (k === ',') { if (r.split('/').pop().includes(',') || !/[0-9]$/.test(r)) return; r += ','; }
+  else { if (r.replace(/[^0-9]/g, '').length >= 7) return; r += k; }
+  L.dig = r; L.erro = ''; renderLicao();
+}
+function conferirLicao() {
+  if (!L || L.fase !== 'pergunta' || !L.dig) return;
+  const txt = L.dig.replace('−', '-');
+  if (!Number.isFinite(interpretar(txt))) { L.erro = 'COMPLETE A RESPOSTA'; renderLicao(); return; }
+  const q = L.qs[L.i], ok = confere(txt, q.valor);
+  L.hist.push(ok); L.fase = ok ? 'certo' : 'errado'; L.impacto = false;
+  registrarResposta(q.st, ok);
+  if (ok) {
+    const ganho = Math.max(0, Math.min(5, LIMITE_TREINO - P.dia.xpTreino));
+    if (ganho < 5) L.capou = true;
+    P.xp += ganho; P.dia.xpTreino += ganho; L.xp += ganho;
+    const m = progredirMissao('acertos', 1); if (m) L.missoes.push(m);
+  }
+  salvarPerfil(); renderLicao();
+  if (ok) ataqueOvo(); else { reanimar($('lc-esc'), 'lc-escudo'); }
+}
+function ataqueOvo() {
+  reanimar($('lc-ovo'), 'fx-ageA');
+  reanimar($('lc-bola'), 'lc-dispara');
+  depois(450, () => {
+    if (!L) return;
+    L.impacto = true;
+    const box = $('lc-fx'); box.className = ''; box.innerHTML = ''; void box.offsetWidth; box.className = 'fx-fxA'; box.innerHTML = FX[P.el];
+    depois(1400, () => { if ($('lc-fx')) $('lc-fx').innerHTML = ''; });
+    reanimar($('lc-boneco'), 'fx-hitA');
+    reanimar($('lc-tela'), 'fx-telaA');
+    if (P.el === 'pedra') reanimar($('lc-in'), 'fx-terremotoA');
+    renderLicao();
+  });
+}
+function seguirLicao() {
+  if (!L) return;
+  if (L.i >= L.qs.length - 1) { fimLicao(); return; }
+  limparTimers(); $('lc-fx').innerHTML = '';
+  L.i++; L.dig = ''; L.erro = ''; L.fase = 'pergunta'; L.impacto = false; renderLicao();
+}
+function fimLicao() {
+  limparTimers();
+  const e = ETAPAS[L.g], n = L.qs.length, ac = L.hist.filter(Boolean).length, est = estrelasDe(ac, n), passou = ac >= minimo(e), novo = L.g === atual();
+  let moedas = 0, liberou = '';
+  if (passou) {
+    if (novo) {
+      P.estrelas.push(est); moedas = e.chefe ? 20 : 5; P.moedas += moedas;
+      const m = progredirMissao('etapa', 1); if (m) L.missoes.push(m);
+      const prox = ETAPAS[L.g + 1];
+      if (!prox) liberou = 'Você completou a trilha inteira!';
+      else if (prox.mi !== e.mi) liberou = 'Mundo 2 (7º ano) liberado!';
+      else if (prox.ri !== e.ri) liberou = 'Nova região liberada: ' + nomeRegiao(MUNDOS[prox.mi].regioes[prox.ri].el) + '!';
+      else liberou = 'Próxima etapa liberada: ' + prox.nome;
+      if (prox) { UI.regiao = [prox.mi, prox.ri]; UI.destaque = null; }
+    } else P.estrelas[L.g] = Math.max(P.estrelas[L.g], est);
+  }
+  salvarPerfil();
+  const subiu = nivelDe(P.xp).n > L.nivel0;
+  $('lc-fim').innerHTML = `<p class="cp" style="margin:0;text-align:center;font-size:24px;letter-spacing:2px;color:var(--amarelo)">${passou ? (e.chefe ? 'CHEFÃO DERROTADO!' : novo ? 'ETAPA CONCLUÍDA!' : 'ETAPA REFEITA!') : 'FALTOU POUCO!'}</p>`
+    + `<p style="margin:0;text-align:center;font-size:14px;color:var(--texto2)">${esc(e.nome)} · ${ac} de ${n} acertos</p>`
+    + `<div role="img" aria-label="${est} de 3 estrelas" style="display:flex;justify-content:center;gap:12px;padding:4px 0">${[0, 1, 2].map(i => `<i class="estrela-fim" style="animation-delay:${0.25 + i * 0.3}s;background:${i < est ? '#FFD23F' : '#2A2E55'}"></i>`).join('')}</div>`
+    + `<div style="display:flex;justify-content:center;gap:8px"><span class="cp" style="padding:6px 10px;background:rgba(94,230,255,.12);font-size:15px;color:var(--ciano)">+${L.xp} XP</span><span class="cp" style="padding:6px 10px;background:rgba(255,210,63,.12);font-size:15px;color:var(--amarelo);display:flex;align-items:center;gap:6px">${MOEDA}+${moedas} moedas</span></div>`
+    + (subiu ? `<p class="cp" style="margin:0;text-align:center;font-size:15px;color:var(--ciano)">Você subiu para o nível ${nivelDe(P.xp).n}!</p>` : '')
+    + `<p style="margin:0;text-align:center;font-size:14px;font-weight:600">${passou ? liberou || 'Sua melhor marca foi guardada.' : 'Você precisa de ' + minimo(e) + ' acertos para ' + (e.chefe ? 'abrir a próxima região' : 'liberar a próxima etapa') + '. Tente de novo!'}</p>`
+    + (L.missoes.length ? `<div style="padding:8px 10px;border:1px solid var(--verde);background:rgba(111,227,193,.08)">${L.missoes.map(m => `<p style="margin:0;font-size:12px">✓ Missão concluída: ${m.txt} · ${recompensa(m)}</p>`).join('')}</div>` : '')
+    + (L.capou ? `<p class="aviso" style="text-align:center;font-size:12px">Você chegou ao limite de ${LIMITE_TREINO} XP de treino hoje. As etapas continuam liberando normalmente.</p>` : '')
+    + `<div style="flex:1;min-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--borda);padding:10px 12px"><p class="rot">CORREÇÃO</p>`
+    + L.qs.map((q, k) => `<div style="display:flex;align-items:center;gap:10px;min-height:34px;border-top:1px solid #22264A;padding-top:4px"><span role="img" aria-label="${L.hist[k] ? 'Acertou' : 'Errou'}" style="display:flex">${L.hist[k] ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1') : ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D')}</span><span style="flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fracHTML(q.texto)}</span><span class="cp" style="font-size:14px;color:var(--texto2)">${esc(q.resposta)}</span></div>`).join('') + `</div>`
+    + (passou ? `<button class="btn btn-prim" id="lc-mapa">VOLTAR AO MAPA</button>` : `<button class="btn btn-prim" id="lc-denovo">TENTAR DE NOVO</button><button class="btn btn-sec" id="lc-mapa" style="flex:none;min-height:44px">VOLTAR AO MAPA</button>`)
+    + (passou && est < 3 ? `<button class="btn btn-sec" id="lc-denovo" style="flex:none;min-height:44px">REFAZER PARA BUSCAR AS 3 ESTRELAS</button>` : '');
+  $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
+  $('lc-mapa').onclick = () => { $('lc-fim').classList.remove('on'); L = null; irAba('inicio'); };
+  if ($('lc-denovo')) $('lc-denovo').onclick = () => { $('lc-fim').classList.remove('on'); iniciarLicao(L.g); };
+}
+$('lc-sair').onclick = () => {
+  if (!L) return;
+  abrirFolha(cabFolha('SAIR DA LIÇÃO?') + `<p class="aviso">As respostas desta etapa não ficam salvas. O XP das questões que você já acertou continua valendo.</p><button class="btn btn-prim" data-fechar>CONTINUAR TREINANDO</button><button class="btn btn-sec" id="lc-sair-ok" style="flex:none;min-height:44px;color:var(--vermelho)">SAIR</button>`, 'Sair da lição');
+  $('lc-sair-ok').onclick = () => { fecharFolha(); limparTimers(); L = null; irAba('inicio'); };
+};
+document.addEventListener('keydown', e => {
+  if (!L || !$('t-licao').classList.contains('ativa') || $('folha-fundo').classList.contains('on')) return;
+  if (L.fase === 'pergunta') {
+    const mapa = { Backspace: '⌫', '-': '−', '.': ',', ',': ',', '/': '/' };
+    if (/^[0-9]$/.test(e.key)) teclaLicao(e.key); else if (mapa[e.key]) { e.preventDefault(); teclaLicao(mapa[e.key]); } else if (e.key === 'Enter') { e.preventDefault(); conferirLicao(); }
+  } else if (e.key === 'Enter' && (L.fase === 'certo' || L.fase === 'errado')) { e.preventDefault(); seguirLicao(); }
+});
+
+/* ---------- Aba Conta (C4) ---------- */
+const mascarar = (s) => { if (!s) return 'não informado'; const [u, d] = s.split('@'); const m = u.slice(0, 3) + '•••'; return d ? m + '@' + d : m; };
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function renderConta() {
+  migrarPerfil();
+  const nv = nivelDe(P.xp), E = EL[P.el], d = new Date(P.criado || Date.now());
+  const dados = [['E-mail ou usuário', mascarar(P.login)], ['Escola', 'SESI Gama'], ['Turma', 'definida pelo professor'], ['Turno', 'definido pelo professor'], ['Professor (GM)', 'definido pelo professor'], ['Na arena desde', MESES[d.getMonth()] + ' de ' + d.getFullYear()]];
+  $('t-conta').innerHTML = `<div class="topo"><h1 class="titulo">CONTA</h1><p class="cp moedas">${MOEDA}${P.moedas}</p></div>`
+    + `<div class="carteirinha"><div class="palco-c">${avatarHTML(P.av, 4)}<div class="flutua" style="position:absolute;right:26px;top:34px;filter:drop-shadow(0 0 10px ${E.cor})">${ovoSVG(P.el, 34, 44, nv.n >= 1)}</div><p class="rot" style="position:absolute;left:10px;top:10px;padding:3px 8px;background:var(--card);border:1px solid var(--borda);color:var(--ciano)">CARTEIRINHA DA ARENA</p></div>`
+    + `<div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px"><p class="cp" style="margin:0;font-size:22px;color:var(--amarelo)">${esc(P.nick)}</p>`
+    + `<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="cp selo-nv">NÍVEL ${nv.n}</span><span class="cp selo-nv" style="background:${E.cor}22;color:${E.cor}">OVO DE ${E.nome.toUpperCase()}</span><span class="cp selo-nv" style="background:rgba(205,127,50,.18);color:#E3A46B">LIGA: EM BREVE</span></div>`
+    + `<p class="aviso" style="font-size:12px">${P.partidas} partida${P.partidas === 1 ? '' : 's'} · ${P.xp} XP no total · ${P.estrelas.length} etapa${P.estrelas.length === 1 ? '' : 's'} da trilha</p></div></div>`
+    + `<div class="cartao" style="padding:6px 14px"><p class="rot" style="padding:8px 0 4px">MINHA CONTA</p>${dados.map(([k, v]) => `<div class="dado"><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>`
+    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-sec" id="ct-nick" style="min-height:52px">TROCAR NICK</button><button class="btn btn-sec" id="ct-priv" style="min-height:52px">PRIVACIDADE</button></div>`
+    + `<button class="btn btn-sec" data-ajustes style="flex:none;min-height:48px">AJUSTES DO APARELHO</button>`
+    + `<button class="btn btn-sec" id="ct-sair" style="flex:none;min-height:48px;color:var(--vermelho)">SAIR DA CONTA</button>`
+    + `<nav class="barra-nav" aria-label="Menu">${navHTML('conta')}</nav>`;
+  $('ct-nick').onclick = () => {
+    abrirFolha(cabFolha('TROCAR NICK') + `<p class="aviso">O novo nick passa pela aprovação do professor antes de aparecer para a turma.</p><div class="campo"><label class="rot" for="novo-nick">NOVO NICK</label><input id="novo-nick" maxlength="14" autocomplete="off" spellcheck="false" placeholder="${esc(P.nick)}"></div><p class="aviso" id="nick-erro" role="alert"></p><button class="btn btn-prim" id="nick-ok">ENVIAR PEDIDO</button>`, 'Trocar nick');
+    $('nick-ok').onclick = () => { const v = $('novo-nick').value.trim(); if (!/^[A-Za-zÀ-ú0-9]{3,14}$/.test(v)) { $('nick-erro').textContent = 'Use de 3 a 14 letras ou números, sem espaços.'; return; } fecharFolha(); avisar('Pedido enviado ao professor. (No protótipo, o pedido não sai do aparelho.)'); };
+  };
+  $('ct-priv').onclick = () => abrirFolha(cabFolha('PRIVACIDADE') + `<p class="aviso">• Seu nome verdadeiro não aparece no jogo: os colegas só veem o nick e o avatar.</p><p class="aviso">• Não existe chat livre: só mensagens rápidas prontas.</p><p class="aviso">• Suas estatísticas são vistas só por você e pelos professores.</p><p class="aviso">• Neste protótipo, tudo fica salvo apenas neste aparelho.</p>`, 'Privacidade');
+  $('ct-sair').onclick = () => { mostrar('login'); avisar('Você saiu. Seu perfil continua salvo neste aparelho.'); };
+}
+
+/* ---------- Aba Criatura (K1) ---------- */
+const CUIDADOS = [
+  { id: 'aquecer', nome: 'Aquecer', custo: 5, lado: 0, desc: 'Deixa o ninho quentinho', ic: '<path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-8z"/>', cor: '#FF7A45' },
+  { id: 'polir', nome: 'Polir', custo: 5, lado: 0, desc: 'Faz a casca brilhar', ic: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>', cor: '#5EE6FF' },
+  { id: 'ninar', nome: 'Ninar', custo: 3, lado: 1, desc: 'Uma canção de ninar', ic: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>', cor: '#B98CFF' },
+  { id: 'conversar', nome: 'Conversar', custo: 0, lado: 1, desc: 'De graça, todo dia', ic: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>', cor: '#6FE3C1' }
+];
+const FALAS_OVO = ['Hoje eu acertei uma conta de cabeça!', 'Vamos treinar frações?', 'Senti você estudando aí fora!', 'Será que eu vou ser grande?', 'Você é o melhor treinador!', 'Mais uma batalha? Estou pronto!'];
+let falaOvo = '';
+function renderCriatura() {
+  migrarPerfil();
+  const E = EL[P.el], nv = nivelDe(P.xp), pronto = nv.n >= 1, feitos = CUIDADOS.filter(c => P.dia.cuidados[c.id]).length;
+  const botao = (c) => { const feito = !!P.dia.cuidados[c.id], sem = !feito && P.moedas < c.custo; return `<button class="cuidado${feito ? ' feito' : ''}" data-cuidado="${c.id}" aria-label="${c.nome}: ${feito ? 'feito hoje' : c.custo ? c.custo + ' moedas' : 'grátis'}"${sem ? ' aria-disabled="true"' : ''}><span class="ic" style="border-color:${c.cor}">${ICO(c.ic, c.cor, 22)}</span><b>${c.nome}</b><small>${feito ? '✓ FEITO HOJE' : c.custo ? c.custo + ' moedas' : 'Grátis'}</small></button>`; };
+  $('t-criatura').innerHTML = `<div class="topo"><h1 class="titulo">MINHA CRIATURA</h1><p class="cp moedas">${MOEDA}${P.moedas}</p></div>`
+    + `<div class="cartao" style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;align-items:baseline"><p class="cp" style="margin:0;font-size:16px;color:${E.cor}">Ovo de ${E.nome}</p><p class="cp" style="margin:0;font-size:12px;color:var(--texto2)">VÍNCULO ${P.vinculo}/100</p></div><div class="barra" role="progressbar" aria-label="Vínculo ${P.vinculo} de 100"><i style="width:${P.vinculo}%;background:#FF8FB8"></i></div><p class="aviso" style="font-size:12px">${pronto ? 'Pronto para chocar! A eclosão chega com os desenhos das criaturas da turma.' : 'Choca no nível 1. Jogue uma partida!'}</p></div>`
+    + `<div class="ninho-grid"><div class="col">${CUIDADOS.filter(c => !c.lado).map(botao).join('')}</div>`
+    + `<div class="ninho"><p class="fala-ovo${falaOvo ? ' on' : ''}" role="status">${esc(falaOvo)}</p><div id="ovo-k" class="${pronto ? 'treme' : 'flutua'}" style="filter:drop-shadow(0 0 18px ${E.cor})">${ovoSVG(P.el, 92, 118, pronto)}</div><div aria-hidden="true" class="ninho-base"></div></div>`
+    + `<div class="col">${CUIDADOS.filter(c => c.lado).map(botao).join('')}</div></div>`
+    + `<div class="cartao" style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between"><p class="rot">CUIDADOS DE HOJE</p><p class="cp" style="margin:0;font-size:12px;color:var(--ciano)">${feitos}/4</p></div><div style="display:flex;gap:3px">${[0, 1, 2, 3].map(i => `<i style="flex:1;height:6px;background:${i < feitos ? '#FF8FB8' : '#2A2E55'}"></i>`).join('')}</div>`
+    + `<p class="aviso" style="font-size:12px">${feitos === 4 ? 'Você cuidou de tudo hoje! O bônus de +5 HP na próxima partida entra numa próxima versão.' : 'Cada cuidado dá +15 de vínculo. Ganhe moedas no Treino Solo e nas missões do dia.'}</p></div>`
+    + `<nav class="barra-nav" aria-label="Menu">${navHTML('criatura')}</nav>`;
+  $('t-criatura').querySelectorAll('[data-cuidado]').forEach(b => b.onclick = () => cuidar(b.dataset.cuidado));
+}
+function cuidar(id) {
+  const c = CUIDADOS.find(x => x.id === id);
+  if (P.dia.cuidados[id]) { avisar(c.nome + ' já foi feito hoje. Volte amanhã!'); return; }
+  if (P.moedas < c.custo) { avisar('Faltam moedas. Ganhe mais no Treino Solo e nas missões do dia.'); return; }
+  P.moedas -= c.custo; P.dia.cuidados[id] = true;
+  const todos = CUIDADOS.every(x => P.dia.cuidados[x.id]);
+  P.vinculo = Math.min(100, P.vinculo + (todos ? 20 : 15));
+  falaOvo = id === 'conversar' ? pk(FALAS_OVO) : { aquecer: 'Que quentinho!', polir: 'Estou brilhando!', ninar: 'Zzz… que canção bonita…' }[id];
+  salvarPerfil(); renderCriatura(); reanimar($('ovo-k'), 'pula-ovo');
+  clearTimeout(cuidar.t); cuidar.t = setTimeout(() => { falaOvo = ''; const f = document.querySelector('.fala-ovo'); if (f) f.classList.remove('on'); }, 3000);
+}
+
+/* ---------- Aba Estatísticas (T2) ---------- */
+const UE = { aba: 'resumo', ponto: null, cont: null };
+function renderEstat() {
+  migrarPerfil();
+  const S = P.st, conts = Object.entries(S.cont).map(([id, [c, t]]) => ({ id, nome: NOMES_ST[id] || id, c, t, p: Math.round(c / t * 100) })).filter(x => x.t > 0).sort((a, b) => b.p - a.p);
+  const certas = conts.reduce((a, x) => a + x.c, 0), total = conts.reduce((a, x) => a + x.t, 0);
+  let h = `<div class="topo"><h1 class="titulo">ESTATÍSTICAS</h1><p style="margin:0;font-size:11px;color:var(--texto3);display:flex;align-items:center;gap:5px">${CADEADO('#8B8FB8', 13)}Só você e os professores</p></div>`
+    + `<div role="tablist" aria-label="Seções" class="abas3">${[['resumo', 'RESUMO'], ['conteudos', 'CONTEÚDOS'], ['rivais', 'RIVAIS']].map(([id, r]) => `<button role="tab" aria-selected="${UE.aba === id}" data-ue="${id}">${r}</button>`).join('')}</div>`;
+  if (!total && UE.aba !== 'rivais') h += `<div class="cartao" style="text-align:center;padding:26px 16px"><p class="cp" style="margin:0;font-size:15px">Ainda não há dados</p><p class="aviso" style="margin-top:6px">Jogue uma partida ou faça uma etapa do Treino Solo. Seus números aparecem aqui.</p></div>`;
+  else if (UE.aba === 'resumo') {
+    const dias = Object.entries(S.dias).sort((a, b) => a[0] < b[0] ? -1 : 1).slice(-8), pct = Math.round(certas / total * 100);
+    h += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px"><p class="rot">VOCÊ ACERTA</p><p class="cp" style="margin:0;font-size:56px;line-height:1;color:var(--ciano)">${pct}%</p><p class="aviso">${certas} de ${total} questões</p>${graficoHTML(dias)}</div>`
+      + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="cartao" style="display:flex;flex-direction:column;gap:6px"><p class="rot">VITÓRIAS</p><p class="cp" style="margin:0;font-size:26px;line-height:1;color:var(--amarelo)">${S.vitorias}<span style="font-size:13px;color:var(--texto3)"> de ${S.partidas}</span></p><div class="barra" style="height:6px;border:0" role="img" aria-label="${S.vitorias} vitórias em ${S.partidas} partidas"><i style="width:${S.partidas ? S.vitorias / S.partidas * 100 : 0}%;background:var(--amarelo)"></i></div></div>`
+      + `<div class="cartao" style="display:flex;flex-direction:column;gap:6px"><p class="rot">TEMPO MÉDIO</p><p class="cp" style="margin:0;font-size:26px;line-height:1">${S.tempoN ? Math.round(S.tempo / S.tempoN) + ' s' : '—'}</p><p class="aviso" style="font-size:12px">${S.rapidos} Golpe${S.rapidos === 1 ? '' : 's'} Rápido${S.rapidos === 1 ? '' : 's'}</p></div></div>`;
+    const mx = Math.max(S.dano, S.recebido, 1);
+    h += `<div class="cartao" style="display:flex;flex-direction:column;gap:8px"><p class="rot">DANO NA ARENA</p>`
+      + [['Causado', S.dano, 'var(--ciano)'], ['Recebido', S.recebido, 'var(--texto2)']].map(([r, v, c]) => `<div style="display:flex;align-items:center;gap:8px"><span style="width:70px;font-size:12px;color:var(--texto2)">${r}</span><div style="flex:1;height:12px;background:#22264A"><div style="height:100%;width:${v / mx * 100}%;background:${c}"></div></div><span class="cp" style="width:46px;text-align:right;font-size:13px">${v}</span></div>`).join('')
+      + `<p class="aviso" style="font-size:12px">${S.partidas ? (S.dano >= S.recebido ? 'Você causou ' + (S.dano - S.recebido) + ' de dano a mais do que recebeu.' : 'Você recebeu mais dano do que causou.') : 'Jogue partidas para ver seu dano.'}</p></div>`;
+  } else if (UE.aba === 'conteudos') {
+    const sel = conts.find(x => x.id === UE.cont) || conts[conts.length - 1];
+    h += `<p class="aviso">Quanto mais forte a cor, mais você acerta. Toque num conteúdo.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`
+      + conts.map(x => `<button class="tile-c" data-cont="${x.id}" aria-pressed="${x.id === sel.id}" aria-label="${x.nome}: ${x.p}% de acertos, ${x.c} de ${x.t}" style="border:2px solid ${x.id === sel.id ? '#F2F3FF' : '#2A2E55'};background:rgba(94,230,255,${(0.06 + Math.max(0, x.p - 40) / 60 * 0.45).toFixed(2)})"><span style="display:flex;align-items:center;gap:6px"><i style="width:8px;height:8px;flex:none;background:${EL[ST_EL[x.id] || 'fogo'].cor}"></i><span style="font-size:13px;font-weight:600;text-align:left">${x.nome}</span></span><span style="display:flex;align-items:baseline;justify-content:space-between"><span class="cp" style="font-size:24px">${x.p}%</span><span style="font-size:11px;color:var(--texto2)">${x.c}/${x.t}</span></span></button>`).join('') + `</div>`;
+    const fraco = sel.p < 65;
+    h += `<div class="entra" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${fraco ? 'rgba(255,184,107,.08)' : 'rgba(94,230,255,.06)'};border:1px solid ${fraco ? '#FFB86B' : 'var(--ciano)'}"><div style="flex:1"><p style="margin:0;font-size:14px;font-weight:700">${sel.nome} · ${sel.p}%</p><p class="aviso" style="font-size:12px">${sel.c} de ${sel.t} certas.${fraco ? ' Vale treinar!' : ' Mandou bem!'}</p></div><button class="btn btn-prim" id="treinar" style="min-height:42px;font-size:12px;padding:0 12px">TREINAR</button></div>`;
+  } else {
+    const riv = Object.entries(S.rivais).map(([nick, v]) => Object.assign({ nick }, v)).sort((a, b) => b.j - a.j);
+    if (!riv.length) h += `<div class="cartao" style="text-align:center;padding:26px 16px"><p class="cp" style="margin:0;font-size:15px">Nenhum rival ainda</p><p class="aviso" style="margin-top:6px">Jogue partidas para descobrir seu maior rival.</p></div>`;
+    else {
+      const m = riv[0];
+      h += `<div class="cartao" style="display:flex;flex-direction:column;gap:8px"><p class="rot">MAIOR RIVAL</p><div style="display:flex;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px">${avatarHTML(P.av, 2)}<span class="cp" style="font-size:11px;color:var(--amarelo)">VOCÊ</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><p class="cp" style="margin:0;font-size:28px;line-height:1">${m.eu} × ${m.ele}</p><div style="width:100%;height:8px;background:var(--texto2)" role="img" aria-label="Você ficou na frente ${m.eu} vezes, ${esc(m.nick)} ${m.ele} vezes"><div style="height:100%;width:${m.j ? m.eu / m.j * 100 : 0}%;background:var(--amarelo)"></div></div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px">${avatarHTML(m.av, 2)}<span class="cp" style="font-size:11px">${esc(m.nick)}</span></div></div><p class="aviso" style="font-size:12px">${m.j} partida${m.j === 1 ? '' : 's'} juntos: você ficou na frente ${m.eu} ${m.eu === 1 ? 'vez' : 'vezes'}${m.robo ? ' (é um robô)' : ''}.</p></div>`;
+      if (riv.length > 1) h += `<div class="cartao" style="display:flex;flex-direction:column;gap:4px"><p class="rot" style="margin-bottom:4px">COM QUEM VOCÊ MAIS JOGA</p>${riv.slice(1, 4).map(x => `<div style="display:flex;align-items:center;gap:10px;min-height:56px;border-top:1px solid var(--borda);padding-top:6px"><div style="width:34px;height:48px;overflow:hidden;display:flex;justify-content:center">${avatarHTML(x.av, 1)}</div><p style="margin:0;flex:1;font-size:14px;font-weight:600">${esc(x.nick)}</p><p style="margin:0;font-size:12px;color:var(--texto2)">${x.j} partida${x.j === 1 ? '' : 's'}</p></div>`).join('')}</div>`;
+    }
+  }
+  h += `<nav class="barra-nav" aria-label="Menu">${navHTML('estat')}</nav>`;
+  $('t-estat').innerHTML = h;
+  const t = $('t-estat');
+  t.querySelectorAll('[data-ue]').forEach(b => b.onclick = () => { UE.aba = b.dataset.ue; renderEstat(); });
+  t.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { UE.cont = b.dataset.cont; const y = t.scrollTop; renderEstat(); $('t-estat').scrollTop = y; });
+  t.querySelectorAll('[data-ponto]').forEach(b => b.onclick = () => { UE.ponto = +b.dataset.ponto; const y = t.scrollTop; renderEstat(); $('t-estat').scrollTop = y; });
+  if ($('treinar')) $('treinar').onclick = () => { const sel = conts.find(x => x.id === UE.cont) || conts[conts.length - 1]; if (P.partidas === 0 || nivelDe(P.xp).n < 1) { avisar('O mapa de treino abre depois dos primeiros passos. Jogue sua primeira partida!'); return; } irParaEtapa(sel.id); };
+}
+function graficoHTML(dias) {
+  if (dias.length < 2) return `<p class="aviso" style="font-size:12px">Jogue em dias diferentes para ver sua evolução num gráfico.</p>`;
+  const W = 300, H = 128, ML = 30, MR = 12, MT = 12, MB = 22, n = dias.length;
+  const x = (i) => ML + i * (W - ML - MR) / (n - 1), y = (v) => MT + (1 - v / 100) * (H - MT - MB);
+  const vals = dias.map(([, [c, t]]) => Math.round(c / t * 100)), sel = UE.ponto !== null && UE.ponto < n ? UE.ponto : n - 1;
+  const rot = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
+  const pts = vals.map((v, i) => x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+  return `<p style="margin:0;font-size:13px;font-weight:600;color:#6FE3C1">${vals[n - 1] >= vals[0] ? '+' : ''}${vals[n - 1] - vals[0]} pontos desde ${rot(dias[0][0])}</p>`
+    + `<div style="position:relative;width:300px;height:128px;align-self:center">`
+    + [0, 50, 100].map(v => `<div aria-hidden="true" style="position:absolute;left:${ML}px;right:${MR}px;top:${y(v)}px;height:1px;background:${v ? '#22264A' : '#3A3F6E'}"></div><span aria-hidden="true" class="cp" style="position:absolute;left:0;width:26px;text-align:right;top:${y(v) - 7}px;font-size:10px;font-weight:600;color:#8B8FB8">${v}%</span>`).join('')
+    + `<svg viewBox="0 0 300 128" width="300" height="128" aria-hidden="true" style="position:absolute;left:0;top:0"><polygon points="${x(0)},${y(0)} ${pts} ${x(n - 1)},${y(0)}" fill="rgba(94,230,255,.10)"/><polyline points="${pts}" fill="none" stroke="#5EE6FF" stroke-width="2" stroke-linejoin="round"/></svg>`
+    + vals.map((v, i) => `<button data-ponto="${i}" aria-label="${rot(dias[i][0])}: ${v}% de acertos" aria-pressed="${i === sel}" style="position:absolute;left:${x(i) - 14}px;top:${y(v) - 14}px;width:28px;height:28px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center"><span style="width:${i === sel ? 12 : 8}px;height:${i === sel ? 12 : 8}px;border-radius:50%;background:#5EE6FF;box-shadow:0 0 0 2px #15172C"></span></button>`).join('')
+    + vals.map((v, i) => `<span aria-hidden="true" class="cp" style="position:absolute;top:${H - 16}px;left:${x(i) - 20}px;width:40px;text-align:center;font-size:10px;font-weight:600;color:${i === sel ? '#F2F3FF' : '#8B8FB8'}">${rot(dias[i][0])}</span>`).join('')
+    + `<p role="status" style="position:absolute;top:${Math.max(0, y(vals[sel]) - 40)}px;left:${Math.min(W - 150, Math.max(0, x(sel) - 75))}px;width:150px;margin:0;padding:5px 8px;background:#0B0C18;border:1px solid #5EE6FF;font-size:12px;font-weight:600;text-align:center;pointer-events:none">${rot(dias[sel][0])} · ${vals[sel]}%</p></div>`;
+}
+
+/* ---------- Ganchos na batalha ---------- */
+function registrarPartida(m) {
+  migrarPerfil();
+  const S = P.st, eu = EU();
+  S.partidas++; if (eu.pos === 1) S.vitorias++;
+  S.dano += eu.dano || 0; S.rapidos += eu.rapidos || 0; S.recebido += B.recebido || 0;
+  (B.tempos || []).forEach(t => { S.tempo += t; S.tempoN++; });
+  B.jog.filter(j => j.id !== C.meuId).forEach(j => {
+    const v = S.rivais[j.nick] || { j: 0, eu: 0, ele: 0, av: j.av, robo: j.tipo === 'robo' };
+    v.j++; if (eu.pos < j.pos) v.eu++; else v.ele++; v.av = j.av; S.rivais[j.nick] = v;
+  });
+  salvarPerfil();
+}
 
 </script>
 </body>
