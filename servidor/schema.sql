@@ -312,6 +312,8 @@ grant execute on function
 to authenticated;
 
 -- ---------- Código secreto dos professores ----------
--- TROQUE o valor abaixo antes de rodar (mínimo 8 caracteres) e passe só para os professores.
-insert into public.config (chave, valor) values ('codigo_professor', 'TROQUE-ESTE-CODIGO')
-on conflict (chave) do nothing;
+-- Por segurança, este arquivo NÃO cria o código. Depois de rodar, rode à parte
+-- (trocando pelo seu código, com pelo menos 8 caracteres):
+--   insert into public.config (chave, valor) values ('codigo_professor', 'SEU-CODIGO-AQUI')
+--   on conflict (chave) do update set valor = excluded.valor;
+-- Enquanto não houver código, ninguém consegue virar professor.
