@@ -748,7 +748,7 @@ const EL = {
 };
 const ELS = ['fogo', 'agua', 'planta', 'raio', 'pedra'];
 const DANO = [20, 20, 25, 30];
-const CURA = 15;
+const CURA = 30; // na Arena; no Chefão da Sala a cura é 15
 const TEMPO = 45;
 const RODADAS = 5;
 const NEED = (n) => n === 0 ? 25 : 40 + 10 * n;
@@ -1177,7 +1177,7 @@ function svResolver() {
   const acertaram = SV.jog.filter(j => vivosInicio.includes(j.id) && SV.resp[j.id] && SV.resp[j.id].ok).sort((a, b) => SV.resp[a.id].t - SV.resp[b.id].t);
   const primeiro = acertaram.length ? acertaram[0].id : null;
   if (primeiro && atores.some(x => x.j.id === primeiro)) SV.jog.find(j => j.id === primeiro).rapidos++;
-  atores.filter(x => x.a.tipo === 'esc').forEach(x => { x.j.esc = true; snap([{ ref: x.j.id, f: 's' }, { t: ' ergueu um Escudo! Vale para toda esta rodada.' }], { tipo: 'esc', alvo: x.j.id }); });
+  atores.filter(x => x.a.tipo === 'esc').forEach(x => { x.j.esc = true; snap([{ ref: x.j.id, f: 's' }, { t: ' ergueu um Escudo! Ele bloqueia o primeiro golpe da rodada.' }], { tipo: 'esc', alvo: x.j.id }); });
   atores.filter(x => x.a.tipo !== 'esc').forEach(x => {
     const a = x.j; if (a.hp <= 0) return;
     if (x.a.tipo === 'cura') { const antes = a.hp; a.hp = Math.min(100, a.hp + CURA); const g = a.hp - antes; snap([{ ref: a.id, f: 's' }, { t: ' usou Curar! ' }, g ? { t: '+' + g + ' HP', c: 'cura' } : { t: 'O HP já estava cheio.' }], { tipo: 'cura', alvo: a.id, valor: '+' + g }); return; }
@@ -1185,7 +1185,7 @@ function svResolver() {
     if (!alvo || alvo.hp <= 0 || alvo.id === a.id) alvo = SV.jog.filter(k => k.id !== a.id && k.hp > 0).sort((p, q2) => p.hp - q2.hp)[0];
     if (!alvo) return;
     const E = EL[a.el], golpe = { t: E.golpe, cor: E.cor };
-    if (alvo.esc) { snap([{ ref: alvo.id, f: 's' }, { bloq: { de: a.id, art: E.art, golpe: E.golpe, cor: E.cor } }], { tipo: 'bloq', alvo: alvo.id, de: a.id, el: a.el }); return; }
+    if (alvo.esc) { alvo.esc = false; snap([{ ref: alvo.id, f: 's' }, { bloq: { de: a.id, art: E.art, golpe: E.golpe, cor: E.cor } }], { tipo: 'bloq', alvo: alvo.id, de: a.id, el: a.el }); return; }
     const rapido = a.id === primeiro, bonusEl = a.el === q.elemento, bonusInf = a.el === 'infinito';
     const dano = DANO[Math.min(a.furia, 3)] + (rapido ? 5 : 0) + (bonusEl ? 5 : 0) + (bonusInf ? 3 : 0);
     alvo.hp = Math.max(0, alvo.hp - dano); a.dano += dano;
@@ -1433,7 +1433,7 @@ const nomeRef = (id, f) => { if (id === C.meuId) return { t: f === 's' ? 'Você'
 function expandir(partes) {
   return partes.flatMap(p => {
     if (p.ref) return [nomeRef(p.ref, p.f)];
-    if (p.bloq) { const b = p.bloq, meu = b.de === C.meuId; return meu ? [{ t: ' bloqueou ' + b.art + (b.art === 'a' ? ' sua ' : ' seu ') }, { t: b.golpe, cor: b.cor }, { t: '!' }] : [{ t: ' bloqueou ' + b.art + ' ' }, { t: b.golpe, cor: b.cor }, { t: ' de ' }, nomeRef(b.de, 'o'), { t: '!' }]; }
+    if (p.bloq) { const b = p.bloq, meu = b.de === C.meuId; return meu ? [{ t: ' bloqueou ' + b.art + (b.art === 'a' ? ' sua ' : ' seu ') }, { t: b.golpe, cor: b.cor }, { t: ', mas o escudo quebrou!' }] : [{ t: ' bloqueou ' + b.art + ' ' }, { t: b.golpe, cor: b.cor }, { t: ' de ' }, nomeRef(b.de, 'o'), { t: ', mas o escudo quebrou!' }]; }
     return [p];
   });
 }
@@ -1454,7 +1454,7 @@ function renderPainel() {
     p.innerHTML = `<p class="rot">ESCOLHA SUA AÇÃO</p>`
       + `<button class="acao" data-a="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR</b><small>${ESTAGIO(eu.nivel) ? esc(nomeCria(eu.el, eu.nivel)) + ' tira ' : 'Tira '}${base} HP${eu.el === B.q.elemento ? ' (com +5 de ' + EL[eu.el].nome + ')' : eu.el === 'infinito' ? ' (com +3 do Infinito)' : ''} · +5 se for o 1º</small></button>`
       + `<button class="acao" data-a="cura" style="border-left:6px solid #36C46B"><b style="color:#36C46B">CURAR</b><small>Recupera ${CURA} HP (máximo 100)</small></button>`
-      + `<button class="acao" data-a="esc" style="border-left:6px solid #5EE6FF"><b style="color:#5EE6FF">ESCUDO</b><small>Bloqueia todos os ataques desta rodada</small></button>`;
+      + `<button class="acao" data-a="esc" style="border-left:6px solid #5EE6FF"><b style="color:#5EE6FF">ESCUDO</b><small>Bloqueia o primeiro golpe desta rodada e depois quebra</small></button>`;
     p.querySelectorAll('[data-a]').forEach(b => b.onclick = () => escolherAcao(b.dataset.a));
   } else if (f === 'alvo') {
     p.innerHTML = `<p class="rot">ESCOLHA O ALVO · OU TOQUE NA ARENA</p>` + rivais().filter(j => j.hp > 0).map(j => `<button class="acao" data-alvo="${j.id}" style="min-height:52px;flex-direction:row;align-items:center;justify-content:space-between;border-left:6px solid ${EL[j.el].cor}"><b style="font-size:16px;letter-spacing:0">${esc(j.nick)}</b><small class="cp" style="color:#FF4D6D;font-size:14px">${j.hp} HP</small></button>`).join('')
@@ -1580,7 +1580,7 @@ function reanimar(el, cls) { if (!el) return; el.classList.remove(cls); void el.
 function efeito(ef) {
   if (!ef || !$('avw-' + ef.alvo)) return;
   const alvoAv = $('avw-' + ef.alvo), pop = $('pop-' + ef.alvo);
-  const popTxt = { atk: ef.valor, cura: ef.valor, bloq: 'BLOQUEOU', esc: 'ESCUDO', ko: 'FORA' }[ef.tipo];
+  const popTxt = { atk: ef.valor, cura: ef.valor, bloq: 'ESCUDO QUEBROU', esc: 'ESCUDO', ko: 'FORA' }[ef.tipo];
   const popCor = { atk: '#FF4D6D', ko: '#FF4D6D', cura: '#36C46B' }[ef.tipo] || '#5EE6FF';
   if (popTxt) pop.innerHTML = `<span style="color:${popCor}">${popTxt}</span>`;
   if (ef.de) reanimar($('avw-' + ef.de), 'fx-ageA');
