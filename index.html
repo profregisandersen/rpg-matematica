@@ -3318,6 +3318,10 @@ async function cartaoOnline(papel) {
 /* ================== Começo ================== */
 if (ONLINE) { P = null; } else carregarPerfil();
 $('versao-rodape').textContent = VERSAO + (ONLINE ? ' · conectado ao servidor da escola' : ' · tudo fica salvo neste aparelho');
+if (ONLINE) {
+  const txt = { aluno: 'Entre ou crie sua conta com usuário e senha.', gm: 'Primeira vez: crie sua conta. Depois, entre com o PIN.' };
+  document.querySelectorAll('.papel[data-papel]').forEach(bt => { const sm = bt.querySelector('small'); if (sm && txt[bt.dataset.papel]) sm.textContent = txt[bt.dataset.papel]; });
+}
 mostrar('login');
 if (MODO_LOCAL) avisar('Modo de teste local: as salas funcionam entre abas deste navegador.');
 
