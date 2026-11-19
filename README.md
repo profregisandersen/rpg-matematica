@@ -1,4 +1,6 @@
-# RPG de Matemática · SESI Gama
+# Códex do Infinito · SESI Gama
+
+(Nome provisório. Antes era "RPG de Matemática".)
 
 Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age quando acerta uma questão de matemática.
 
@@ -11,6 +13,9 @@ Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age
 - Batalha na Arena no estilo "treinador atrás": a criatura luta na frente do avatar, com o escudo da liga ao lado do nick.
 - Fraquezas de elemento: Água → Fogo → Planta → Pedra → Raio → Água. Quem ataca com vantagem dá +5 ("É super efetivo!"), e quem ataca em desvantagem dá −5. O Infinito dá +5 contra todos, e ninguém tem vantagem contra ele.
 - Curar recupera 30 de vida na Arena (15 no Chefão da Sala), e o Escudo bloqueia só o primeiro golpe da rodada e depois quebra.
+- Escudo da liga ao lado do nick na sala de espera, no resultado e no topo do Início; o resultado mostra os pontos de liga ganhos.
+- Filtro de palavrões nos nicks (no cadastro, na troca de nick e quando alguém entra numa sala).
+- O professor aparece como **[GM]** antes do nick para todos.
 - **Ligas do semestre** dentro da aba Conta: 1º lugar +25, 2º +15, 3º +5; 100 pontos sobem uma divisão.
 - Para o professor: aba **Turma** (turmas com código, ficha do aluno com presença e mapa de calor, ranking só para professores) e o evento **Chefão da Sala** no JOGAR, com placar de dano ao vivo.
 
