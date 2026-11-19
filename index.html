@@ -1113,7 +1113,7 @@ function svChecar() {
 function svCancelarContagem() { SV.contando = false; clearTimeout(SV.tc); svTodos({ t: 'contagem', n: 0 }); SV.jog.forEach(j => { if (j.tipo !== 'robo') j.pronto = false; }); }
 function svComecar() {
   SV.fase = 'jogo'; SV.r = 0; SV.hist = []; SV.koOrdem = [];
-  SV.jog.forEach(j => Object.assign(j, { hp: 100, esc: false, furia: 0, furiaMax: 0, acertos: 0, dano: 0, rapidos: 0, tempoTotal: 0 }));
+  SV.jog.forEach(j => Object.assign(j, { hp: 100, esc: false, furia: 0, furiaMax: 0, acertos: 0, acVivo: 0, acEsp: 0, kos: 0, revanche: null, dano: 0, rapidos: 0, tempoTotal: 0 }));
   svTodos({ t: 'inicio', jog: SV.jog.map(svPub), codigo: SV.codigo, cfg: SV.cfg });
   setTimeout(svRodada, 700);
 }
@@ -1169,7 +1169,8 @@ function svDecidirRobo(j) {
   const vivos = SV.jog.filter(x => x.id !== j.id && x.hp > 0);
   if (j.hp <= 40 && Math.random() < .55) return { tipo: 'cura' };
   if (Math.random() < .14) return { tipo: 'esc' };
-  const alvo = Math.random() < .6 ? vivos.slice().sort((a, b) => a.hp - b.hp)[0] : pk(vivos);
+  const quem = vivos.find(x => x.id === j.revanche);
+  const alvo = quem && Math.random() < .5 ? quem : pk(vivos);
   return { tipo: 'atk', alvo: alvo.id };
 }
 const DUR = (f) => f.ef && (f.ef.tipo === 'atk' || f.ef.tipo === 'bloq') ? 2800 : 2300;
@@ -1179,7 +1180,7 @@ function svResolver() {
   const vivosInicio = SV.jog.filter(j => j.hp > 0).map(j => j.id);
   SV.jog.forEach(j => {
     const r = SV.resp[j.id]; if (!r) return;
-    if (r.ok) j.acertos++;
+    if (r.ok) { j.acertos++; if (vivosInicio.includes(j.id)) j.acVivo++; else j.acEsp++; }
     j.tempoTotal += r.t;
     if (vivosInicio.includes(j.id)) { j.furia = r.ok ? j.furia + 1 : 0; j.furiaMax = Math.max(j.furiaMax, Math.min(j.furia, 3)); }
   });
@@ -1199,15 +1200,16 @@ function svResolver() {
     const a = x.j; if (a.hp <= 0) return;
     if (x.a.tipo === 'cura') { const antes = a.hp; a.hp = Math.min(100, a.hp + CURA); const g = a.hp - antes; snap([{ ref: a.id, f: 's' }, { t: ' usou Curar! ' }, g ? { t: '+' + g + ' HP', c: 'cura' } : { t: 'O HP já estava cheio.' }], { tipo: 'cura', alvo: a.id, valor: '+' + g }); return; }
     let alvo = SV.jog.find(k => k.id === x.a.alvo);
-    if (!alvo || alvo.hp <= 0 || alvo.id === a.id) alvo = SV.jog.filter(k => k.id !== a.id && k.hp > 0).sort((p, q2) => p.hp - q2.hp)[0];
+    if (!alvo || alvo.hp <= 0 || alvo.id === a.id) alvo = pk(SV.jog.filter(k => k.id !== a.id && k.hp > 0));
     if (!alvo) return;
     const E = EL[a.el], golpe = { t: E.golpe, cor: E.cor };
+    alvo.revanche = a.id;
     if (alvo.esc) { alvo.esc = false; snap([{ ref: alvo.id, f: 's' }, { bloq: { de: a.id, art: E.art, golpe: E.golpe, cor: E.cor } }], { tipo: 'bloq', alvo: alvo.id, de: a.id, el: a.el }); return; }
     const rapido = a.id === primeiro, bonusEl = a.el === q.elemento, efe = efetividade(a.el, alvo.el);
     const dano = DANO[Math.min(a.furia, 3)] + (rapido ? 5 : 0) + (bonusEl ? 5 : 0) + efe;
     alvo.hp = Math.max(0, alvo.hp - dano); a.dano += dano;
     snap([{ ref: a.id, f: 's' }, { t: ESTAGIO(a.nivel) ? ' mandou ' + nomeCria(a.el, a.nivel) + ' usar ' : ' usou ' }, golpe, { t: ' em ' }, { ref: alvo.id, f: 'o' }, { t: '! ' }].concat(rapido ? [{ t: 'Golpe Rápido! ', c: 'rapido' }] : [], bonusEl ? [{ t: 'Bônus de ' + E.nome + '! ', cor: E.cor }] : [], efe > 0 ? [{ t: 'É super efetivo! ', c: 'rapido' }] : efe < 0 ? [{ t: 'Não foi muito efetivo… ', cor: '#A9ADD6' }] : [], [{ t: '−' + dano + ' HP', c: 'dano' }]), { tipo: 'atk', alvo: alvo.id, de: a.id, el: a.el, valor: '−' + dano });
-    if (alvo.hp === 0) { SV.koOrdem.push(alvo.id); snap([{ ref: alvo.id, f: 's' }, { t: ' está fora! Continua respondendo como espectador.' }], { tipo: 'ko', alvo: alvo.id }); }
+    if (alvo.hp === 0) { a.kos++; SV.koOrdem.push(alvo.id); snap([{ ref: alvo.id, f: 's' }, { t: ' está fora! Continua respondendo como espectador.' }], { tipo: 'ko', alvo: alvo.id }); }
   });
   SV.hist.push({ texto: q.texto, resposta: q.resposta });
   const res = Object.fromEntries(Object.entries(SV.resp).map(([k, v]) => [k, { ok: v.ok, tempo: !!v.tempo }]));
@@ -1220,15 +1222,24 @@ function svResolver() {
     if (SV.r >= RODADAS - 1 || vivos <= 1) svFim(); else { SV.r++; svRodada(); }
   }, total);
 }
+/* Placar da Arena: pontos de batalha (não só o HP que sobrou) */
+function pontosBatalha(j) {
+  return [
+    ['Acertos', j.acVivo * 10],
+    ['Golpes rápidos', j.rapidos * 5],
+    ['Dano causado', Math.floor(j.dano / 2)],
+    ['Nocautes', j.kos * 15],
+    ['Vida no fim', j.hp > 0 ? Math.min(25, Math.floor(j.hp / 4)) : 0],
+    ['Acertos como espectador', j.acEsp * 5]
+  ].filter(d => d[1] > 0);
+}
 function svFim() {
-  const vivos = SV.jog.filter(j => j.hp > 0).sort((a, b) => b.hp - a.hp || b.acertos - a.acertos || a.tempoTotal - b.tempoTotal);
-  const mortos = SV.koOrdem.slice().reverse().map(id => SV.jog.find(j => j.id === id)).filter(Boolean);
-  const rank = vivos.concat(mortos.filter(m => !vivos.includes(m)));
-  SV.jog.forEach(j => { if (!rank.includes(j)) rank.push(j); });
+  SV.jog.forEach(j => { j.det = pontosBatalha(j); j.pts = j.det.reduce((t, d) => t + d[1], 0); });
+  const rank = SV.jog.slice().sort((a, b) => b.pts - a.pts || b.acertos - a.acertos || a.tempoTotal - b.tempoTotal);
   rank.forEach((j, i) => { j.pos = i + 1; });
   SV.fase = 'fim';
   SV.jog.forEach(j => { if (j.tipo === 'aluno') turmaResultado(j.nick, j.acertos, SV.hist.length, null); });
-  svTodos({ t: 'fim', ranking: rank.map(j => ({ id: j.id, pos: j.pos, hp: j.hp, acertos: j.acertos, furiaMax: j.furiaMax, dano: j.dano, rapidos: j.rapidos })), hist: SV.hist, rodadas: SV.hist.length });
+  svTodos({ t: 'fim', ranking: rank.map(j => ({ id: j.id, pos: j.pos, hp: j.hp, acertos: j.acertos, furiaMax: j.furiaMax, dano: j.dano, rapidos: j.rapidos, kos: j.kos, pts: j.pts, det: j.det })), hist: SV.hist, rodadas: SV.hist.length });
   svSala();
 }
 function svEncerrar() {
@@ -1632,9 +1643,14 @@ function abrirResultado(m) {
   $('res-podio').style.gridTemplateColumns = `repeat(${podio.length},minmax(0,1fr))`;
   $('res-podio').innerHTML = podio.map(j => `<div class="col">${j.pos === 1 ? '<p class="cp" style="margin:0;font-size:12px;color:var(--amarelo)"><span class="faisca">✦</span> VENCEDOR <span class="faisca">✦</span></p>' : ''}`
     + `<div class="${j.pos === 1 ? 'ouro' : ''}" style="${j.hp <= 0 ? 'opacity:.4;filter:grayscale(1)' : ''}">${avatarHTML(j.av, 3)}</div>`
-    + `<div class="bloco" style="height:${ALT[j.pos]}px;border-top:4px solid ${MED[j.pos]}"><p class="cp" style="font-size:22px;line-height:1;color:${MED[j.pos]}">${j.pos}º</p><p class="cp" style="display:flex;align-items:center;justify-content:center;gap:3px;font-size:12px;color:${j.voce ? 'var(--amarelo)' : 'var(--texto)'}">${ligaMini(j.liga, 16)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.nick)}</span></p><p style="font-size:11px;color:var(--texto2)">${j.hp} HP</p></div></div>`).join('');
+    + `<div class="bloco" style="height:${ALT[j.pos]}px;border-top:4px solid ${MED[j.pos]}"><p class="cp" style="font-size:22px;line-height:1;color:${MED[j.pos]}">${j.pos}º</p><p class="cp" style="display:flex;align-items:center;justify-content:center;gap:3px;font-size:12px;color:${j.voce ? 'var(--amarelo)' : 'var(--texto)'}">${ligaMini(j.liga, 16)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.nick)}</span></p><p style="font-size:11px;color:var(--texto2)">${j.pts ?? 0} pts</p></div></div>`).join('');
   const q4 = rank[3];
-  $('res-quarto').innerHTML = q4 ? `<div style="display:flex;align-items:center;gap:10px;min-height:34px;padding:0 12px;background:var(--card);border:1px solid var(--borda);border-top:3px solid #62668F"><p class="cp" style="margin:0;font-size:15px;color:#62668F">4º</p><p style="margin:0;flex:1;font-size:13px;font-weight:600;color:${q4.voce ? 'var(--amarelo)' : 'var(--texto2)'};display:flex;align-items:center;gap:5px">${ligaMini(q4.liga, 16)}${esc(q4.nick)}</p><p style="margin:0;font-size:12px;color:var(--texto3)">${q4.hp} HP${q4.hp <= 0 ? ' · ficou de espectador' : ''}</p></div>` : '';
+  $('res-quarto').innerHTML = q4 ? `<div style="display:flex;align-items:center;gap:10px;min-height:34px;padding:0 12px;background:var(--card);border:1px solid var(--borda);border-top:3px solid #62668F"><p class="cp" style="margin:0;font-size:15px;color:#62668F">4º</p><p style="margin:0;flex:1;font-size:13px;font-weight:600;color:${q4.voce ? 'var(--amarelo)' : 'var(--texto2)'};display:flex;align-items:center;gap:5px">${ligaMini(q4.liga, 16)}${esc(q4.nick)}</p><p style="margin:0;font-size:12px;color:var(--texto3)">${q4.pts ?? 0} pts${q4.hp <= 0 ? ' · caiu na batalha' : ''}</p></div>` : '';
+  const linhaDet = (j) => (j.det || []).map(d => esc(d[0]) + ' ' + d[1]).join(' · ') || 'Nenhum ponto nesta partida';
+  $('res-quarto').insertAdjacentHTML('beforeend', `<button id="res-placar" class="cartao" style="display:block;width:100%;text-align:left;cursor:pointer;color:var(--texto);margin-top:8px;padding:8px 12px"><span style="display:flex;justify-content:space-between;align-items:baseline"><span class="rot">SEUS PONTOS DE BATALHA</span><span class="cp" style="font-size:16px;color:var(--amarelo)">${eu.pts ?? 0}</span></span><span style="display:block;font-size:12px;color:var(--texto2);margin-top:2px">${linhaDet(eu)}</span><span class="cp" style="display:block;font-size:11px;color:var(--ciano);margin-top:4px;letter-spacing:1px">VER O PLACAR DE TODOS ›</span></button>`);
+  $('res-placar').onclick = () => abrirFolha(cabFolha('PLACAR DA BATALHA')
+    + `<p style="margin:0;font-size:12px;color:var(--texto2)">Acerto 10 · Golpe rápido 5 · Dano 1 a cada 2 · Nocaute 15 · Vida no fim até 25 · Acerto depois de cair 5</p>`
+    + rank.map(j => `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--borda)"><p class="cp" style="margin:0;width:26px;font-size:16px;color:${MED[j.pos] || 'var(--texto3)'}">${j.pos}º</p><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;color:${j.voce ? 'var(--amarelo)' : 'var(--texto)'};display:flex;align-items:center;gap:5px">${ligaMini(j.liga, 16)}${esc(j.nick)}</p><p style="margin:2px 0 0;font-size:12px;color:var(--texto2)">${linhaDet(j)}</p></div><p class="cp" style="margin:0;font-size:17px">${j.pts ?? 0}</p></div>`).join(''), 'Placar da batalha');
   const ul = (P.liga.hist || [])[0];
   if (ul && rank.length >= 2) { $('res-quarto').insertAdjacentHTML('beforeend', `<button id="res-liga" class="cartao" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;color:var(--texto);margin-top:8px;padding:8px 12px">${ligaMini(ligaIdx(), 40)}<span style="flex:1;min-width:0"><span class="rot" style="display:block">LIGA DO SEMESTRE</span><span class="cp" style="display:block;font-size:15px;color:${ligaCor(ligaIdx())}">${esc(ligaNome(ligaIdx()).toUpperCase())} · ${P.liga.pts}/100</span></span><span class="cp" style="font-size:18px;color:${ul.pts ? 'var(--verde)' : 'var(--texto3)'}">+${ul.pts}</span></button>`); $('res-liga').onclick = abrirLigas; }
   $('res-stats').innerHTML = [[eu.acertos + '/' + jogadas, 'ACERTOS', 'var(--verde)'], [eu.furiaMax, 'FÚRIA MÁX.', EL[eu.el].cor], [eu.dano, 'DANO', 'var(--vermelho)'], [eu.rapidos, 'GOLPES RÁP.', 'var(--amarelo)']].map(([v, r, c]) => `<div class="stat"><b style="color:${c}">${v}</b><small>${r}</small></div>`).join('');
