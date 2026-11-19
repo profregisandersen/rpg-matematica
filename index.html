@@ -896,7 +896,7 @@ $('girar').onclick = () => {
     const r = $('ovo-revela');
     r.innerHTML = `<p class="rot">${el === 'infinito' ? '✦ SUPER RARO · 2% ✦' : 'VOCÊ GANHOU'}</p><div class="flutua" style="filter:drop-shadow(0 0 18px ${E.cor})">${criaHTML(el, 0, 120)}</div>`
       + `<p class="cp" style="margin:0;font-size:26px;letter-spacing:2px;color:${E.cor}">OVO DE ${E.nome.toUpperCase()}</p>`
-      + (el === 'infinito' ? `<p class="aviso">Bônus do Infinito: <b style="color:${E.cor}">+3 de dano</b> em qualquer questão.</p>` : `<p class="aviso">Bônus de elemento: <b style="color:${E.cor}">+5 de dano</b> nas questões de ${esc(unidade)}.</p>`)
+      + (el === 'infinito' ? `<p class="aviso">Bônus do Infinito: <b style="color:${E.cor}">+5 de dano</b> contra todos os elementos.</p>` : `<p class="aviso">Bônus de elemento: <b style="color:${E.cor}">+5 de dano</b> nas questões de ${esc(unidade)}.</p>`)
       + `<p class="aviso" style="color:var(--texto)">Este ovo é seu para sempre. Ele choca quando você chegar ao nível 1.</p>`;
     r.style.display = 'flex'; $('girar').style.display = 'none'; $('ovo-entrar').style.display = '';
   });
@@ -1186,10 +1186,10 @@ function svResolver() {
     if (!alvo) return;
     const E = EL[a.el], golpe = { t: E.golpe, cor: E.cor };
     if (alvo.esc) { alvo.esc = false; snap([{ ref: alvo.id, f: 's' }, { bloq: { de: a.id, art: E.art, golpe: E.golpe, cor: E.cor } }], { tipo: 'bloq', alvo: alvo.id, de: a.id, el: a.el }); return; }
-    const rapido = a.id === primeiro, bonusEl = a.el === q.elemento, bonusInf = a.el === 'infinito';
-    const dano = DANO[Math.min(a.furia, 3)] + (rapido ? 5 : 0) + (bonusEl ? 5 : 0) + (bonusInf ? 3 : 0);
+    const rapido = a.id === primeiro, bonusEl = a.el === q.elemento, efe = efetividade(a.el, alvo.el);
+    const dano = DANO[Math.min(a.furia, 3)] + (rapido ? 5 : 0) + (bonusEl ? 5 : 0) + efe;
     alvo.hp = Math.max(0, alvo.hp - dano); a.dano += dano;
-    snap([{ ref: a.id, f: 's' }, { t: ESTAGIO(a.nivel) ? ' mandou ' + nomeCria(a.el, a.nivel) + ' usar ' : ' usou ' }, golpe, { t: ' em ' }, { ref: alvo.id, f: 'o' }, { t: '! ' }].concat(rapido ? [{ t: 'Golpe Rápido! ', c: 'rapido' }] : [], bonusEl ? [{ t: 'Bônus de ' + E.nome + '! ', cor: E.cor }] : [], bonusInf ? [{ t: 'Bônus do Infinito! ', cor: E.cor }] : [], [{ t: '−' + dano + ' HP', c: 'dano' }]), { tipo: 'atk', alvo: alvo.id, de: a.id, el: a.el, valor: '−' + dano });
+    snap([{ ref: a.id, f: 's' }, { t: ESTAGIO(a.nivel) ? ' mandou ' + nomeCria(a.el, a.nivel) + ' usar ' : ' usou ' }, golpe, { t: ' em ' }, { ref: alvo.id, f: 'o' }, { t: '! ' }].concat(rapido ? [{ t: 'Golpe Rápido! ', c: 'rapido' }] : [], bonusEl ? [{ t: 'Bônus de ' + E.nome + '! ', cor: E.cor }] : [], efe > 0 ? [{ t: 'É super efetivo! ', c: 'rapido' }] : efe < 0 ? [{ t: 'Não foi muito efetivo… ', cor: '#A9ADD6' }] : [], [{ t: '−' + dano + ' HP', c: 'dano' }]), { tipo: 'atk', alvo: alvo.id, de: a.id, el: a.el, valor: '−' + dano });
     if (alvo.hp === 0) { SV.koOrdem.push(alvo.id); snap([{ ref: alvo.id, f: 's' }, { t: ' está fora! Continua respondendo como espectador.' }], { tipo: 'ko', alvo: alvo.id }); }
   });
   SV.hist.push({ texto: q.texto, resposta: q.resposta });
@@ -1450,14 +1450,14 @@ function renderPainel() {
     p.querySelectorAll('[data-k]').forEach(b => b.onclick = () => tecla(b.dataset.k));
     $('enviar').onclick = enviar; renderResp();
   } else if (f === 'acao') {
-    const eu = EU(), base = DANO[Math.min(eu.furia + 1, 3)] + (eu.el === B.q.elemento ? 5 : 0) + (eu.el === 'infinito' ? 3 : 0);
+    const eu = EU(), base = DANO[Math.min(eu.furia + 1, 3)] + (eu.el === B.q.elemento ? 5 : 0);
     p.innerHTML = `<p class="rot">ESCOLHA SUA AÇÃO</p>`
-      + `<button class="acao" data-a="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR</b><small>${ESTAGIO(eu.nivel) ? esc(nomeCria(eu.el, eu.nivel)) + ' tira ' : 'Tira '}${base} HP${eu.el === B.q.elemento ? ' (com +5 de ' + EL[eu.el].nome + ')' : eu.el === 'infinito' ? ' (com +3 do Infinito)' : ''} · +5 se for o 1º</small></button>`
+      + `<button class="acao" data-a="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR</b><small>${ESTAGIO(eu.nivel) ? esc(nomeCria(eu.el, eu.nivel)) + ' tira ' : 'Tira '}${base} HP${eu.el === B.q.elemento ? ' (com +5 de ' + EL[eu.el].nome + ')' : ''} · +5 se for o 1º · ±5 pelo elemento do alvo</small></button>`
       + `<button class="acao" data-a="cura" style="border-left:6px solid #36C46B"><b style="color:#36C46B">CURAR</b><small>Recupera ${CURA} HP (máximo 100)</small></button>`
       + `<button class="acao" data-a="esc" style="border-left:6px solid #5EE6FF"><b style="color:#5EE6FF">ESCUDO</b><small>Bloqueia o primeiro golpe desta rodada e depois quebra</small></button>`;
     p.querySelectorAll('[data-a]').forEach(b => b.onclick = () => escolherAcao(b.dataset.a));
   } else if (f === 'alvo') {
-    p.innerHTML = `<p class="rot">ESCOLHA O ALVO · OU TOQUE NA ARENA</p>` + rivais().filter(j => j.hp > 0).map(j => `<button class="acao" data-alvo="${j.id}" style="min-height:52px;flex-direction:row;align-items:center;justify-content:space-between;border-left:6px solid ${EL[j.el].cor}"><b style="font-size:16px;letter-spacing:0">${esc(j.nick)}</b><small class="cp" style="color:#FF4D6D;font-size:14px">${j.hp} HP</small></button>`).join('')
+    p.innerHTML = `<p class="rot">ESCOLHA O ALVO · OU TOQUE NA ARENA</p>` + rivais().filter(j => j.hp > 0).map(j => `<button class="acao" data-alvo="${j.id}" style="min-height:52px;flex-direction:row;align-items:center;justify-content:space-between;border-left:6px solid ${EL[j.el].cor}"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:16px;letter-spacing:0">${esc(j.nick)}</b><small style="font-size:11px;color:var(--texto2)">${esc(nomeCria(j.el, j.nivel))} · ${EL[j.el].nome}</small></span><span style="display:flex;align-items:center;gap:8px;flex:none">${seloEfetividade(EU().el, j.el)}<small class="cp" style="color:#FF4D6D;font-size:14px">${j.hp} HP</small></span></button>`).join('')
       + `<button class="btn btn-sec" id="voltar-acao" style="flex:none;min-height:44px">← VOLTAR</button>`;
     p.querySelectorAll('[data-alvo]').forEach(b => b.onclick = () => escolherAlvo(b.dataset.alvo));
     $('voltar-acao').onclick = () => { B.fase = 'acao'; renderMsg([{ t: 'Você acertou! ', c: 'eu' }, { t: 'O que você vai fazer?' }]); renderPainel(); atualizarCena(); };
@@ -2065,7 +2065,8 @@ function renderLicao() {
   $('lc-arm-n').textContent = 'VIDA ' + (n - qb) + '/' + n; $('lc-arm').setAttribute('aria-label', 'Vida de ' + L.mon.nome + ': ' + (n - qb) + ' de ' + n);
   const ac = L.hist.filter(Boolean).length, min = minimo(e), E = EL[P.el];
   const quem = nomeCria(P.el, nivelVisto()), mn = L.mon.nome;
-  $('lc-narra').textContent = L.fase === 'certo' ? 'Você acertou! ' + quem + ' lançou ' + (E.art === 'o' ? 'um ' : 'uma ') + E.golpe + ' em ' + mn + '.'
+  const efe = efetividade(P.el, L.mon.el);
+  $('lc-narra').textContent = L.fase === 'certo' ? 'Você acertou! ' + quem + ' lançou ' + (E.art === 'o' ? 'um ' : 'uma ') + E.golpe + ' em ' + mn + '.' + (efe > 0 ? ' É super efetivo!' : efe < 0 ? ' Não foi muito efetivo…' : '')
     : L.fase === 'errado' ? mn + ' se defendeu. A resposta é ' + q.resposta + '.'
       : L.i === 0 && !L.hist.length ? (L.chefe ? 'O chefão ' + mn + ' apareceu! ' : mn + ' selvagem apareceu! ') + 'Com ' + min + ' acertos, ' + (e.chefe ? 'a próxima ilha abre.' : 'a próxima etapa libera.')
         : ac >= min ? 'Etapa garantida! Continue acertando para ganhar estrelas.' : 'Acerte para ' + quem + ' atacar. Faltam ' + (min - ac) + ' acertos.';
@@ -2309,6 +2310,23 @@ const NIVEL_EST = [0, 1, 11, 37];
 const ESTAGIO = (n) => n >= 37 ? 3 : n >= 11 ? 2 : n >= 1 ? 1 : 0;
 const nomeCria = (el, nivel) => (NOMES_CRIA[el] || NOMES_CRIA.agua)[ESTAGIO(nivel || 0)];
 const ROLETA = ['fogo', 'agua', 'planta', 'raio', 'pedra', 'infinito'];
+/* Fraquezas: Água → Fogo → Planta → Pedra → Raio → Água. O Infinito tem +5 contra todos e ninguém tem vantagem contra ele. */
+const VENCE = { agua: 'fogo', fogo: 'planta', planta: 'pedra', pedra: 'raio', raio: 'agua' };
+const PERDE = Object.fromEntries(Object.entries(VENCE).map(([a, b]) => [b, a]));
+function efetividade(atk, def) {
+  if (atk === 'infinito') return 5;
+  if (!def || def === 'infinito') return 0;
+  return VENCE[atk] === def ? 5 : VENCE[def] === atk ? -5 : 0;
+}
+function seloEfetividade(atk, def) {
+  const e = efetividade(atk, def);
+  if (!e) return '';
+  return `<span class="cp" style="padding:2px 6px;font-size:10px;letter-spacing:1px;${e > 0 ? 'background:rgba(54,196,107,.18);color:#36C46B;border:1px solid #36C46B' : 'background:rgba(169,173,214,.12);color:#A9ADD6;border:1px solid #6E7299'}">${e > 0 ? 'FORTE +5' : 'FRACO −5'}</span>`;
+}
+function textoFraqueza(el) {
+  if (el === 'infinito') return '+5 de dano contra todos os elementos';
+  return 'Forte contra ' + EL[VENCE[el]].nome + ' · Fraco contra ' + EL[PERDE[el]].nome;
+}
 const ORDEM_EL = ['agua', 'fogo', 'planta', 'pedra', 'raio', 'infinito'];
 const NOME_ILHA = { fogo: 'ILHA DO FOGO', agua: 'ILHA DA ÁGUA', planta: 'ILHA DA PLANTA', pedra: 'ILHA DA PEDRA', raio: 'ILHA DO RAIO' };
 const nomeIlha = (el) => 'Ilha ' + (el === 'fogo' || el === 'raio' ? 'do ' : 'da ') + EL[el].nome;
@@ -2478,11 +2496,11 @@ function renderCriatura() {
 function renderColecao() {
   const nvv = nivelVisto(), est = ESTAGIO(nvv), E = EL[P.el];
   let h = `<div class="topo"><button class="voltar" id="k-ninho" aria-label="Voltar ao ninho"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#F2F3FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1 class="titulo">MINHA COLEÇÃO</h1><p class="cp" style="margin:0;width:44px;text-align:right;color:var(--ciano)">${P.colecao.length}/6</p></div>`
-    + `<div class="cartao cantos" style="display:flex;align-items:center;gap:12px;border-color:${E.cor}">${criaHTML(P.el, nvv, 80)}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><p class="rot" style="color:var(--amarelo)">VAI COM VOCÊ NAS PARTIDAS</p><p class="cp" style="margin:0;font-size:18px">${esc(nomeCria(P.el, nvv))}</p><p style="margin:0;font-size:12px;color:${E.cor}">${E.nome} · ${['Ovo', 'Filhote', 'Estágio 1', 'Estágio 2'][est]}</p><p class="aviso" style="font-size:11px">${P.el === 'infinito' ? '+3 de dano em qualquer questão' : '+5 de dano nas questões de ' + esc((ELEMENTOS[P.el] || {}).unidade || E.nome)}</p></div></div>`
+    + `<div class="cartao cantos" style="display:flex;align-items:center;gap:12px;border-color:${E.cor}">${criaHTML(P.el, nvv, 80)}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><p class="rot" style="color:var(--amarelo)">VAI COM VOCÊ NAS PARTIDAS</p><p class="cp" style="margin:0;font-size:18px">${esc(nomeCria(P.el, nvv))}</p><p style="margin:0;font-size:12px;color:${E.cor}">${E.nome} · ${['Ovo', 'Filhote', 'Estágio 1', 'Estágio 2'][est]}</p><p class="aviso" style="font-size:11px">${P.el === 'infinito' ? '' : '+5 de dano nas questões de ' + esc((ELEMENTOS[P.el] || {}).unidade || E.nome) + ' · '}${textoFraqueza(P.el)}</p></div></div>`
     + `<p class="rot">ÁLBUM DAS EVOLUÇÕES · TODAS EVOLUEM JUNTO COM O SEU NÍVEL</p>`;
   h += ORDEM_EL.map(el => {
     const Ex = EL[el], tem = P.colecao.includes(el), ativo = el === P.el;
-    return `<div class="album-lin" style="${ativo ? 'border-color:' + Ex.cor : ''}"><div style="display:flex;align-items:center;gap:8px"><i style="width:10px;height:10px;flex:none;background:${Ex.cor}"></i><span class="cp" style="flex:1;font-size:14px">${Ex.nome}</span>`
+    return `<div class="album-lin" style="${ativo ? 'border-color:' + Ex.cor : ''}"><div style="display:flex;align-items:center;gap:8px"><i style="width:10px;height:10px;flex:none;background:${Ex.cor}"></i><span style="flex:1;min-width:0"><span class="cp" style="display:block;font-size:14px">${Ex.nome}</span><span style="display:block;font-size:11px;color:var(--texto2)">${textoFraqueza(el)}</span></span>`
       + (ativo ? `<span class="cp" style="padding:3px 8px;background:${Ex.cor};color:var(--bg);font-size:11px;letter-spacing:1px">★ ATIVO</span>` : tem ? `<button class="btn btn-sec" data-escolher="${el}" style="flex:none;min-height:34px;padding:0 12px;font-size:12px">ESCOLHER</button>` : CADEADO('#8B8FB8', 16)) + `</div>`
       + `<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px">${[0, 1, 2, 3].map(k => { const ve = tem && k <= est; return `<div class="album-fig${ve ? '' : ' fig-bloq'}" style="--c2:${Ex.cor}22" title="${ve ? esc(NOMES_CRIA[el][k]) : '???'}"><img src="${CRIA_IMG[el + '-' + k]}" alt="${ve ? esc(NOMES_CRIA[el][k]) : 'Bloqueada'}">${ve ? '' : '<span class="cp" style="position:absolute;font-size:20px;color:#6E7299">?</span>'}</div>`; }).join('')}</div>`
       + `<p class="aviso" style="font-size:11px">${tem ? NOMES_CRIA[el].slice(1).map((n, k) => (k + 1 <= est ? '✓ ' : '') + n + ' (nv ' + NIVEL_EST[k + 1] + ')').join(' · ') : COMO_GANHAR(el)}</p></div>`;
@@ -2685,7 +2703,7 @@ function csAcao(id, tipo) {
   let evt;
   if (tipo === 'atk') {
     const rapido = CS.primeiro === id, bEl = j.el === CS.q.elemento, bInf = j.el === 'infinito';
-    const dano = 20 + (rapido ? 5 : 0) + (bEl ? 5 : 0) + (bInf ? 3 : 0);
+    const dano = 20 + (rapido ? 5 : 0) + (bEl ? 5 : 0) + (bInf ? 5 : 0);
     CS.hp = Math.max(0, CS.hp - dano); j.dano += dano;
     evt = { tipo: 'atk', id, nick: j.nick, el: j.el, cria: nomeCria(j.el, j.nivel), valor: dano, rapido, bonus: bEl || bInf };
   } else if (tipo === 'cura') { const a = j.hp; j.hp = Math.min(100, j.hp + 15); evt = { tipo: 'cura', id, nick: j.nick, valor: j.hp - a, hp: j.hp }; }
@@ -2864,7 +2882,7 @@ function renderChefao() {
       + `<div class="teclado">${TECLAS.map(k => `<button class="tecla${NOME_TECLA[k] ? ' esp' : ''}" data-chk="${k}" aria-label="${NOME_TECLA[k] || k}">${k}</button>`).join('')}<button class="btn btn-prim" id="ch-enviar" style="grid-column:span 2;min-height:46px;font-size:17px${d ? '' : ';opacity:.45'}">ENVIAR</button></div>`;
   } else if (f === 'acao') {
     h += `<p class="cp" style="margin:0;font-size:15px;color:var(--verde)">Você acertou! O que vai fazer?</p>`
-      + `<button class="acao" data-cha="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR O CHEFÃO</b><small>${esc(nomeCria(P.el, nivelVisto()))} causa 20${P.el === CH.q.elemento ? ' +5 (elemento)' : P.el === 'infinito' ? ' +3 (Infinito)' : ''} · +5 se for o 1º</small></button>`
+      + `<button class="acao" data-cha="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR O CHEFÃO</b><small>${esc(nomeCria(P.el, nivelVisto()))} causa 20${P.el === CH.q.elemento ? ' +5 (elemento)' : P.el === 'infinito' ? ' +5 (Infinito)' : ''} · +5 se for o 1º</small></button>`
       + `<button class="acao" data-cha="cura" style="border-left:6px solid #36C46B"><b style="color:#36C46B">CURAR</b><small>Recupera 15 HP (seu HP: ${CH.meuHp})</small></button>`
       + `<button class="acao" data-cha="esc" style="border-left:6px solid #5EE6FF"><b style="color:#5EE6FF">ESCUDO</b><small>Bloqueia o ataque do chefão nesta rodada</small></button>`;
   } else if (f === 'espera' || f === 'aguarda') {

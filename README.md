@@ -9,6 +9,8 @@ Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age
 - Aba **Criaturas** com o ninho e o botão **Minha coleção**, onde o aluno escolhe a criatura que vai batalhar.
 - Treino Solo com monstros selvagens sorteados em cada ilha e um chefão por ilha. Fazer 3 estrelas em todas as etapas de uma ilha dá o ovo daquele elemento (ou +150 XP e +80 moedas, se o aluno já tiver).
 - Batalha na Arena no estilo "treinador atrás": a criatura luta na frente do avatar, com o escudo da liga ao lado do nick.
+- Fraquezas de elemento: Água → Fogo → Planta → Pedra → Raio → Água. Quem ataca com vantagem dá +5 ("É super efetivo!"), e quem ataca em desvantagem dá −5. O Infinito dá +5 contra todos, e ninguém tem vantagem contra ele.
+- Curar recupera 30 de vida na Arena (15 no Chefão da Sala), e o Escudo bloqueia só o primeiro golpe da rodada e depois quebra.
 - **Ligas do semestre** dentro da aba Conta: 1º lugar +25, 2º +15, 3º +5; 100 pontos sobem uma divisão.
 - Para o professor: aba **Turma** (turmas com código, ficha do aluno com presença e mapa de calor, ranking só para professores) e o evento **Chefão da Sala** no JOGAR, com placar de dano ao vivo.
 
