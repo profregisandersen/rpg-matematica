@@ -4,6 +4,15 @@
 
 Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age quando acerta uma questão de matemática.
 
+**Versão 1.0 (com servidor)**
+
+- Contas com usuário e senha criados pelo próprio aluno. O progresso fica salvo na nuvem (Supabase), e o aluno continua em qualquer aparelho.
+- O aluno entra na turma com o código de 5 letras. O professor vê presença, mapa de calor, ranking e pedidos de nick, e pode criar senha nova para o aluno.
+- Professor cria a conta com o código de professor e entra rápido com um PIN pessoal.
+- Salas e Chefão da Sala pelo Supabase Realtime.
+- Quem jogou o teste pode trazer o progresso do aparelho para a conta.
+- O banco está em `servidor/schema.sql`. Enquanto o endereço do Supabase não estiver configurado, o jogo funciona como protótipo, com tudo salvo no aparelho.
+
 **Versão 0.05**
 
 - Entrada com dois cartões: **Sou aluno** (e-mail institucional ou usuário e senha) e **Sou professor** (PIN de 4 dígitos; no protótipo o PIN de teste é 2027, e ele trava por 5 minutos depois de 5 erros).
