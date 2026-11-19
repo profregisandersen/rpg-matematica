@@ -1902,6 +1902,7 @@ function migrarPerfil() {
   if (!P.login && ultimoLogin) P.login = ultimoLogin;
   if (!Array.isArray(P.colecao)) P.colecao = [P.el];
   if (!P.colecao.includes(P.el)) P.colecao.push(P.el);
+  if (P.gm) ORDEM_EL.forEach(el => { if (!P.colecao.includes(el)) P.colecao.push(el); }); // professores (GM) têm todos os ovos
   if (P.estagioVisto == null) P.estagioVisto = 0;
   if (!P.premiosIlha) P.premiosIlha = {};
   if (!P.liga) P.liga = { idx: 0, pts: 0, sem: semestreAtual(), hist: [] };
@@ -2595,7 +2596,7 @@ function teclaPin(k) {
 document.addEventListener('keydown', e => { if ($('folha-fundo').classList.contains('on') && $('folha').querySelector('[data-pin]') && /^[0-9]$|^Backspace$/.test(e.key)) { e.preventDefault(); teclaPin(e.key === 'Backspace' ? '⌫' : e.key); } });
 function entrarComoGM() {
   PAPEL = 'gm'; ultimoLogin = 'professor'; carregarPerfil();
-  if (P && P.nick && P.el) { P.gm = true; salvarPerfil(); irAba('inicio'); avisar('Bem-vindo, professor!'); }
+  if (P && P.nick && P.el) { P.gm = true; migrarPerfil(); salvarPerfil(); irAba('inicio'); avisar('Bem-vindo, professor!'); }
   else { iniciarRegistro(); mostrar('registro'); avisar('Crie o seu jogador: o professor também joga!'); }
 }
 
