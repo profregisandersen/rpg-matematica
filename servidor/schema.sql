@@ -35,6 +35,7 @@ create table if not exists public.perfis (
   atualizado_em timestamptz not null default now()
 );
 create unique index if not exists perfis_nick_unico on public.perfis (lower(nick));
+alter table public.perfis add column if not exists bloqueado boolean not null default false;
 create index if not exists perfis_turma on public.perfis (turma_id);
 
 create table if not exists public.partidas (
@@ -78,10 +79,11 @@ revoke all on public.turmas, public.perfis, public.partidas, public.acessos, pub
 
 -- ---------- Funções de apoio (internas) ----------
 create or replace function public._uid() returns uuid
-language plpgsql stable as $$
+language plpgsql stable security definer set search_path = public as $$
 declare u uuid := auth.uid();
 begin
   if u is null then raise exception 'sem_login'; end if;
+  if exists (select 1 from public.perfis where id = u and bloqueado) then raise exception 'conta_bloqueada'; end if;
   return u;
 end $$;
 
@@ -120,7 +122,7 @@ end $$;
 create or replace function public.meu_perfil() returns json
 language sql stable security definer set search_path = public as $$
   select json_build_object(
-    'usuario', p.usuario, 'nick', p.nick, 'gm', p.gm, 'dados', p.dados,
+    'usuario', p.usuario, 'nick', p.nick, 'gm', p.gm, 'dados', p.dados, 'bloqueado', p.bloqueado,
     'turma', (select json_build_object('id', t.id, 'nome', t.nome, 'serie', t.serie, 'turno', t.turno, 'codigo', t.codigo) from public.turmas t where t.id = p.turma_id),
     'pedido', (select r.nick from public.pedidos_nick r where r.aluno_id = p.id and r.status = 'pendente' order by r.id desc limit 1)
   )
@@ -204,7 +206,7 @@ create or replace function public.apagar_minha_conta() returns void
 language plpgsql volatile security definer set search_path = public, auth as $$
 declare u uuid := public._uid();
 begin
-  perform public.sair_guilda();
+  perform public._sair_guilda(u);
   delete from auth.users where id = u;
 end $$;
 
@@ -455,9 +457,9 @@ begin
 end $$;
 
 -- sai da guilda; se era o líder, a liderança passa para o membro de maior nível; guilda vazia é apagada
-create or replace function public.sair_guilda() returns void
+create or replace function public._sair_guilda(u uuid) returns void
 language plpgsql volatile security definer set search_path = public as $$
-declare u uuid := public._uid(); gid uuid; novo uuid;
+declare gid uuid; novo uuid;
 begin
   gid := public._guilda_de(u);
   if gid is null then return; end if;
@@ -467,6 +469,32 @@ begin
    where m.guilda_id = gid order by p.nivel desc, p.xp desc, m.entrou_em limit 1;
   if novo is null then delete from public.guildas where id = gid;
   else update public.guildas set lider_id = novo where id = gid; end if;
+end $$;
+
+create or replace function public.sair_guilda() returns void
+language plpgsql volatile security definer set search_path = public as $$
+begin perform public._sair_guilda(public._uid()); end $$;
+
+-- o líder só apaga a guilda quando está sozinho nela
+create or replace function public.apagar_guilda(p_confirma text) returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); g public.guildas;
+begin
+  select * into g from public.guildas where id = public._guilda_de(u);
+  if not found or g.lider_id is distinct from u then raise exception 'so_lider'; end if;
+  if (select count(*) from public.guilda_membros where guilda_id = g.id) > 1 then raise exception 'guilda_com_membros'; end if;
+  if lower(btrim(p_confirma)) <> lower(g.nome) then raise exception 'confirmacao_errada'; end if;
+  delete from public.guildas where id = g.id;
+end $$;
+
+create or replace function public.passar_lideranca(p_aluno uuid) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); gid uuid := public._guilda_de(u);
+begin
+  if gid is null or (select lider_id from public.guildas where id = gid) is distinct from u then raise exception 'so_lider'; end if;
+  if p_aluno = u or public._guilda_de(p_aluno) is distinct from gid then raise exception 'nao_e_membro'; end if;
+  update public.guildas set lider_id = p_aluno where id = gid;
+  return public.minha_guilda();
 end $$;
 
 create or replace function public.editar_guilda(p_nome text, p_emblema jsonb) returns json
@@ -568,6 +596,138 @@ begin
   );
 end $$;
 
+
+-- =====================================================================
+-- Administração (só GM): jogadores, guildas e registro das ações
+-- =====================================================================
+create table if not exists public.registro_admin (
+  id bigint generated always as identity primary key,
+  gm_id uuid references public.perfis (id) on delete set null,
+  gm_nick text not null,
+  acao text not null,
+  alvo text not null,
+  criado_em timestamptz not null default now()
+);
+alter table public.registro_admin enable row level security;
+revoke all on public.registro_admin from anon, authenticated;
+
+create or replace function public._so_gm() returns uuid
+language plpgsql stable security definer set search_path = public as $$
+declare u uuid := public._uid();
+begin
+  if not public._eh_gm() then raise exception 'so_professor'; end if;
+  return u;
+end $$;
+
+create or replace function public._registrar(p_acao text, p_alvo text) returns void
+language sql volatile security definer set search_path = public as $$
+  insert into public.registro_admin (gm_id, gm_nick, acao, alvo)
+  select id, nick, p_acao, p_alvo from public.perfis where id = auth.uid();
+$$;
+
+create or replace function public.adm_jogadores() returns json
+language plpgsql stable security definer set search_path = public as $$
+begin
+  perform public._so_gm();
+  return json_build_object(
+    'jogadores', (select coalesce(json_agg(json_build_object(
+      'id', p.id, 'usuario', p.usuario, 'nick', p.nick, 'gm', p.gm, 'bloqueado', p.bloqueado, 'nivel', p.nivel, 'xp', p.xp,
+      'av', p.dados -> 'av', 'mol', coalesce(p.dados ->> 'moldura', ''), 'el', p.dados ->> 'el', 'criado', p.criado_em,
+      'turma', (select json_build_object('id', t.id, 'nome', t.nome, 'serie', t.serie, 'turno', t.turno) from public.turmas t where t.id = p.turma_id),
+      'guilda', (select g.nome from public.guilda_membros m join public.guildas g on g.id = m.guilda_id where m.aluno_id = p.id),
+      'acesso', (select max(a.dia) from public.acessos a where a.aluno_id = p.id),
+      'partidas', (select count(*) from public.partidas x where x.aluno_id = p.id)
+    ) order by p.gm desc, lower(p.nick)), '[]'::json) from public.perfis p),
+    'turmas', (select coalesce(json_agg(json_build_object('id', t.id, 'nome', t.nome, 'serie', t.serie, 'turno', t.turno, 'professor', (select nick from public.perfis where id = t.professor_id)) order by t.serie, t.nome), '[]'::json) from public.turmas t)
+  );
+end $$;
+
+create or replace function public.adm_mudar_turma(p_aluno uuid, p_turma uuid) returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare p public.perfis; t public.turmas;
+begin
+  perform public._so_gm();
+  select * into p from public.perfis where id = p_aluno;
+  if not found then raise exception 'nao_existe'; end if;
+  if p.gm then raise exception 'alvo_gm'; end if;
+  if p_turma is not null then
+    select * into t from public.turmas where id = p_turma;
+    if not found then raise exception 'turma_nao_existe'; end if;
+  end if;
+  update public.perfis set turma_id = p_turma where id = p_aluno;
+  perform public._registrar('mudou de turma', p.nick || ' (' || p.usuario || ') → ' || coalesce(t.nome, 'sem turma'));
+end $$;
+
+create or replace function public.adm_bloquear(p_aluno uuid, p_bloquear boolean) returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare p public.perfis;
+begin
+  perform public._so_gm();
+  select * into p from public.perfis where id = p_aluno;
+  if not found then raise exception 'nao_existe'; end if;
+  if p.gm then raise exception 'alvo_gm'; end if;
+  update public.perfis set bloqueado = p_bloquear where id = p_aluno;
+  perform public._registrar(case when p_bloquear then 'bloqueou' else 'desbloqueou' end, p.nick || ' (' || p.usuario || ')');
+end $$;
+
+create or replace function public.adm_apagar_conta(p_aluno uuid, p_confirma text) returns void
+language plpgsql volatile security definer set search_path = public, auth as $$
+declare p public.perfis;
+begin
+  perform public._so_gm();
+  select * into p from public.perfis where id = p_aluno;
+  if not found then raise exception 'nao_existe'; end if;
+  if p.gm then raise exception 'alvo_gm'; end if;
+  if lower(btrim(p_confirma)) <> lower(p.usuario) then raise exception 'confirmacao_errada'; end if;
+  perform public._sair_guilda(p_aluno);
+  perform public._registrar('apagou a conta', p.nick || ' (' || p.usuario || ')');
+  delete from auth.users where id = p_aluno;
+end $$;
+
+create or replace function public.adm_guildas() returns json
+language plpgsql stable security definer set search_path = public as $$
+begin
+  perform public._so_gm();
+  return (select coalesce(json_agg(json_build_object(
+    'id', g.id, 'nome', g.nome, 'emblema', g.emblema, 'serie', g.serie, 'codigo', g.codigo, 'andar', g.andar, 'dano_total', g.dano_total, 'criada', g.criada_em,
+    'lider', (select nick from public.perfis where id = g.lider_id),
+    'membros', (select coalesce(json_agg(p.nick order by lower(p.nick)), '[]'::json) from public.guilda_membros m join public.perfis p on p.id = m.aluno_id where m.guilda_id = g.id)
+  ) order by g.serie, g.andar desc, lower(g.nome)), '[]'::json) from public.guildas g);
+end $$;
+
+create or replace function public.adm_renomear_guilda(p_guilda uuid, p_nome text) returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare antigo text;
+begin
+  perform public._so_gm();
+  select nome into antigo from public.guildas where id = p_guilda;
+  if antigo is null then raise exception 'guilda_nao_existe'; end if;
+  if not public._nome_guilda_ok(p_nome) then raise exception 'nome_invalido'; end if;
+  if exists (select 1 from public.guildas where lower(nome) = lower(p_nome) and id <> p_guilda) then raise exception 'nome_em_uso'; end if;
+  update public.guildas set nome = p_nome where id = p_guilda;
+  perform public._registrar('renomeou a guilda', antigo || ' → ' || p_nome);
+end $$;
+
+create or replace function public.adm_apagar_guilda(p_guilda uuid, p_confirma text) returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare g public.guildas;
+begin
+  perform public._so_gm();
+  select * into g from public.guildas where id = p_guilda;
+  if not found then raise exception 'guilda_nao_existe'; end if;
+  if lower(btrim(p_confirma)) <> lower(g.nome) then raise exception 'confirmacao_errada'; end if;
+  perform public._registrar('apagou a guilda', g.nome || ' (' || g.serie || 'º ano, andar ' || least(g.andar, 100) || ')');
+  delete from public.guildas where id = p_guilda;
+end $$;
+
+create or replace function public.adm_registro() returns json
+language plpgsql stable security definer set search_path = public as $$
+begin
+  perform public._so_gm();
+  return (select coalesce(json_agg(x order by x.criado_em desc), '[]'::json) from (
+    select gm_nick, acao, alvo, criado_em from public.registro_admin order by criado_em desc limit 100) x);
+end $$;
+
 -- ---------- Quem pode chamar o quê ----------
 revoke all on all functions in schema public from public, anon;
 grant execute on function
@@ -578,7 +738,9 @@ grant execute on function
   public.redefinir_senha(uuid, text), public.tirar_da_turma(uuid),
   public.minha_guilda(), public.criar_guilda(text, jsonb, text), public.entrar_guilda(text), public.sair_guilda(),
   public.editar_guilda(text, jsonb), public.remover_membro(uuid), public.abrir_porta(), public.iniciar_investida(),
-  public.finalizar_investida(bigint, int, int), public.rankings_torre()
+  public.finalizar_investida(bigint, int, int), public.rankings_torre(), public.apagar_guilda(text), public.passar_lideranca(uuid),
+  public.adm_jogadores(), public.adm_mudar_turma(uuid, uuid), public.adm_bloquear(uuid, boolean), public.adm_apagar_conta(uuid, text),
+  public.adm_guildas(), public.adm_renomear_guilda(uuid, text), public.adm_apagar_guilda(uuid, text), public.adm_registro()
 to authenticated;
 
 -- ---------- Código secreto dos professores ----------
