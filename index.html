@@ -295,6 +295,7 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 #t-licao{gap:8px}
 @keyframes dispara{0%{transform:translate(0,0) scale(.6);opacity:1}90%{opacity:1}100%{transform:translate(122px,-38px) scale(1.2);opacity:0}}
 .lc-dispara{animation:dispara .45s ease-in both}
+.tr-num{animation:popnum 1s forwards}
 .lc-investe{animation:investe .45s ease-in-out}@keyframes investe{40%{transform:translateX(-70px) scale(1.08)}}
 .lc-dano{animation:danoLc .5s}@keyframes danoLc{0%,100%{opacity:0}30%{opacity:1;background:rgba(255,77,109,.28)}}
 .lc-quebra{animation:quebraCor .6s}@keyframes quebraCor{30%{transform:scale(1.5) rotate(-12deg)}100%{transform:scale(1)}}
@@ -424,6 +425,8 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 <section class="tela" id="t-turma" aria-label="Turma"></section>
 <section class="tela" id="t-chefao" aria-label="Chefão da Sala"></section>
 <section class="tela" id="t-estat" aria-label="Estatísticas"></section>
+<section class="tela" id="t-guilda" aria-label="Guilda"></section>
+<section class="tela" id="t-torre" aria-label="Torre da Guilda" style="gap:8px"></section>
 <section class="tela" id="t-licao" aria-label="Lição do Treino Solo">
 <div class="topo" style="gap:10px"><button class="voltar" id="lc-sair" aria-label="Sair da lição" style="background:transparent"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div id="lc-segs" role="img" style="flex:1;display:flex;gap:4px"></div><p class="cp" id="lc-cont" style="margin:0;font-size:13px;color:var(--texto2)"></p></div>
 <div id="lc-cena" style="position:relative;overflow:hidden;border:1px solid var(--borda);height:200px"></div>
@@ -928,6 +931,7 @@ function abrirJogar() { abrirFolha(cabFolha('COMO VOCÊ QUER JOGAR?')
   + `<button class="opcao" data-modo-jogo="codigo"><span class="ic" style="background:rgba(94,230,255,.12)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#5EE6FF" stroke-width="2" stroke-linecap="round"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg></span><span><b>Entrar com código</b><small>Digite o código que o professor ou um colega passou.</small></span></button>`
   + `<button class="opcao" data-modo-jogo="criar"><span class="ic" style="background:rgba(255,210,63,.12)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#FFD23F" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Criar sala</b><small>Você recebe um código para os colegas entrarem.</small></span></button>`
   + `<button class="opcao" data-modo-jogo="treino"><span class="ic" style="background:rgba(54,196,107,.14)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#36C46B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/></svg></span><span><b>Treino Solo</b><small>Siga a trilha de treino no mapa, sozinho e sem cronômetro.</small></span></button>`
+  + `<button class="opcao" data-modo-jogo="guilda"><span class="ic" style="background:rgba(255,122,61,.14)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#FF7A3D" stroke-width="2" stroke-linejoin="round"><path d="M6 21V8l6-5 6 5v13M10 21v-5h4v5M4 21h16"/></svg></span><span><b>Torre da Guilda</b><small>Investida de hoje: 120 segundos contra o boss do andar, com a sua guilda.</small></span></button>`
   + (P && P.gm ? `<p class="rot" style="margin-top:4px;color:var(--amarelo)">EVENTO · SÓ O PROFESSOR</p><button class="opcao" data-modo-jogo="chefao" style="border-color:#C34BFF"><span class="ic" style="background:rgba(195,75,255,.16)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#FF7BEA" stroke-width="2" stroke-linejoin="round"><path d="M12 3 22 20H2z"/><path d="M9 14h6"/></svg></span><span><b>Chefão da Sala</b><small>A turma inteira contra a Pirâmide das Fórmulas, com placar de dano ao vivo.</small></span></button>` : ''), 'Como você quer jogar'); }
 $('folha').addEventListener('click', e => {
   const b = e.target.closest('[data-modo-jogo]'); if (!b) return;
@@ -935,6 +939,7 @@ $('folha').addEventListener('click', e => {
   if (m === 'treino') { fecharFolha(); if (P.partidas === 0 || nivelDe(P.xp).n < 1) { avisar('O mapa de treino abre depois dos primeiros passos. Jogue sua primeira partida!'); return; } UI.regiao = null; UI.destaque = null; irAba('inicio'); const b = document.querySelector('#t-inicio .etapa.atual'); if (b) b.scrollIntoView({ block: 'center' }); }
   else if (m === 'codigo') folhaCodigo();
   else if (m === 'chefao') folhaChefao();
+  else if (m === 'guilda') { fecharFolha(); abrirGuilda(); }
   else folhaCriar();
 });
 function folhaCodigo() {
@@ -1987,6 +1992,7 @@ function renderInicio() {
     h += `<div style="display:flex;justify-content:space-between;align-items:center"><p class="rot">MISSÕES DE HOJE · ${feitas}/3</p><p style="margin:0;font-size:11px;color:var(--texto3)">Novas missões amanhã</p></div>`
       + `<div class="missoes">${MISSOES.map(m => { const v = P.dia.prog[m.id], ok = v >= m.meta; return `<div class="missao${ok ? ' ok' : ''}" role="group" aria-label="${m.txt}: ${v} de ${m.meta}${ok ? ', concluída' : ''}"><span style="display:flex;justify-content:space-between">${ICO(m.ic, m.cor)}${ok ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 16) : ''}</span><span class="txt">${m.txt}</span><span class="barra" style="height:5px;border:0;background:#22264A"><i style="width:${v / m.meta * 100}%;background:${ok ? '#6FE3C1' : '#5EE6FF'}"></i></span><span style="display:flex;justify-content:space-between;gap:4px"><span style="font-size:11px;font-weight:600;color:var(--texto2)">${v}/${m.meta}</span><span style="font-size:10px;font-weight:700;color:var(--amarelo);text-align:right">${recompensa(m)}</span></span></div>`; }).join('')}</div>`
       + `<button class="bau-lin" id="bau" aria-label="Baú do dia">${P.dia.bau ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 24) : `<span class="${feitas === 3 ? 'balanca' : ''}" style="display:flex;${feitas === 3 ? '' : 'opacity:.5'}">${BAU_SVG(feitas === 3 ? '#FFD23F' : '#A9ADD6')}</span>`}<span style="flex:1;display:flex;flex-direction:column;gap:5px;text-align:left"><span style="font-size:12px;font-weight:600">${P.dia.bau ? 'Baú aberto: +' + BAU + ' moedas' : feitas === 3 ? 'Baú pronto! Toque para abrir.' : 'Faça as 3 missões e abra o baú (+' + BAU + ' moedas)'}</span><span style="display:flex;gap:3px">${[0, 1, 2].map(i => `<i style="flex:1;height:6px;background:${i < feitas ? '#6FE3C1' : '#2A2E55'}"></i>`).join('')}</span></span></button>`;
+    h += guildaCartaoHTML();
     h += mapaHTML();
   }
   h += `<nav class="barra-nav" aria-label="Menu">${navHTML('inicio')}</nav>`;
@@ -3048,7 +3054,7 @@ const MOLDURAS = [
   { id: 'cacador', nome: 'Caçador de Chefões', conq: 'Fique no Top 3 de dano num Chefão da Sala', preco: 120, a: '#6E0E22', b: '#FF4D6D', ico: '⚔', ok: () => false },
   { id: 'invicto', nome: 'Invicto', conq: 'Vença uma partida da Arena sem errar nenhuma questão', preco: 100, a: '#1E9BD7', b: '#FFFFFF', ico: '✦', ok: () => false },
   { id: 'colecionador', nome: 'Colecionador', conq: 'Junte os 6 ovos', preco: 200, a: '#FF7A3D', b: '#5EE6FF', c: '#C77DFF', ico: '◆', ok: () => ORDEM_EL.every(el => P.colecao.includes(el)) },
-  { id: 'fundador', nome: 'Fundador', conq: 'Crie uma guilda (chega junto com as guildas)', preco: 80, a: '#2B2470', b: '#FFD23F', ico: '⚑', ok: () => false }
+  { id: 'fundador', nome: 'Fundador', conq: 'Crie uma guilda', preco: 80, a: '#2B2470', b: '#FFD23F', ico: '⚑', ok: () => false }
 ];
 const MOLD = Object.fromEntries(MOLDURAS.map(m => [m.id, m]));
 const molValida = (id) => MOLD[id] ? id : '';
@@ -3124,6 +3130,387 @@ function atualizarMolduraTela() {
   if (id === 'conta') { const y = $('t-conta').scrollTop; renderConta(); $('t-conta').scrollTop = y; }
 }
 document.addEventListener('click', e => { if (e.target.closest('#ct-loja')) abrirLoja(); });
+
+/* =====================================================================
+   Guildas e Torre da Guilda
+   - Guilda de 1 a 10 jogadores do mesmo ano escolar; quem cria é o líder e recruta pelo código.
+   - Torre de 100 andares: o líder abre a porta de cada andar; cada membro tem 1 investida por dia
+     (120 segundos ou 3 corações). O dano é o da Arena: 20, fúria 25/30, elemento ±5, Infinito +5.
+   - Vida do boss: 10.000 no andar 1 e +50 por andar (conta feita no servidor).
+   ===================================================================== */
+const TORRE_SEG = 120, TORRE_COR = 3, TORRE_EL = ['fogo', 'agua', 'planta', 'pedra', 'raio'];
+const G_CORES = ['#FF7A3D', '#3FA9F5', '#36C46B', '#C29A7E', '#FFD23F', '#C77DFF', '#FF4D6D', '#5EE6FF'];
+const G_FORMAS = {
+  escudo: '<path d="M20 2 37 8v12c0 11-8 18-17 22C11 38 3 31 3 20V8z"/>',
+  circulo: '<circle cx="20" cy="22" r="18"/>',
+  losango: '<path d="M20 2 38 22 20 42 2 22z"/>',
+  hexagono: '<path d="M20 2 37 12v20L20 42 3 32V12z"/>'
+};
+const G_SIMBOLOS = {
+  estrela: '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" fill="#fff"/>',
+  espada: '<path d="M19 3 9 13M15 3h4v4M7 11l6 6M5 19l3-3" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>',
+  coroa: '<path d="M4 18h16M4 18 3 8l5 4 4-7 4 7 5-4-1 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>',
+  raio: '<path d="M13 2 5 13h6l-1 9 8-12h-6z" fill="#fff"/>',
+  chama: '<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-7 0 2 1 3 2 3 0-3 1-5 1-7z" fill="#fff"/>',
+  infinito: '<path d="M7 9a3 3 0 1 0 0 6c3 0 7-6 10-6a3 3 0 1 1 0 6c-3 0-7-6-10-6z" fill="none" stroke="#fff" stroke-width="2.4"/>'
+};
+const G_ERROS = [['sem_turma', 'Entre numa turma primeiro (Conta › Entrar numa turma).'], ['nome_invalido', 'Use de 3 a 20 letras, números ou espaços.'], ['nome_em_uso', 'Já existe uma guilda com esse nome.'],
+  ['ja_tem_guilda', 'Você já está numa guilda.'], ['guilda_nao_existe', 'Código de guilda não encontrado.'], ['guilda_cheia', 'Essa guilda já tem 10 jogadores.'],
+  ['outro_ano', 'Essa guilda é de outro ano escolar.'], ['so_lider', 'Só o líder da guilda pode fazer isso.'], ['porta_fechada', 'O líder ainda não abriu a porta deste andar.'],
+  ['ja_investiu', 'Você já fez a investida de hoje. Volte amanhã!'], ['torre_concluida', 'Sua guilda já venceu os 100 andares!'], ['sem_guilda', 'Você não está numa guilda.']];
+const msgGuilda = (e) => { const t = String((e && e.message) || e || ''); const x = G_ERROS.find(([k]) => t.includes(k)); return x ? x[1] : msgErro(e); };
+
+let GUILDA = null, GUILDA_T = 0, GUILDA_PROM = null, T = null, GF = null, RANK_ABA = 'andar';
+
+function bossDoAndar(n) {
+  if (n >= 100) return { nome: 'Guardião do Infinito', el: 'infinito', svg: CHEFE_SALA_SVG.replace(/width="240" height="230"/, 'width="100%" height="100%"'), especial: true };
+  const el = TORRE_EL[(n - 1) % 5], tier = n <= 30 ? '' : n <= 70 ? ' Feroz' : ' Ancestral';
+  if (n % 10 === 0) { const c = CHEFES_ILHA[CHEFE_POR_ILHA[el]]; return { nome: c.nome + tier, el, svg: c.svg, especial: true }; }
+  const lista = MONSTROS_POR_ILHA[el], m = MONSTROS[lista[Math.floor((n - 1) / 5) % lista.length]];
+  return { nome: m.nome + tier, el, svg: m.svg, especial: false };
+}
+const difDoAndar = (n) => n <= 30 ? 'facil' : n <= 70 ? 'medio' : 'dificil';
+const NOME_DIF = { facil: 'fáceis', medio: 'médias', dificil: 'difíceis' };
+function emblemaSVG(e, t = 40) {
+  e = e || {}; const cor = G_CORES.includes(e.cor) ? e.cor : G_CORES[0], forma = G_FORMAS[e.forma] ? e.forma : 'escudo', sim = G_SIMBOLOS[e.sim] ? e.sim : 'estrela', id = 'ge' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 0 40 44" width="${t}" height="${Math.round(t * 1.1)}" aria-hidden="true" style="flex:none;display:block"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${cor}"/><stop offset="1" stop-color="${cor}" stop-opacity=".55"/></linearGradient></defs>`
+    + `<g fill="url(#${id})" stroke="#0B0C18" stroke-width="2">${G_FORMAS[forma]}</g><g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1" transform="translate(20 22) scale(.86) translate(-20 -22)">${G_FORMAS[forma]}</g>`
+    + `<g transform="translate(9 11) scale(.92)">${G_SIMBOLOS[sim]}</g></svg>`;
+}
+const vidaRestante = (g) => Math.max(0, g.vida - g.dano_andar);
+const barraVida = (rest, vida, cor, alt = 10) => `<div role="img" aria-label="Vida do boss: ${fmtN(rest)} de ${fmtN(vida)}" style="height:${alt}px;background:#22264A;border:1px solid #0B0C18;overflow:hidden"><i style="display:block;height:100%;width:${Math.max(0, Math.min(100, rest / vida * 100)).toFixed(1)}%;background:${cor};box-shadow:0 0 8px ${cor}"></i></div>`;
+
+/* ---------- carregar ---------- */
+function carregarGuilda(forcar) {
+  if (!ONLINE || !CONTA) return Promise.resolve(null);
+  if (!forcar && GUILDA_T && Date.now() - GUILDA_T < 30000) return Promise.resolve(GUILDA);
+  if (GUILDA_PROM) return GUILDA_PROM;
+  GUILDA_PROM = rpc('minha_guilda').then(g => { GUILDA = g; GUILDA_T = Date.now(); return g; }).finally(() => { GUILDA_PROM = null; });
+  return GUILDA_PROM;
+}
+
+/* ---------- cartão no Início ---------- */
+function guildaCartaoHTML() {
+  if (!ONLINE || !CONTA) return '';
+  if (!GUILDA_T) { carregarGuilda().then(() => { const c = $('ini-guilda'); if (c) c.outerHTML = guildaCartaoHTML(); }).catch(() => { }); }
+  const g = GUILDA;
+  if (!g) return `<button class="cartao" id="ini-guilda" data-abrir-guilda style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;color:var(--texto)">${emblemaSVG({ cor: '#5EE6FF', forma: 'escudo', sim: 'infinito' }, 38)}<div style="flex:1;min-width:0"><p class="rot">GUILDA · TORRE DE 100 ANDARES</p><p style="margin:2px 0 0;font-size:13px;font-weight:600">${GUILDA_T ? 'Crie ou entre numa guilda e suba a torre com os amigos.' : 'Carregando…'}</p></div><span class="cp" style="color:var(--ciano);font-size:18px">›</span></button>`;
+  const b = bossDoAndar(Math.min(g.andar, 100)), fim = g.andar > 100, hoje = g.hoje && g.hoje.fechada;
+  const estado = fim ? 'Torre conquistada!' : !g.porta ? (g.lider ? 'Abra a porta do andar ' + g.andar + '!' : 'Esperando o líder abrir a porta') : hoje ? 'Investida de hoje feita ✓' : 'Sua investida de hoje está disponível!';
+  return `<button class="cartao" id="ini-guilda" data-abrir-guilda style="display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;cursor:pointer;color:var(--texto)${!fim && g.porta && !hoje ? ';border-color:var(--amarelo)' : ''}">`
+    + `<div style="display:flex;align-items:center;gap:10px">${emblemaSVG(g.emblema, 34)}<div style="flex:1;min-width:0"><p class="rot">GUILDA · ${esc(g.nome.toUpperCase())}</p><p class="cp" style="margin:2px 0 0;font-size:14px">${fim ? 'ANDAR 100 VENCIDO' : 'ANDAR ' + g.andar + ' · ' + esc(b.nome)}</p></div><span class="cp" style="color:var(--ciano);font-size:18px">›</span></div>`
+    + (fim ? '' : barraVida(vidaRestante(g), g.vida, EL[b.el].cor, 8))
+    + `<p style="margin:0;font-size:12px;color:${!fim && g.porta && !hoje ? 'var(--amarelo)' : 'var(--texto2)'}">${estado}</p></button>`;
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-abrir-guilda]')) abrirGuilda(); });
+
+/* ---------- tela da guilda ---------- */
+const topoGuilda = (titulo) => `<div class="topo" style="gap:10px"><button class="voltar" data-g="voltar" aria-label="Voltar ao Início"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#F2F3FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button><h1 class="titulo" style="flex:1">${titulo}</h1></div>`;
+function abrirGuilda() {
+  mostrar('guilda');
+  if (!ONLINE || !CONTA) {
+    $('t-guilda').innerHTML = topoGuilda('GUILDA') + `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center">${emblemaSVG({ cor: '#5EE6FF', sim: 'infinito' }, 64)}<p class="cp" style="margin:0;font-size:18px">TORRE DA GUILDA</p><p class="aviso">As guildas e a torre precisam do servidor da escola. Jogue pelo link oficial do jogo, com a sua conta, para criar ou entrar numa guilda.</p></div>`;
+    return;
+  }
+  $('t-guilda').innerHTML = topoGuilda('GUILDA') + `<p class="aviso" style="text-align:center;padding:30px 0">Carregando a guilda…</p>`;
+  carregarGuilda(true).then(() => { reenviarPendente(); renderGuilda(); }).catch(e => { $('t-guilda').innerHTML = topoGuilda('GUILDA') + `<p class="aviso" role="alert" style="text-align:center;padding:30px 0">${esc(msgGuilda(e))}</p><button class="btn btn-sec" data-g="recarregar">TENTAR DE NOVO</button>`; });
+}
+function renderGuilda() {
+  const t = $('t-guilda'), y = t.scrollTop, g = GUILDA;
+  if (!g) {
+    const semTurma = !CONTA.turma && !CONTA.gm;
+    t.innerHTML = topoGuilda('GUILDA')
+      + `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center">${emblemaSVG({ cor: '#5EE6FF', forma: 'hexagono', sim: 'infinito' }, 72)}<p class="cp" style="margin:0;font-size:20px;color:var(--amarelo)">A TORRE DE 100 ANDARES</p>`
+      + `<p class="aviso">Junte de 1 a 10 amigos do seu ano escolar, mesmo de outras turmas. Cada andar tem um boss mais forte que o anterior, e cada acerto de vocês tira vida dele.</p>`
+      + `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%">${[['1', 'investida por dia'], ['120 s', 'para acertar o máximo'], ['3', 'corações']].map(([n, l]) => `<div style="padding:8px 4px;background:var(--bg);border:1px solid var(--borda)"><p class="cp" style="margin:0;font-size:18px;color:var(--ciano)">${n}</p><p style="margin:0;font-size:11px;color:var(--texto2)">${l}</p></div>`).join('')}</div></div>`
+      + (semTurma ? `<p class="aviso" role="alert" style="padding:8px 10px;border-left:3px solid var(--amarelo);background:rgba(255,210,63,.08)">Para criar ou entrar numa guilda, primeiro entre na sua turma em Conta › Entrar numa turma.</p>` : '')
+      + `<button class="btn btn-prim" data-g="criar" ${semTurma ? 'disabled style="opacity:.5"' : ''}>CRIAR UMA GUILDA</button><button class="btn btn-sec" data-g="entrar" style="flex:none;min-height:48px" ${semTurma ? 'disabled' : ''}>ENTRAR COM CÓDIGO</button>`
+      + `<button class="btn btn-sec" data-g="rankings" style="flex:none;min-height:44px">VER OS RANKINGS DA TORRE</button>`;
+    return;
+  }
+  const fim = g.andar > 100, n = Math.min(g.andar, 100), b = bossDoAndar(n), C = EL[b.el].cor, rest = vidaRestante(g), hoje = g.hoje && g.hoje.fechada;
+  const membros = g.membros.slice();
+  const porAndar = membros.slice().sort((a, c) => c.dano_andar - a.dano_andar || a.nick.localeCompare(c.nick));
+  let botao;
+  if (fim) botao = `<p class="cp" style="margin:0;text-align:center;color:var(--amarelo)">✦ SUA GUILDA VENCEU OS 100 ANDARES ✦</p>`;
+  else if (!g.porta) botao = g.lider ? `<button class="btn btn-prim" data-g="porta">ABRIR A PORTA DO ANDAR ${n}</button>` : `<p class="aviso" style="text-align:center;padding:10px;border:1px dashed var(--borda)">A porta do andar ${n} está fechada. Esperando o líder abrir.</p>`;
+  else if (hoje) botao = `<p class="aviso" style="text-align:center;padding:10px;border:1px solid var(--verde);color:var(--texto)">✓ Investida de hoje feita: ${g.hoje.acertos} acertos e ${fmtN(g.hoje.dano)} de dano. Volte amanhã!</p>`;
+  else botao = `<button class="btn btn-prim" data-g="investir" style="min-height:58px;font-size:17px">INVESTIDA DE HOJE · ${TORRE_SEG} S</button>`;
+  t.innerHTML = topoGuilda('GUILDA')
+    + `<div class="cartao" style="display:flex;align-items:center;gap:12px">${emblemaSVG(g.emblema, 54)}<div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:19px;color:var(--amarelo);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nome)}</p><p class="aviso" style="font-size:12px">${g.serie}º ano · ${membros.length}/10 jogadores${g.lider ? ' · você é o líder' : ''}</p>`
+    + (g.lider ? `<button data-g="copiar" style="margin-top:4px;border:1px dashed var(--ciano);background:transparent;color:var(--ciano);padding:3px 8px;font-family:'Chakra Petch',sans-serif;font-weight:700;letter-spacing:3px;font-size:14px;cursor:pointer" aria-label="Copiar código da guilda ${g.codigo}">${g.codigo} · COPIAR</button>` : `<p style="margin:2px 0 0;font-size:11px;color:var(--texto3)">Para chamar amigos, peça o código ao líder.</p>`)
+    + `</div></div>`
+    + `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:8px;border-top:3px solid ${C}">`
+    + `<div style="display:flex;justify-content:space-between;align-items:baseline"><p class="rot">TORRE DA GUILDA</p><p class="cp" style="margin:0;font-size:13px;color:var(--texto2)">ANDAR <b style="color:var(--texto);font-size:18px">${fim ? 100 : n}</b>/100</p></div>`
+    + (fim ? '' : `<div style="display:flex;align-items:center;gap:12px"><div class="${g.porta ? 'flutua' : ''}" style="width:96px;height:96px;flex:none;${g.porta ? '' : 'filter:brightness(.35) grayscale(.6)'}">${b.svg}</div><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px"><p class="cp" style="margin:0;font-size:16px">${esc(b.nome)}${b.especial ? ' <span style="font-size:10px;color:var(--amarelo)">CHEFÃO</span>' : ''}</p><p style="margin:0;font-size:12px;color:${C}">Elemento ${esc(EL[b.el].nome)} · questões ${NOME_DIF[difDoAndar(n)]}</p>${barraVida(rest, g.vida, C)}<p style="margin:0;font-size:12px;color:var(--texto2)">${fmtN(rest)} de ${fmtN(g.vida)} de vida</p>${b.el !== 'infinito' ? `<p style="margin:0;font-size:11px;color:var(--texto3)">${esc(textoFraquezaBoss(b.el))}</p>` : ''}</div></div>`)
+    + botao + `</div>`
+    + `<div class="cartao" style="display:flex;flex-direction:column;gap:2px"><p class="rot" style="margin-bottom:4px">DANO NESTE ANDAR · QUEM MAIS AJUDOU</p>`
+    + porAndar.map((m, k) => `<div style="display:flex;align-items:center;gap:8px;min-height:30px;border-top:1px solid #22264A"><span class="cp" style="width:22px;font-size:13px;color:${k === 0 && m.dano_andar ? 'var(--amarelo)' : 'var(--texto3)'}">${k + 1}º</span><span style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${m.voce ? 'var(--amarelo)' : 'var(--texto)'}">${m.gm ? '[GM] ' : ''}${esc(m.nick)}</span>${m.hoje ? '<span title="Já investiu hoje" style="font-size:11px;color:var(--verde)">✓ hoje</span>' : ''}<span class="cp" style="font-size:13px">${fmtN(m.dano_andar)}</span></div>`).join('')
+    + `</div>`
+    + `<div class="cartao" style="display:flex;flex-direction:column;gap:2px"><p class="rot" style="margin-bottom:4px">MEMBROS · ${membros.length}/10</p>`
+    + membros.sort((a, c) => (c.lider - a.lider) || c.nivel - a.nivel).map(m => `<div style="display:flex;align-items:center;gap:10px;min-height:52px;border-top:1px solid #22264A"><div style="flex:none">${m.av ? molduraAv(m.mol, `<div class="mini-av" style="border:0;width:40px;height:40px">${avatarHTML(m.av, 3)}</div>`, true) : ''}</div><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${m.voce ? 'var(--amarelo)' : 'var(--texto)'}">${m.lider ? '<span title="Líder" style="color:var(--amarelo)">♛ </span>' : ''}${m.gm ? '[GM] ' : ''}${esc(m.nick)}</p><p style="margin:0;font-size:11px;color:var(--texto2)">Nível ${m.nivel} · ${fmtN(m.dano_total)} de dano na torre</p></div>${g.lider && !m.voce ? `<button data-g="remover" data-id="${m.id}" data-nick="${esc(m.nick)}" aria-label="Remover ${esc(m.nick)}" style="border:1px solid var(--borda);background:transparent;color:var(--texto3);width:34px;height:34px;cursor:pointer">✕</button>` : ''}</div>`).join('')
+    + `</div>`
+    + `<button class="btn btn-sec" data-g="rankings" style="flex:none;min-height:46px">RANKINGS DA TORRE</button>`
+    + (g.lider ? `<button class="btn btn-sec" data-g="editar" style="flex:none;min-height:44px">EDITAR NOME E EMBLEMA</button>` : '')
+    + `<button class="btn btn-sec" data-g="sair" style="flex:none;min-height:44px;color:var(--vermelho);border-color:rgba(255,77,109,.5)">SAIR DA GUILDA</button>`;
+  t.scrollTop = y;
+}
+function textoFraquezaBoss(el) {
+  const forte = Object.keys(VENCE).find(k => VENCE[k] === el), fraco = VENCE[el];
+  return 'Mais dano com ' + EL[forte].nome + ' e Infinito; menos com ' + EL[fraco].nome + '.';
+}
+$('t-guilda').addEventListener('click', async e => {
+  const b = e.target.closest('[data-g]'); if (!b || b.disabled) return;
+  const a = b.dataset.g;
+  if (a === 'voltar') irAba('inicio');
+  else if (a === 'recarregar') abrirGuilda();
+  else if (a === 'criar') folhaGuilda('criar');
+  else if (a === 'editar') folhaGuilda('editar');
+  else if (a === 'entrar') folhaEntrarGuilda();
+  else if (a === 'rankings') abrirRankings();
+  else if (a === 'investir') confirmarInvestida();
+  else if (a === 'copiar') { try { await navigator.clipboard.writeText(GUILDA.codigo); avisar('Código ' + GUILDA.codigo + ' copiado! Passe para os amigos.'); } catch { avisar('Código da guilda: ' + GUILDA.codigo); } }
+  else if (a === 'porta') acaoGuilda(b, () => rpc('abrir_porta'), 'Porta aberta! A guilda já pode atacar o andar ' + GUILDA.andar + '.');
+  else if (a === 'remover') folhaConfirmar('REMOVER JOGADOR', `Tirar <b>${b.dataset.nick}</b> da guilda? O dano que ele já causou continua contando para a guilda.`, 'REMOVER', () => rpc('remover_membro', { p_aluno: b.dataset.id }), 'Jogador removido.');
+  else if (a === 'sair') {
+    const so = GUILDA.membros.length === 1;
+    folhaConfirmar('SAIR DA GUILDA', so ? 'Você é o único jogador. Se sair, a guilda e o andar que ela alcançou deixam de existir.' : GUILDA.lider ? 'A liderança vai passar para o membro de maior nível. O seu dano continua contando para a guilda.' : 'O seu dano continua contando para a guilda. Para voltar, você vai precisar do código.', 'SAIR', () => rpc('sair_guilda').then(() => null), 'Você saiu da guilda.');
+  }
+});
+async function acaoGuilda(btn, fn, ok) {
+  if (btn) btn.disabled = true;
+  try { const g = await fn(); GUILDA = g === undefined ? GUILDA : g; GUILDA_T = Date.now(); renderGuilda(); if (ok) avisar(ok); }
+  catch (e) { if (btn) btn.disabled = false; avisar(msgGuilda(e)); }
+}
+function folhaConfirmar(tit, txt, rot, fn, ok) {
+  abrirFolha(cabFolha(tit) + `<p style="margin:0;font-size:14px;line-height:1.45">${txt}</p><p class="aviso" id="gc-erro" role="alert"></p><button class="btn btn-prim" id="gc-ok" style="background:var(--vermelho)">${rot}</button><button class="btn btn-sec" data-fechar style="flex:none;min-height:44px">CANCELAR</button>`, tit);
+  $('gc-ok').onclick = async () => {
+    $('gc-ok').disabled = true;
+    try { const g = await fn(); GUILDA = g; GUILDA_T = Date.now(); fecharFolha(); renderGuilda(); avisar(ok); }
+    catch (e) { $('gc-ok').disabled = false; $('gc-erro').textContent = msgGuilda(e); }
+  };
+}
+
+/* ---------- criar / editar ---------- */
+function folhaGuilda(modo) {
+  const g = GUILDA;
+  GF = modo === 'editar' && g ? { modo, nome: g.nome, forma: g.emblema.forma || 'escudo', cor: g.emblema.cor || G_CORES[0], sim: g.emblema.sim || 'estrela' } : { modo, nome: GF && GF.modo === 'criar' ? GF.nome : '', forma: 'escudo', cor: pk(G_CORES), sim: pk(Object.keys(G_SIMBOLOS)), serie: '6' };
+  renderFolhaGuilda();
+}
+function renderFolhaGuilda(msg) {
+  const precisaSerie = GF.modo === 'criar' && CONTA.gm && !CONTA.turma;
+  const opc = (grupo, lista, atual, html) => `<div role="radiogroup" aria-label="${grupo}" style="display:flex;flex-wrap:wrap;gap:6px">${lista.map(v => `<button type="button" role="radio" aria-checked="${v === atual}" data-gf="${grupo}" data-v="${v}" style="width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:2px solid ${v === atual ? 'var(--amarelo)' : 'var(--borda)'};cursor:pointer">${html(v)}</button>`).join('')}</div>`;
+  abrirFolha(cabFolha(GF.modo === 'criar' ? 'CRIAR GUILDA' : 'EDITAR GUILDA')
+    + `<div style="display:flex;align-items:center;gap:12px">${emblemaSVG(GF, 60)}<div class="campo" style="flex:1"><label class="rot" for="gf-nome">NOME DA GUILDA</label><input id="gf-nome" maxlength="20" autocomplete="off" value="${esc(GF.nome)}" placeholder="Lobos do Infinito"></div></div>`
+    + `<p class="rot">FORMA</p>` + opc('forma', Object.keys(G_FORMAS), GF.forma, v => emblemaSVG({ forma: v, cor: GF.cor, sim: GF.sim }, 30))
+    + `<p class="rot">COR</p>` + opc('cor', G_CORES, GF.cor, v => `<i style="width:26px;height:26px;background:${v};border-radius:50%"></i>`)
+    + `<p class="rot">SÍMBOLO</p>` + opc('sim', Object.keys(G_SIMBOLOS), GF.sim, v => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="background:#2A2E55">${G_SIMBOLOS[v]}</svg>`)
+    + (precisaSerie ? `<p class="rot">ANO ESCOLAR DA GUILDA</p><div style="display:flex;gap:6px">${['6', '7'].map(s => `<button type="button" data-gf="serie" data-v="${s}" aria-pressed="${GF.serie === s}" class="btn ${GF.serie === s ? 'btn-prim' : 'btn-sec'}" style="flex:1;min-height:40px">${s}º ANO</button>`).join('')}</div>` : '')
+    + `<p class="aviso" id="gf-erro" role="alert" style="color:var(--vermelho)">${esc(msg || '')}</p>`
+    + `<button class="btn btn-prim" id="gf-ok">${GF.modo === 'criar' ? 'CRIAR GUILDA' : 'SALVAR'}</button>`, GF.modo === 'criar' ? 'Criar guilda' : 'Editar guilda');
+  $('gf-nome').oninput = () => { GF.nome = $('gf-nome').value; };
+  $('folha').querySelectorAll('[data-gf]').forEach(b => b.onclick = () => { GF.nome = $('gf-nome').value; GF[b.dataset.gf] = b.dataset.v; renderFolhaGuilda(); });
+  $('gf-ok').onclick = salvarGuilda;
+}
+async function salvarGuilda() {
+  const nome = $('gf-nome').value.replace(/\s+/g, ' ').trim(); GF.nome = nome;
+  if (nome.length < 3) { renderFolhaGuilda('O nome precisa ter pelo menos 3 letras.'); return; }
+  if (!/^[A-Za-z0-9ÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú ]+$/.test(nome)) { renderFolhaGuilda('Use só letras, números e espaços.'); return; }
+  if (nickOfensivo(nome.replace(/\s/g, ''))) { renderFolhaGuilda('Esse nome não é permitido. Escolha outro.'); return; }
+  const emb = { forma: GF.forma, cor: GF.cor, sim: GF.sim };
+  $('gf-ok').disabled = true;
+  try {
+    GUILDA = GF.modo === 'criar' ? await rpc('criar_guilda', { p_nome: nome, p_emblema: emb, p_serie: GF.serie || null }) : await rpc('editar_guilda', { p_nome: nome, p_emblema: emb });
+    GUILDA_T = Date.now(); fecharFolha(); renderGuilda();
+    if (GF.modo === 'criar') { avisar('Guilda criada! Copie o código e chame os amigos.'); conquistar('fundador'); } else avisar('Guilda atualizada.');
+    GF = null;
+  } catch (e) { renderFolhaGuilda(msgGuilda(e)); }
+}
+function folhaEntrarGuilda() {
+  abrirFolha(cabFolha('ENTRAR NUMA GUILDA') + `<form id="ge-f" style="display:flex;flex-direction:column;gap:10px" novalidate><div class="campo"><label class="rot" for="ge-cod">CÓDIGO DA GUILDA</label><input id="ge-cod" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:6px;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:22px;text-align:center" placeholder="K7M2Q9"></div><p class="aviso">Peça o código ao líder da guilda. Só entram jogadores do mesmo ano escolar.</p><p class="aviso" id="ge-erro" role="alert" style="color:var(--vermelho)"></p><button class="btn btn-prim" type="submit">ENTRAR NA GUILDA →</button></form>`, 'Entrar numa guilda');
+  $('ge-f').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const c = $('ge-cod').value.trim().toUpperCase();
+    if (c.length !== 6) { $('ge-erro').textContent = 'O código tem 6 letras e números.'; return; }
+    try { GUILDA = await rpc('entrar_guilda', { p_codigo: c }); GUILDA_T = Date.now(); fecharFolha(); renderGuilda(); avisar('Bem-vindo à guilda ' + GUILDA.nome + '!'); }
+    catch (e) { $('ge-erro').textContent = msgGuilda(e); }
+  };
+}
+
+/* ---------- rankings ---------- */
+let RANK = null;
+async function abrirRankings() {
+  abrirFolha(cabFolha('RANKINGS DA TORRE') + `<p class="aviso" style="text-align:center;padding:20px 0">Carregando…</p>`, 'Rankings da torre');
+  try { RANK = await rpc('rankings_torre'); renderRankings(); }
+  catch (e) { $('folha').innerHTML = cabFolha('RANKINGS DA TORRE') + `<p class="aviso" role="alert">${esc(msgGuilda(e))}</p>`; }
+}
+function renderRankings() {
+  const r = RANK, minha = GUILDA && GUILDA.id;
+  if (!r) { $('folha').innerHTML = cabFolha('RANKINGS DA TORRE') + `<p class="aviso">Entre numa turma para ver os rankings do seu ano.</p>`; return; }
+  const abas = [['andar', 'ANDAR'], ['dano', 'DANO'], ['jogadores', 'JOGADORES'], ['pioneiros', 'PIONEIROS']];
+  const linha = (pos, esq, dir, eu) => `<div style="display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid var(--borda)${eu ? ';background:rgba(255,210,63,.07)' : ''}"><span class="cp" style="width:26px;font-size:15px;color:${['#FFD23F', '#C9CDF0', '#C29A7E'][pos] || 'var(--texto3)'}">${pos + 1}º</span><div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px">${esq}</div><span class="cp" style="font-size:14px;text-align:right">${dir}</span></div>`;
+  const nomeG = (x) => `${emblemaSVG(x.emblema, 26)}<span style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap${x.id === minha ? ';color:var(--amarelo)' : ''}">${esc(x.nome)}</span>`;
+  let corpo = '';
+  if (RANK_ABA === 'andar') corpo = r.andar.length ? r.andar.map((x, k) => linha(k, nomeG(x), x.andar > 100 ? '100 ✦' : 'Andar ' + x.andar + `<br><small style="font-size:10px;color:var(--texto3);font-weight:400">${x.membros} jog.</small>`, x.id === minha)).join('') : '<p class="aviso">Nenhuma guilda ainda.</p>';
+  else if (RANK_ABA === 'dano') corpo = r.dano.length ? r.dano.map((x, k) => linha(k, nomeG(x), fmtN(x.dano_total), x.id === minha)).join('') : '<p class="aviso">Ninguém causou dano ainda.</p>';
+  else if (RANK_ABA === 'jogadores') corpo = r.jogadores.length ? r.jogadores.map((x, k) => linha(k, `${x.av ? `<div style="flex:none">${molduraAv(x.mol, `<div class="mini-av" style="border:0;width:34px;height:34px">${avatarHTML(x.av, 3)}</div>`, true)}</div>` : ''}<div style="min-width:0"><p style="margin:0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.gm ? '[GM] ' : ''}${esc(x.nick)}</p><p style="margin:0;font-size:11px;color:var(--texto3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.guilda)}</p></div>`, fmtN(x.dano))).join('') : '<p class="aviso">Ninguém causou dano ainda.</p>';
+  else corpo = r.pioneiros.length ? r.pioneiros.map(x => `<div style="display:flex;align-items:center;gap:10px;min-height:38px;border-top:1px solid var(--borda)"><span class="cp" style="width:74px;font-size:13px;color:var(--ciano)">ANDAR ${x.andar}</span><span style="flex:1;font-size:13px;font-weight:700">${esc(x.nome)}</span><span style="font-size:11px;color:var(--texto3)">${new Date(x.vencido_em).toLocaleDateString('pt-BR')}</span></div>`).join('') : '<p class="aviso">Nenhum andar foi vencido ainda. A primeira guilda a vencer cada andar fica registrada aqui.</p>';
+  const sub = { andar: 'Guildas que subiram mais alto.', dano: 'Soma de dano da guilda em todos os bosses.', jogadores: 'Jogadores com mais dano somando todos os bosses.', pioneiros: 'Mural dos Pioneiros: a primeira guilda a vencer cada andar.' }[RANK_ABA];
+  $('folha').innerHTML = cabFolha('RANKINGS DA TORRE · ' + r.serie + 'º ANO')
+    + `<div role="tablist" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">${abas.map(([k, l]) => `<button role="tab" aria-selected="${k === RANK_ABA}" data-rk="${k}" class="cp" style="min-height:36px;font-size:11px;letter-spacing:1px;cursor:pointer;background:${k === RANK_ABA ? 'var(--ciano)' : 'var(--bg)'};color:${k === RANK_ABA ? 'var(--bg)' : 'var(--texto2)'};border:1px solid var(--borda)">${l}</button>`).join('')}</div>`
+    + `<p class="aviso" style="font-size:12px">${sub}</p><div style="display:flex;flex-direction:column">${corpo}</div>`;
+  $('folha').querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { RANK_ABA = b.dataset.rk; renderRankings(); });
+}
+
+/* ---------- investida (120 s, 3 corações) ---------- */
+function confirmarInvestida() {
+  const g = GUILDA, b = bossDoAndar(g.andar), efe = efetividade(P.el, b.el);
+  abrirFolha(cabFolha('INVESTIDA DE HOJE')
+    + `<div style="display:flex;align-items:center;gap:12px"><div style="width:74px;height:74px;flex:none">${b.svg}</div><div><p class="cp" style="margin:0;font-size:16px">ANDAR ${g.andar} · ${esc(b.nome)}</p><p style="margin:2px 0 0;font-size:12px;color:${EL[b.el].cor}">Elemento ${esc(EL[b.el].nome)}</p></div></div>`
+    + `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:var(--bg);border:1px solid var(--borda)"><p class="aviso">⏱ ${TORRE_SEG} segundos para acertar o máximo de questões ${NOME_DIF[difDoAndar(g.andar)]}.</p><p class="aviso">♥ 3 corações: o boss não ataca, mas cada erro custa um.</p><p class="aviso">⚔ Dano da Arena: 20, a fúria sobe para 25 e 30 com acertos seguidos, +5 na questão do seu elemento.</p><p class="aviso">Você só tem <b>uma investida por dia</b>.</p></div>`
+    + `<div style="display:flex;align-items:center;gap:10px">${criaHTML(P.el, nivelVisto(), 52)}<p style="margin:0;font-size:13px">Você vai lutar com <b>${esc(nomeCria(P.el, nivelVisto()))}</b>. ${efe > 0 ? '<span style="color:var(--verde)">É super efetivo contra este boss (+5 por golpe)!</span>' : efe < 0 ? '<span style="color:var(--vermelho)">Não é muito efetivo contra este boss (−5 por golpe).</span> Dá para trocar de criatura na aba Criaturas.' : 'Dano normal contra este boss.'}</p></div>`
+    + `<p class="aviso" id="ci-erro" role="alert" style="color:var(--vermelho)"></p><button class="btn btn-prim" id="ci-ok" style="min-height:56px;font-size:18px">COMEÇAR!</button>`, 'Investida de hoje');
+  $('ci-ok').onclick = async () => {
+    $('ci-ok').disabled = true;
+    try { const r = await rpc('iniciar_investida'); fecharFolha(); comecarInvestida(r); }
+    catch (e) { $('ci-ok').disabled = false; $('ci-erro').textContent = msgGuilda(e); if (/ja_investiu|porta_fechada|torre_concluida/.test(String(e.message))) carregarGuilda(true).then(renderGuilda); }
+  };
+}
+function comecarInvestida(r) {
+  const b = bossDoAndar(r.andar);
+  T = { id: r.id, andar: r.andar, vida: r.vida, base: r.dano_andar, boss: b, serie: GUILDA.serie, dif: difDoAndar(r.andar), cor: TORRE_COR, furia: 0, acertos: 0, erros: 0, dano: 0, hist: [], q: null, dig: '', fase: 'pergunta', fim: Date.now() + TORRE_SEG * 1000, tick: null };
+  CONT_ATUAL = {};
+  guardarPendente();
+  mostrar('torre'); montarTorre(); novaQuestaoTorre();
+  T.tick = setInterval(tiqueTorre, 200);
+}
+function montarTorre() {
+  const b = T.boss, C = EL[b.el].cor, E = EL[P.el];
+  $('t-torre').innerHTML = `<div class="topo" style="gap:10px"><button class="voltar" id="tr-sair" aria-label="Encerrar investida" style="background:transparent"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`
+    + `<div style="flex:1;display:flex;flex-direction:column;gap:3px"><div style="height:8px;background:#22264A"><i id="tr-tbar" style="display:block;height:100%;width:100%;background:var(--ciano);transition:width .2s linear"></i></div><p class="cp" style="margin:0;font-size:11px;color:var(--texto2);display:flex;justify-content:space-between"><span>ANDAR ${T.andar}</span><span id="tr-tempo" aria-live="off">${TORRE_SEG} s</span></p></div>`
+    + `<div id="tr-cor" role="img" style="display:flex;gap:3px"></div></div>`
+    + `<div id="tr-cena" style="position:relative;height:178px;overflow:hidden;border:1px solid var(--borda);background:linear-gradient(180deg,${C}30 0%,#1A1430 60%,#12142A 100%)">`
+    + `<div style="position:absolute;left:10px;right:10px;top:8px;display:flex;flex-direction:column;gap:3px;z-index:2"><p class="cp" style="margin:0;display:flex;justify-content:space-between;font-size:11px"><span>${esc(b.nome.toUpperCase())}</span><span id="tr-vida-n"></span></p><div id="tr-vida"></div></div>`
+    + `<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:40px;background:#1C1630;border-top:2px solid ${C}55"></div>`
+    + `<div id="tr-boss" style="position:absolute;right:22px;bottom:16px;width:118px;height:118px">${b.svg}</div>`
+    + `<div id="tr-pop" aria-hidden="true" style="position:absolute;right:40px;top:44px;width:90px;height:60px;pointer-events:none;z-index:3"></div>`
+    + `<div class="flutua" style="position:absolute;left:30px;bottom:22px;width:92px;height:92px"><div id="tr-cria" style="--fx:${E.cor};filter:drop-shadow(0 0 8px ${E.cor}88)">${criaHTML(P.el, nivelVisto(), 92)}</div></div>`
+    + `<div id="tr-furia" aria-hidden="true" style="position:absolute;left:12px;bottom:6px;display:flex;gap:3px;z-index:2"></div>`
+    + `<div id="tr-tela" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;opacity:0"></div></div>`
+    + `<div style="display:flex;justify-content:space-between;align-items:center"><p class="rot">SEU DANO HOJE</p><p class="cp" style="margin:0;font-size:22px;color:var(--amarelo)" id="tr-dano">0</p></div>`
+    + `<div id="tr-perg"></div><div id="tr-painel" style="display:flex;flex-direction:column;gap:8px"></div>`
+    + `<div id="tr-fim" class="lc-fim" role="dialog" aria-label="Fim da investida"></div>`;
+  $('tr-sair').onclick = () => {
+    if (!T || T.fase === 'fim') return;
+    abrirFolha(cabFolha('ENCERRAR A INVESTIDA?') + `<p style="margin:0;font-size:14px">O dano que você já causou (${fmtN(T.dano)}) vai contar para a guilda, mas a investida de hoje acaba aqui.</p><button class="btn btn-prim" id="tr-enc">ENCERRAR AGORA</button><button class="btn btn-sec" data-fechar style="flex:none;min-height:44px">CONTINUAR LUTANDO</button>`, 'Encerrar investida');
+    $('tr-enc').onclick = () => { fecharFolha(); encerrarInvestida('saiu'); };
+  };
+  renderTorreHud();
+}
+function renderTorreHud() {
+  const C = EL[T.boss.el].cor, rest = Math.max(0, T.vida - T.base - T.dano);
+  $('tr-vida').innerHTML = barraVida(rest, T.vida, C, 9);
+  $('tr-vida-n').textContent = fmtN(rest) + ' / ' + fmtN(T.vida);
+  $('tr-cor').innerHTML = coracoesHTML(T.cor, 20); $('tr-cor').setAttribute('aria-label', T.cor + ' de 3 corações');
+  $('tr-dano').textContent = fmtN(T.dano);
+  $('tr-furia').innerHTML = [1, 2, 3].map(k => `<i style="width:16px;height:5px;background:${k <= T.furia ? EL[P.el].cor : '#2A2E55'};box-shadow:${k <= T.furia ? '0 0 4px ' + EL[P.el].cor : 'none'}"></i>`).join('');
+  $('tr-cria').classList.toggle('furia2', T.furia === 2); $('tr-cria').classList.toggle('furia3', T.furia >= 3);
+}
+function novaQuestaoTorre() {
+  let q, k = 0; const vistos = new Set(T.hist.map(h => h.texto));
+  do { q = gerarQuestao(T.serie, 'mix', T.dif); k++; } while (vistos.has(q.texto) && k < 10);
+  T.q = q; T.dig = ''; T.erro = ''; T.fase = 'pergunta'; renderTorrePergunta();
+}
+function renderTorrePergunta() {
+  if (!T || T.fase === 'fim') return;
+  const q = T.q, d = T.dig, errado = T.fase === 'errado';
+  $('tr-perg').innerHTML = `<p class="rot">QUESTÃO ${T.hist.length + 1}${q.elemento === P.el ? ' · <span style="color:' + EL[P.el].cor + '">BÔNUS DE ELEMENTO</span>' : ''}</p><p class="pergunta" style="${q.texto.length > 34 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:18px' : 'font-size:32px'}">${fracHTML(q.texto)}</p>`
+    + (errado ? `<p class="aviso entra" style="padding:6px 10px;color:var(--texto);background:rgba(255,77,109,.10);border-left:3px solid var(--vermelho)">A resposta é ${esc(q.resposta)}.</p>` : '');
+  const val = !d ? `<span style="font-size:14px;font-weight:600;color:#62668F">toque nos números</span>` : d.includes('/') ? (() => { const [a, b] = d.split('/'); return `<span class="fr" style="font-size:19px"><span>${esc(a)}</span><span style="min-width:22px;border-top-color:var(--amarelo)">${esc(b)}${b ? '' : '<span class="cursor">_</span>'}</span></span>`; })() : esc(d) + '<span class="cursor">_</span>';
+  $('tr-painel').innerHTML = `<div class="resposta" style="border-color:${errado ? 'var(--vermelho)' : 'var(--ciano)'}"><p class="rot" style="${T.erro ? 'color:var(--vermelho)' : ''}">${T.erro || 'SUA RESPOSTA'}</p><div class="val" aria-live="polite">${val}</div></div>`
+    + `<div class="teclado">${TECLAS.map(k => `<button class="tecla${NOME_TECLA[k] ? ' esp' : ''}" data-tk="${k}" aria-label="${NOME_TECLA[k] || k}" ${errado ? 'disabled' : ''}>${k}</button>`).join('')}<button class="btn btn-prim" id="tr-conf" style="grid-column:span 2;min-height:46px;font-size:17px${d && !errado ? '' : ';opacity:.45'}">CONFERIR</button></div>`;
+  $('tr-painel').querySelectorAll('[data-tk]').forEach(b => b.onclick = () => teclaTorre(b.dataset.tk));
+  $('tr-conf').onclick = conferirTorre;
+}
+function teclaTorre(k) {
+  if (!T || T.fase !== 'pergunta') return;
+  let r = T.dig;
+  if (k === '⌫') r = r.slice(0, -1);
+  else if (k === '−') r = r.startsWith('−') ? r.slice(1) : '−' + r;
+  else if (k === '/') { if (r.includes('/') || !/[0-9]$/.test(r)) return; r += '/'; }
+  else if (k === ',') { if (r.split('/').pop().includes(',') || !/[0-9]$/.test(r)) return; r += ','; }
+  else { if (r.replace(/[^0-9]/g, '').length >= 7) return; r += k; }
+  T.dig = r; T.erro = ''; renderTorrePergunta();
+}
+function conferirTorre() {
+  if (!T || T.fase !== 'pergunta' || !T.dig) return;
+  const txt = T.dig.replace('−', '-');
+  if (!Number.isFinite(interpretar(txt))) { T.erro = 'COMPLETE A RESPOSTA'; renderTorrePergunta(); return; }
+  const q = T.q, ok = confere(txt, q.valor);
+  T.hist.push({ texto: q.texto, resposta: q.resposta, ok });
+  registrarResposta(q.conteudoId, ok);
+  if (ok) {
+    T.furia++; T.acertos++;
+    const dano = Math.max(5, DANO[Math.min(T.furia, 3)] + (q.elemento === P.el ? 5 : 0) + efetividade(P.el, T.boss.el));
+    T.dano += dano; guardarPendente();
+    reanimar($('tr-cria'), 'fx-ageA');
+    const pop = $('tr-pop'); pop.innerHTML = `<p class="cp tr-num" style="margin:0;font-size:${dano >= 35 ? 30 : 24}px;color:${dano >= 35 ? 'var(--amarelo)' : '#fff'};text-shadow:0 2px 0 #0B0C18">−${dano}</p>`;
+    reanimar($('tr-boss'), 'fx-hitA');
+    renderTorreHud();
+    T.fase = 'pausa'; depois(320, () => { if (T && T.fase === 'pausa') novaQuestaoTorre(); });
+  } else {
+    T.furia = 0; T.erros++; T.cor = Math.max(0, T.cor - 1); guardarPendente();
+    reanimar($('tr-tela'), 'lc-dano'); reanimar($('tr-cena'), 'treme-x');
+    const c = $('tr-cor').children[T.cor]; if (c) reanimar(c, 'lc-quebra');
+    renderTorreHud(); T.fase = 'errado'; renderTorrePergunta();
+    if (T.cor <= 0) { depois(1100, () => encerrarInvestida('coracoes')); return; }
+    depois(1100, () => { if (T && T.fase === 'errado') novaQuestaoTorre(); });
+  }
+}
+function tiqueTorre() {
+  if (!T || T.fase === 'fim') return;
+  const rest = Math.max(0, T.fim - Date.now()), s = Math.ceil(rest / 1000);
+  $('tr-tempo').textContent = s + ' s'; $('tr-tempo').style.color = s <= 10 ? 'var(--vermelho)' : '';
+  $('tr-tbar').style.width = (rest / (TORRE_SEG * 1000) * 100).toFixed(1) + '%'; $('tr-tbar').style.background = s <= 10 ? 'var(--vermelho)' : 'var(--ciano)';
+  if (rest <= 0) encerrarInvestida('tempo');
+}
+const CH_PEND = 'codex-investida';
+function guardarPendente() { try { localStorage.setItem(CH_PEND, JSON.stringify({ id: T.id, acertos: T.acertos, dano: T.dano, conta: CONTA && CONTA.usuario })); } catch { } }
+function limparPendente() { try { localStorage.removeItem(CH_PEND); } catch { } }
+async function reenviarPendente() {
+  let p = null; try { p = JSON.parse(localStorage.getItem(CH_PEND) || 'null'); } catch { }
+  if (!p || !GUILDA || !GUILDA.hoje || GUILDA.hoje.fechada || GUILDA.hoje.id !== p.id || (CONTA && p.conta !== CONTA.usuario)) return;
+  try { const r = await rpc('finalizar_investida', { p_id: p.id, p_acertos: p.acertos, p_dano: p.dano }); GUILDA = r.guilda; GUILDA_T = Date.now(); limparPendente(); renderGuilda(); avisar('Sua investida de hoje foi enviada: ' + fmtN(p.dano) + ' de dano.'); } catch { }
+}
+async function encerrarInvestida(motivo) {
+  if (!T || T.fase === 'fim') return;
+  clearInterval(T.tick); limparTimers(); T.fase = 'fim'; T.motivo = motivo;
+  const xp = T.acertos * 5;
+  if (xp) ganharXp(xp);
+  const m = T.acertos ? progredirMissao('acertos', T.acertos) : null;
+  salvarPerfil();
+  renderFimTorre('enviando', null, xp, m);
+  let r = null, err = null;
+  for (let k = 0; k < 3 && !r; k++) { try { r = await rpc('finalizar_investida', { p_id: T.id, p_acertos: T.acertos, p_dano: T.dano }); } catch (e) { err = e; if (/investida_invalida|numeros_invalidos|sem_guilda/.test(String(e.message))) break; await new Promise(ok => setTimeout(ok, 1200)); } }
+  if (r) { limparPendente(); GUILDA = r.guilda; GUILDA_T = Date.now(); enviarPartida('treino'); }
+  renderFimTorre(r ? 'ok' : 'erro', r, xp, m, err);
+}
+function renderFimTorre(estado, r, xp, m, err) {
+  const venceu = r && r.venceu, titulo = T.motivo === 'tempo' ? 'O TEMPO ACABOU!' : T.motivo === 'coracoes' ? 'SEUS CORAÇÕES ACABARAM!' : 'INVESTIDA ENCERRADA';
+  const ac = T.hist.length ? Math.round(T.acertos / T.hist.length * 100) : 0;
+  $('tr-fim').innerHTML = `<p class="cp" style="margin:0;text-align:center;font-size:24px;letter-spacing:2px;color:var(--amarelo)">${titulo}</p>`
+    + `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${[[T.acertos, 'ACERTOS'], [fmtN(T.dano), 'DANO'], [ac + '%', 'PRECISÃO']].map(([v, l], k) => `<div class="cartao" style="text-align:center;padding:10px 4px"><p class="cp" style="margin:0;font-size:24px;color:${['var(--verde)', 'var(--vermelho)', 'var(--ciano)'][k]}">${v}</p><p class="rot" style="font-size:10px">${l}</p></div>`).join('')}</div>`
+    + (xp ? `<p class="cp" style="margin:0;text-align:center;font-size:15px;color:var(--ciano)">+${xp} XP</p>` : '')
+    + (m ? `<p style="margin:0;text-align:center;font-size:12px;color:var(--verde)">✓ Missão concluída: ${m.txt}</p>` : '')
+    + (estado === 'enviando' ? `<p class="aviso" style="text-align:center">Enviando o dano para a guilda…</p>` : '')
+    + (estado === 'erro' ? `<p class="aviso" role="alert" style="text-align:center;color:var(--vermelho)">Não consegui enviar agora (${esc(msgGuilda(err))}). O jogo guardou o seu dano e manda de novo quando você abrir a guilda.</p>` : '')
+    + (venceu ? `<div class="entra" style="padding:12px;border:1px solid var(--amarelo);background:rgba(255,210,63,.1);text-align:center"><p class="cp" style="margin:0;font-size:18px;color:var(--amarelo)">✦ O BOSS DO ANDAR ${venceu} CAIU! ✦</p><p style="margin:4px 0 0;font-size:13px">O seu golpe derrubou ${esc(bossDoAndar(venceu).nome)}. Agora o líder pode abrir a porta do andar ${venceu + 1}.</p></div>`
+      : r && r.guilda ? `<div style="display:flex;flex-direction:column;gap:4px"><p class="rot">BOSS DO ANDAR ${T.andar}</p>${barraVida(vidaRestante(r.guilda), r.guilda.vida, EL[T.boss.el].cor)}<p style="margin:0;font-size:12px;color:var(--texto2)">Faltam ${fmtN(vidaRestante(r.guilda))} de vida. Chame a guilda para a investida de hoje!</p></div>` : '')
+    + `<div style="flex:1;min-height:60px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--borda);padding:10px 12px"><p class="rot">CORREÇÃO</p>${T.hist.map(h => `<div style="display:flex;align-items:center;gap:10px;min-height:30px;border-top:1px solid #22264A"><span style="display:flex">${h.ok ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1') : ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D')}</span><span style="flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fracHTML(h.texto)}</span><span class="cp" style="font-size:13px;color:var(--texto2)">${esc(h.resposta)}</span></div>`).join('') || '<p class="aviso">Nenhuma questão respondida.</p>'}</div>`
+    + (estado === 'enviando' ? '' : `<button class="btn btn-prim" id="tr-voltar">VOLTAR À GUILDA</button>`);
+  $('tr-fim').classList.add('on'); $('tr-fim').scrollTop = 0;
+  if ($('tr-voltar')) $('tr-voltar').onclick = () => { $('tr-fim').classList.remove('on'); T = null; abrirGuilda(); };
+}
 
 /* ================== v1.0: servidor (Supabase) ==================
    Com o endereço e a chave do Supabase preenchidos no build, o jogo usa:
