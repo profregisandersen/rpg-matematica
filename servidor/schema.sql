@@ -204,6 +204,7 @@ create or replace function public.apagar_minha_conta() returns void
 language plpgsql volatile security definer set search_path = public, auth as $$
 declare u uuid := public._uid();
 begin
+  perform public.sair_guilda();
   delete from auth.users where id = u;
 end $$;
 
@@ -303,6 +304,270 @@ begin
   update public.perfis set turma_id = null where id = p_aluno;
 end $$;
 
+
+-- =====================================================================
+-- Guildas e Torre da Guilda (100 andares)
+-- =====================================================================
+create table if not exists public.guildas (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null check (char_length(nome) between 3 and 20),
+  emblema jsonb not null default '{}'::jsonb,
+  codigo text not null unique,
+  serie text not null check (serie in ('6', '7')),
+  lider_id uuid references public.perfis (id) on delete set null,
+  andar int not null default 1,
+  porta boolean not null default false,
+  dano_andar int not null default 0,
+  dano_total bigint not null default 0,
+  criada_em timestamptz not null default now()
+);
+create unique index if not exists guildas_nome_unico on public.guildas (lower(nome));
+
+create table if not exists public.guilda_membros (
+  aluno_id uuid primary key references public.perfis (id) on delete cascade,
+  guilda_id uuid not null references public.guildas (id) on delete cascade,
+  entrou_em timestamptz not null default now()
+);
+create index if not exists guilda_membros_guilda on public.guilda_membros (guilda_id);
+
+-- uma investida por aluno por dia (dia de Brasília)
+create table if not exists public.investidas (
+  id bigint generated always as identity primary key,
+  aluno_id uuid not null references public.perfis (id) on delete cascade,
+  guilda_id uuid not null references public.guildas (id) on delete cascade,
+  andar int not null,
+  dia date not null,
+  acertos int not null default 0,
+  dano int not null default 0,
+  fechada boolean not null default false,
+  criada_em timestamptz not null default now(),
+  unique (aluno_id, dia)
+);
+create index if not exists investidas_guilda on public.investidas (guilda_id, andar);
+
+create table if not exists public.andares_vencidos (
+  guilda_id uuid not null references public.guildas (id) on delete cascade,
+  andar int not null,
+  vencido_em timestamptz not null default now(),
+  primary key (guilda_id, andar)
+);
+
+alter table public.guildas enable row level security;
+alter table public.guilda_membros enable row level security;
+alter table public.investidas enable row level security;
+alter table public.andares_vencidos enable row level security;
+revoke all on public.guildas, public.guilda_membros, public.investidas, public.andares_vencidos from anon, authenticated;
+
+create or replace function public._hoje() returns date
+language sql stable as $$ select (now() at time zone 'America/Sao_Paulo')::date; $$;
+
+-- vida do boss: 10.000 no andar 1 e +50 por andar (14.950 no andar 100)
+create or replace function public._vida(p_andar int) returns int
+language sql immutable as $$ select 10000 + 50 * (greatest(p_andar, 1) - 1); $$;
+
+create or replace function public._serie_de(p_aluno uuid) returns text
+language sql stable security definer set search_path = public as $$
+  select t.serie from public.perfis p join public.turmas t on t.id = p.turma_id where p.id = p_aluno;
+$$;
+
+create or replace function public._guilda_de(p_aluno uuid) returns uuid
+language sql stable security definer set search_path = public as $$
+  select guilda_id from public.guilda_membros where aluno_id = p_aluno;
+$$;
+
+create or replace function public._nome_guilda_ok(p_nome text) returns boolean
+language sql immutable as $$
+  select p_nome = btrim(p_nome) and char_length(p_nome) between 3 and 20
+     and p_nome ~ '^[A-Za-z0-9ÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú ]+$' and p_nome !~ '  ';
+$$;
+
+create or replace function public._codigo_guilda() returns text
+language plpgsql volatile as $$
+declare letras text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; c text;
+begin
+  loop
+    c := '';
+    for i in 1..6 loop c := c || substr(letras, 1 + floor(random() * length(letras))::int, 1); end loop;
+    exit when not exists (select 1 from public.guildas where codigo = c);
+  end loop;
+  return c;
+end $$;
+
+create or replace function public.minha_guilda() returns json
+language plpgsql stable security definer set search_path = public as $$
+declare u uuid := public._uid(); g public.guildas;
+begin
+  select gg.* into g from public.guildas gg join public.guilda_membros m on m.guilda_id = gg.id where m.aluno_id = u;
+  if not found then return null; end if;
+  return json_build_object(
+    'id', g.id, 'nome', g.nome, 'emblema', g.emblema, 'codigo', g.codigo, 'serie', g.serie,
+    'andar', g.andar, 'porta', g.porta, 'dano_andar', g.dano_andar, 'vida', public._vida(g.andar), 'dano_total', g.dano_total,
+    'lider', g.lider_id = u,
+    'hoje', (select json_build_object('id', i.id, 'fechada', i.fechada, 'dano', i.dano, 'acertos', i.acertos)
+             from public.investidas i where i.aluno_id = u and i.dia = public._hoje()),
+    'membros', (
+      select coalesce(json_agg(json_build_object(
+        'id', p.id, 'nick', p.nick, 'gm', p.gm, 'av', p.dados -> 'av', 'mol', coalesce(p.dados ->> 'moldura', ''),
+        'el', p.dados ->> 'el', 'nivel', p.nivel, 'lider', p.id = g.lider_id, 'voce', p.id = u,
+        'dano_andar', (select coalesce(sum(i.dano), 0) from public.investidas i where i.aluno_id = p.id and i.guilda_id = g.id and i.andar = g.andar),
+        'dano_total', (select coalesce(sum(i.dano), 0) from public.investidas i where i.aluno_id = p.id and i.guilda_id = g.id),
+        'hoje', exists (select 1 from public.investidas i where i.aluno_id = p.id and i.dia = public._hoje())
+      ) order by p.nick), '[]'::json)
+      from public.guilda_membros m join public.perfis p on p.id = m.aluno_id where m.guilda_id = g.id)
+  );
+end $$;
+
+create or replace function public.criar_guilda(p_nome text, p_emblema jsonb, p_serie text) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); s text; gid uuid;
+begin
+  if not exists (select 1 from public.perfis where id = u) then raise exception 'sem_perfil'; end if;
+  if public._guilda_de(u) is not null then raise exception 'ja_tem_guilda'; end if;
+  s := public._serie_de(u);
+  if s is null then
+    if public._eh_gm() and p_serie in ('6', '7') then s := p_serie; else raise exception 'sem_turma'; end if;
+  end if;
+  if not public._nome_guilda_ok(p_nome) then raise exception 'nome_invalido'; end if;
+  if exists (select 1 from public.guildas where lower(nome) = lower(p_nome)) then raise exception 'nome_em_uso'; end if;
+  if pg_column_size(coalesce(p_emblema, '{}'::jsonb)) > 400 then raise exception 'dados_grandes'; end if;
+  insert into public.guildas (nome, emblema, codigo, serie, lider_id)
+  values (p_nome, coalesce(p_emblema, '{}'::jsonb), public._codigo_guilda(), s, u) returning id into gid;
+  insert into public.guilda_membros (aluno_id, guilda_id) values (u, gid);
+  return public.minha_guilda();
+end $$;
+
+create or replace function public.entrar_guilda(p_codigo text) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); g public.guildas; s text;
+begin
+  if not exists (select 1 from public.perfis where id = u) then raise exception 'sem_perfil'; end if;
+  if public._guilda_de(u) is not null then raise exception 'ja_tem_guilda'; end if;
+  select * into g from public.guildas where codigo = upper(btrim(p_codigo)) for update;
+  if not found then raise exception 'guilda_nao_existe'; end if;
+  if (select count(*) from public.guilda_membros where guilda_id = g.id) >= 10 then raise exception 'guilda_cheia'; end if;
+  if not public._eh_gm() then
+    s := public._serie_de(u);
+    if s is null then raise exception 'sem_turma'; end if;
+    if s <> g.serie then raise exception 'outro_ano'; end if;
+  end if;
+  insert into public.guilda_membros (aluno_id, guilda_id) values (u, g.id);
+  return public.minha_guilda();
+end $$;
+
+-- sai da guilda; se era o líder, a liderança passa para o membro de maior nível; guilda vazia é apagada
+create or replace function public.sair_guilda() returns void
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); gid uuid; novo uuid;
+begin
+  gid := public._guilda_de(u);
+  if gid is null then return; end if;
+  delete from public.guilda_membros where aluno_id = u;
+  if (select lider_id from public.guildas where id = gid) is distinct from u then return; end if;
+  select m.aluno_id into novo from public.guilda_membros m join public.perfis p on p.id = m.aluno_id
+   where m.guilda_id = gid order by p.nivel desc, p.xp desc, m.entrou_em limit 1;
+  if novo is null then delete from public.guildas where id = gid;
+  else update public.guildas set lider_id = novo where id = gid; end if;
+end $$;
+
+create or replace function public.editar_guilda(p_nome text, p_emblema jsonb) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); gid uuid := public._guilda_de(u);
+begin
+  if gid is null or (select lider_id from public.guildas where id = gid) is distinct from u then raise exception 'so_lider'; end if;
+  if not public._nome_guilda_ok(p_nome) then raise exception 'nome_invalido'; end if;
+  if exists (select 1 from public.guildas where lower(nome) = lower(p_nome) and id <> gid) then raise exception 'nome_em_uso'; end if;
+  if pg_column_size(coalesce(p_emblema, '{}'::jsonb)) > 400 then raise exception 'dados_grandes'; end if;
+  update public.guildas set nome = p_nome, emblema = coalesce(p_emblema, emblema) where id = gid;
+  return public.minha_guilda();
+end $$;
+
+create or replace function public.remover_membro(p_aluno uuid) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); gid uuid := public._guilda_de(u);
+begin
+  if gid is null or (select lider_id from public.guildas where id = gid) is distinct from u then raise exception 'so_lider'; end if;
+  if p_aluno = u then raise exception 'use_sair'; end if;
+  delete from public.guilda_membros where aluno_id = p_aluno and guilda_id = gid;
+  if not found then raise exception 'nao_e_membro'; end if;
+  return public.minha_guilda();
+end $$;
+
+create or replace function public.abrir_porta() returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); gid uuid := public._guilda_de(u);
+begin
+  if gid is null or (select lider_id from public.guildas where id = gid) is distinct from u then raise exception 'so_lider'; end if;
+  update public.guildas set porta = true where id = gid and andar <= 100;
+  return public.minha_guilda();
+end $$;
+
+create or replace function public.iniciar_investida() returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); g public.guildas; iid bigint;
+begin
+  select gg.* into g from public.guildas gg join public.guilda_membros m on m.guilda_id = gg.id where m.aluno_id = u;
+  if not found then raise exception 'sem_guilda'; end if;
+  if g.andar > 100 then raise exception 'torre_concluida'; end if;
+  if not g.porta then raise exception 'porta_fechada'; end if;
+  if exists (select 1 from public.investidas where aluno_id = u and dia = public._hoje()) then raise exception 'ja_investiu'; end if;
+  insert into public.investidas (aluno_id, guilda_id, andar, dia) values (u, g.id, g.andar, public._hoje()) returning id into iid;
+  return json_build_object('id', iid, 'andar', g.andar, 'vida', public._vida(g.andar), 'dano_andar', g.dano_andar);
+end $$;
+
+-- o dano é conferido por limites: até 60 acertos e no máximo 40 de dano por acerto
+create or replace function public.finalizar_investida(p_id bigint, p_acertos int, p_dano int) returns json
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := public._uid(); i public.investidas; g public.guildas; venceu int := null;
+begin
+  select * into i from public.investidas where id = p_id and aluno_id = u and not fechada for update;
+  if not found then raise exception 'investida_invalida'; end if;
+  if p_acertos < 0 or p_acertos > 60 or p_dano < 0 or p_dano > p_acertos * 40 then raise exception 'numeros_invalidos'; end if;
+  select * into g from public.guildas where id = i.guilda_id for update;
+  if not found or public._guilda_de(u) is distinct from g.id then
+    update public.investidas set fechada = true where id = i.id;
+    raise exception 'sem_guilda';
+  end if;
+  update public.investidas set acertos = p_acertos, dano = p_dano, fechada = true, andar = least(g.andar, 100) where id = i.id;
+  if g.andar <= 100 and p_dano > 0 then
+    g.dano_total := g.dano_total + p_dano;
+    g.dano_andar := g.dano_andar + p_dano;
+    if g.dano_andar >= public._vida(g.andar) then
+      venceu := g.andar;
+      insert into public.andares_vencidos (guilda_id, andar) values (g.id, g.andar) on conflict do nothing;
+      g.andar := g.andar + 1; g.dano_andar := 0; g.porta := false;
+    end if;
+    update public.guildas set dano_total = g.dano_total, dano_andar = g.dano_andar, andar = g.andar, porta = g.porta where id = g.id;
+  end if;
+  if p_acertos > 0 then insert into public.acessos (aluno_id) values (u) on conflict do nothing; end if;
+  return json_build_object('venceu', venceu, 'guilda', public.minha_guilda());
+end $$;
+
+-- rankings do ano escolar da guilda: andar mais alto, dano da guilda, jogadores com mais dano e pioneiros
+create or replace function public.rankings_torre() returns json
+language plpgsql stable security definer set search_path = public as $$
+declare u uuid := public._uid(); s text;
+begin
+  s := coalesce((select serie from public.guildas where id = public._guilda_de(u)), public._serie_de(u));
+  if s is null then return null; end if;
+  return json_build_object(
+    'serie', s,
+    'andar', (select coalesce(json_agg(x), '[]'::json) from (
+      select g.id, g.nome, g.emblema, least(g.andar, 101) as andar, g.dano_andar, public._vida(g.andar) as vida,
+             (select count(*) from public.guilda_membros m where m.guilda_id = g.id) as membros
+      from public.guildas g where g.serie = s order by g.andar desc, g.dano_andar desc, g.criada_em limit 10) x),
+    'dano', (select coalesce(json_agg(x), '[]'::json) from (
+      select g.id, g.nome, g.emblema, g.dano_total from public.guildas g where g.serie = s and g.dano_total > 0
+      order by g.dano_total desc limit 10) x),
+    'jogadores', (select coalesce(json_agg(x), '[]'::json) from (
+      select p.id, p.nick, p.gm, p.dados -> 'av' as av, coalesce(p.dados ->> 'moldura', '') as mol, gg.nome as guilda, sum(i.dano) as dano
+      from public.investidas i join public.guildas gg on gg.id = i.guilda_id join public.perfis p on p.id = i.aluno_id
+      where gg.serie = s group by p.id, p.nick, p.gm, p.dados, gg.nome having sum(i.dano) > 0 order by sum(i.dano) desc limit 10) x),
+    'pioneiros', (select coalesce(json_agg(x order by x.andar desc), '[]'::json) from (
+      select distinct on (v.andar) v.andar, g.nome, v.vencido_em from public.andares_vencidos v join public.guildas g on g.id = v.guilda_id
+      where g.serie = s order by v.andar, v.vencido_em) x)
+  );
+end $$;
+
 -- ---------- Quem pode chamar o quê ----------
 revoke all on all functions in schema public from public, anon;
 grant execute on function
@@ -310,7 +575,10 @@ grant execute on function
   public.registrar_acesso(), public.registrar_partida(text, int, int, jsonb), public.entrar_turma(text),
   public.pedir_nick(text), public.apagar_minha_conta(), public.virar_professor(text), public.criar_turma(text, text, text),
   public.minhas_turmas(), public.decidir_pedido(bigint, boolean), public.trocar_nick_aluno(uuid, text),
-  public.redefinir_senha(uuid, text), public.tirar_da_turma(uuid)
+  public.redefinir_senha(uuid, text), public.tirar_da_turma(uuid),
+  public.minha_guilda(), public.criar_guilda(text, jsonb, text), public.entrar_guilda(text), public.sair_guilda(),
+  public.editar_guilda(text, jsonb), public.remover_membro(uuid), public.abrir_porta(), public.iniciar_investida(),
+  public.finalizar_investida(bigint, int, int), public.rankings_torre()
 to authenticated;
 
 -- ---------- Código secreto dos professores ----------
