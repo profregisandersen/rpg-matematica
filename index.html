@@ -426,6 +426,7 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 <section class="tela" id="t-chefao" aria-label="Chefão da Sala"></section>
 <section class="tela" id="t-estat" aria-label="Estatísticas"></section>
 <section class="tela" id="t-guilda" aria-label="Guilda"></section>
+<section class="tela" id="t-admin" aria-label="Administração"></section>
 <section class="tela" id="t-torre" aria-label="Torre da Guilda" style="gap:8px"></section>
 <section class="tela" id="t-licao" aria-label="Lição do Treino Solo">
 <div class="topo" style="gap:10px"><button class="voltar" id="lc-sair" aria-label="Sair da lição" style="background:transparent"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div id="lc-segs" role="img" style="flex:1;display:flex;gap:4px"></div><p class="cp" id="lc-cont" style="margin:0;font-size:13px;color:var(--texto2)"></p></div>
@@ -3258,7 +3259,7 @@ const G_SIMBOLOS = {
 const G_ERROS = [['sem_turma', 'Entre numa turma primeiro (Conta › Entrar numa turma).'], ['nome_invalido', 'Use de 3 a 20 letras, números ou espaços.'], ['nome_em_uso', 'Já existe uma guilda com esse nome.'],
   ['ja_tem_guilda', 'Você já está numa guilda.'], ['guilda_nao_existe', 'Código de guilda não encontrado.'], ['guilda_cheia', 'Essa guilda já tem 10 jogadores.'],
   ['outro_ano', 'Essa guilda é de outro ano escolar.'], ['so_lider', 'Só o líder da guilda pode fazer isso.'], ['porta_fechada', 'O líder ainda não abriu a porta deste andar.'],
-  ['ja_investiu', 'Você já fez a investida de hoje. Volte amanhã!'], ['torre_concluida', 'Sua guilda já venceu os 100 andares!'], ['sem_guilda', 'Você não está numa guilda.']];
+  ['ja_investiu', 'Você já fez a investida de hoje. Volte amanhã!'], ['torre_concluida', 'Sua guilda já venceu os 100 andares!'], ['sem_guilda', 'Você não está numa guilda.'], ['guilda_com_membros', 'Só dá para apagar a guilda quando você estiver sozinho nela.'], ['confirmacao_errada', 'O nome digitado não confere.'], ['nao_e_membro', 'Esse jogador não está mais na guilda.']];
 const msgGuilda = (e) => { const t = String((e && e.message) || e || ''); const x = G_ERROS.find(([k]) => t.includes(k)); return x ? x[1] : msgErro(e); };
 
 let GUILDA = null, GUILDA_T = 0, GUILDA_PROM = null, T = null, GF = null, RANK_ABA = 'andar';
@@ -3349,11 +3350,11 @@ function renderGuilda() {
     + porAndar.map((m, k) => `<div style="display:flex;align-items:center;gap:8px;min-height:30px;border-top:1px solid #22264A"><span class="cp" style="width:22px;font-size:13px;color:${k === 0 && m.dano_andar ? 'var(--amarelo)' : 'var(--texto3)'}">${k + 1}º</span><span style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${m.voce ? 'var(--amarelo)' : 'var(--texto)'}">${m.gm ? '[GM] ' : ''}${esc(m.nick)}</span>${m.hoje ? '<span title="Já investiu hoje" style="font-size:11px;color:var(--verde)">✓ hoje</span>' : ''}<span class="cp" style="font-size:13px">${fmtN(m.dano_andar)}</span></div>`).join('')
     + `</div>`
     + `<div class="cartao" style="display:flex;flex-direction:column;gap:2px"><p class="rot" style="margin-bottom:4px">MEMBROS · ${membros.length}/10</p>`
-    + membros.sort((a, c) => (c.lider - a.lider) || c.nivel - a.nivel).map(m => `<div style="display:flex;align-items:center;gap:10px;min-height:52px;border-top:1px solid #22264A"><div style="flex:none">${m.av ? molduraAv(m.mol, `<div class="mini-av" style="border:0;width:40px;height:40px">${avatarHTML(m.av, 3)}</div>`, true) : ''}</div><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${m.voce ? 'var(--amarelo)' : 'var(--texto)'}">${m.lider ? '<span title="Líder" style="color:var(--amarelo)">♛ </span>' : ''}${m.gm ? '[GM] ' : ''}${esc(m.nick)}</p><p style="margin:0;font-size:11px;color:var(--texto2)">Nível ${m.nivel} · ${fmtN(m.dano_total)} de dano na torre</p></div>${g.lider && !m.voce ? `<button data-g="remover" data-id="${m.id}" data-nick="${esc(m.nick)}" aria-label="Remover ${esc(m.nick)}" style="border:1px solid var(--borda);background:transparent;color:var(--texto3);width:34px;height:34px;cursor:pointer">✕</button>` : ''}</div>`).join('')
+    + membros.sort((a, c) => (c.lider - a.lider) || c.nivel - a.nivel).map(m => `<div style="display:flex;align-items:center;gap:10px;min-height:52px;border-top:1px solid #22264A"><div style="flex:none">${m.av ? molduraAv(m.mol, `<div class="mini-av" style="border:0;width:40px;height:40px">${avatarHTML(m.av, 3)}</div>`, true) : ''}</div><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${m.voce ? 'var(--amarelo)' : 'var(--texto)'}">${m.lider ? '<span title="Líder" style="color:var(--amarelo)">♛ </span>' : ''}${m.gm ? '[GM] ' : ''}${esc(m.nick)}</p><p style="margin:0;font-size:11px;color:var(--texto2)">Nível ${m.nivel} · ${fmtN(m.dano_total)} de dano na torre</p></div>${g.lider && !m.voce ? `<button data-g="lider" data-id="${m.id}" data-nick="${esc(m.nick)}" aria-label="Passar a liderança para ${esc(m.nick)}" title="Passar a liderança" style="border:1px solid var(--borda);background:transparent;color:var(--amarelo);width:34px;height:34px;cursor:pointer;margin-right:4px">♛</button><button data-g="remover" data-id="${m.id}" data-nick="${esc(m.nick)}" aria-label="Remover ${esc(m.nick)}" style="border:1px solid var(--borda);background:transparent;color:var(--texto3);width:34px;height:34px;cursor:pointer">✕</button>` : ''}</div>`).join('')
     + `</div>`
     + `<button class="btn btn-sec" data-g="rankings" style="flex:none;min-height:46px">RANKINGS DA TORRE</button>`
     + (g.lider ? `<button class="btn btn-sec" data-g="editar" style="flex:none;min-height:44px">EDITAR NOME E EMBLEMA</button>` : '')
-    + `<button class="btn btn-sec" data-g="sair" style="flex:none;min-height:44px;color:var(--vermelho);border-color:rgba(255,77,109,.5)">SAIR DA GUILDA</button>`;
+    + (g.lider && membros.length === 1 ? `<button class="btn btn-sec" data-g="apagar" style="flex:none;min-height:44px;color:var(--vermelho);border-color:rgba(255,77,109,.5)">APAGAR A GUILDA</button>` : `<button class="btn btn-sec" data-g="sair" style="flex:none;min-height:44px;color:var(--vermelho);border-color:rgba(255,77,109,.5)">SAIR DA GUILDA</button>`);
   t.scrollTop = y;
 }
 function textoFraquezaBoss(el) {
@@ -3372,6 +3373,12 @@ $('t-guilda').addEventListener('click', async e => {
   else if (a === 'investir') confirmarInvestida();
   else if (a === 'copiar') { try { await navigator.clipboard.writeText(GUILDA.codigo); avisar('Código ' + GUILDA.codigo + ' copiado! Passe para os amigos.'); } catch { avisar('Código da guilda: ' + GUILDA.codigo); } }
   else if (a === 'porta') acaoGuilda(b, () => rpc('abrir_porta'), 'Porta aberta! A guilda já pode atacar o andar ' + GUILDA.andar + '.');
+  else if (a === 'lider') folhaConfirmar('PASSAR A LIDERANÇA', `Passar a liderança para <b>${b.dataset.nick}</b>? Você continua na guilda como membro, e só o novo líder poderá abrir a porta, recrutar e editar a guilda.`, 'PASSAR A LIDERANÇA', () => rpc('passar_lideranca', { p_aluno: b.dataset.id }), b.dataset.nick + ' agora é o líder da guilda.');
+  else if (a === 'apagar') {
+    abrirFolha(cabFolha('APAGAR A GUILDA') + `<p style="margin:0;font-size:14px;line-height:1.45">A guilda e o andar que ela alcançou deixam de existir. Não tem como desfazer. Para confirmar, digite o nome <b>${esc(GUILDA.nome)}</b>.</p><input id="ga-conf" autocomplete="off" placeholder="${esc(GUILDA.nome)}" style="min-height:44px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);padding:0 10px;font-size:15px"><p class="aviso" id="gc-erro" role="alert" style="color:var(--vermelho)"></p><button class="btn btn-prim" id="ga-ok" disabled style="background:var(--vermelho);opacity:.45">APAGAR A GUILDA</button><button class="btn btn-sec" data-fechar style="flex:none;min-height:44px">CANCELAR</button>`, 'Apagar a guilda');
+    $('ga-conf').oninput = () => { const ok = $('ga-conf').value.trim().toLowerCase() === GUILDA.nome.toLowerCase(); $('ga-ok').disabled = !ok; $('ga-ok').style.opacity = ok ? '1' : '.45'; };
+    $('ga-ok').onclick = async () => { $('ga-ok').disabled = true; try { await rpc('apagar_guilda', { p_confirma: $('ga-conf').value }); GUILDA = null; GUILDA_T = Date.now(); fecharFolha(); renderGuilda(); avisar('A guilda foi apagada.'); } catch (e) { $('ga-ok').disabled = false; $('gc-erro').textContent = msgGuilda(e); } };
+  }
   else if (a === 'remover') folhaConfirmar('REMOVER JOGADOR', `Tirar <b>${b.dataset.nick}</b> da guilda? O dano que ele já causou continua contando para a guilda.`, 'REMOVER', () => rpc('remover_membro', { p_aluno: b.dataset.id }), 'Jogador removido.');
   else if (a === 'sair') {
     const so = GUILDA.membros.length === 1;
@@ -3613,6 +3620,129 @@ function renderFimTorre(estado, r, xp, m, err) {
   if ($('tr-voltar')) $('tr-voltar').onclick = () => { $('tr-fim').classList.remove('on'); T = null; abrirGuilda(); };
 }
 
+/* =====================================================================
+   Administração do GM: todos os jogadores, guildas e registro das ações
+   ===================================================================== */
+const ADM = { aba: 'jogadores', jog: null, turmas: [], guildas: null, reg: null, busca: '', filtro: 'todos' };
+const ADM_ERROS = [['alvo_gm', 'Contas de professor não podem ser alteradas aqui.'], ['confirmacao_errada', 'O texto de confirmação não confere.'], ['so_professor', 'Só professores podem fazer isso.'],
+  ['nao_existe', 'Essa conta não existe mais.'], ['guilda_nao_existe', 'Essa guilda não existe mais.'], ['turma_nao_existe', 'Essa turma não existe mais.']];
+const msgAdm = (e) => { const t = String((e && e.message) || e || ''); const x = ADM_ERROS.find(([k]) => t.includes(k)); return x ? x[1] : msgGuilda(e); };
+const dataBR = (d, hora) => { if (!d) return '—'; const x = new Date(String(d).length === 10 ? d + 'T12:00:00' : d); return x.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + (hora ? ' ' + x.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''); };
+
+function admCartaoHTML() {
+  return `<button class="cartao" id="tm-admin" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;color:var(--texto);flex:none">`
+    + `<span style="width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(94,230,255,.12);border:1px solid var(--borda)">${ICO('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 6.5a3 3 0 0 1 0 5.6M18 14.5c1.8.8 3 2.6 3 4.5"/>', '#5EE6FF', 22)}</span>`
+    + `<div style="flex:1;min-width:0"><p class="rot">ADMINISTRAÇÃO</p><p style="margin:2px 0 0;font-size:13px;font-weight:600">Todos os jogadores, guildas e registro</p></div><span class="cp" style="color:var(--ciano);font-size:18px">›</span></button>`;
+}
+document.addEventListener('click', e => { if (e.target.closest('#tm-admin')) abrirAdmin('jogadores'); });
+
+async function abrirAdmin(aba) {
+  if (!ONLINE || !CONTA || !CONTA.gm) { avisar('A administração precisa do servidor e de uma conta de professor.'); return; }
+  if (aba) ADM.aba = aba;
+  mostrar('admin'); renderAdmin(true);
+  await carregarAdmin(ADM.aba);
+  renderAdmin();
+}
+async function carregarAdmin(aba) {
+  try {
+    if (aba === 'jogadores') { const r = await rpc('adm_jogadores'); ADM.jog = r.jogadores; ADM.turmas = r.turmas; }
+    else if (aba === 'guildas') ADM.guildas = await rpc('adm_guildas');
+    else ADM.reg = await rpc('adm_registro');
+  } catch (e) { avisar(msgAdm(e)); }
+}
+function filtrarJog() {
+  const b = ADM.busca.trim().toLowerCase();
+  return (ADM.jog || []).filter(j => {
+    if (b && !(j.nick.toLowerCase().includes(b) || j.usuario.toLowerCase().includes(b))) return false;
+    if (ADM.filtro === 'gm') return j.gm;
+    if (ADM.filtro === 'bloq') return j.bloqueado;
+    if (ADM.filtro === 'sem') return !j.gm && !j.turma;
+    if (ADM.filtro === '6' || ADM.filtro === '7') return j.turma && j.turma.serie === ADM.filtro;
+    return true;
+  });
+}
+function linhasJogHTML() {
+  const l = filtrarJog();
+  if (!l.length) return `<p class="aviso" style="text-align:center;padding:20px 0">Nenhum jogador encontrado.</p>`;
+  return l.map(j => `<button data-adm-j="${j.id}" style="display:flex;align-items:center;gap:10px;width:100%;min-height:58px;padding:6px 0;background:transparent;border:0;border-top:1px solid var(--borda);color:var(--texto);text-align:left;cursor:pointer">`
+    + `<div style="flex:none${j.bloqueado ? ';filter:grayscale(1);opacity:.6' : ''}">${j.av ? molduraAv(j.mol, `<div class="mini-av" style="border:0;width:40px;height:40px">${avatarHTML(j.av, 3)}</div>`, true) : '<div class="mini-av" style="width:40px;height:40px"></div>'}</div>`
+    + `<div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.gm ? '<span style="color:var(--amarelo)">[GM] </span>' : ''}${esc(j.nick)}${j.bloqueado ? ' <span class="cp" style="font-size:10px;color:var(--vermelho);border:1px solid var(--vermelho);padding:0 4px">BLOQUEADO</span>' : ''}</p>`
+    + `<p style="margin:1px 0 0;font-size:11px;color:var(--texto2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.usuario)} · ${j.gm ? 'professor' : j.turma ? esc(j.turma.nome) : '<span style="color:var(--amarelo)">sem turma</span>'}${j.guilda ? ' · ' + esc(j.guilda) : ''}</p></div>`
+    + `<div style="flex:none;text-align:right"><p class="cp" style="margin:0;font-size:13px">NV ${j.nivel}</p><p style="margin:0;font-size:10px;color:var(--texto3)">${j.acesso ? 'visto ' + dataBR(j.acesso) : 'nunca entrou'}</p></div></button>`).join('');
+}
+function renderAdmin(carregando) {
+  const t = $('t-admin'), abas = [['jogadores', 'JOGADORES'], ['guildas', 'GUILDAS'], ['registro', 'REGISTRO']];
+  let h = `<div class="topo" style="gap:10px"><button class="voltar" data-adm="voltar" aria-label="Voltar à Turma"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#F2F3FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button><h1 class="titulo" style="flex:1">ADMINISTRAÇÃO</h1><button class="voltar" data-adm="recarregar" aria-label="Atualizar" style="width:44px;height:44px">${ICO('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>', '#A9ADD6')}</button></div>`
+    + `<div role="tablist" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:none">${abas.map(([k, l]) => `<button role="tab" aria-selected="${k === ADM.aba}" data-adm-aba="${k}" class="cp" style="min-height:40px;font-size:12px;letter-spacing:1px;cursor:pointer;background:${k === ADM.aba ? 'var(--ciano)' : 'var(--card)'};color:${k === ADM.aba ? 'var(--bg)' : 'var(--texto2)'};border:1px solid var(--borda)">${l}</button>`).join('')}</div>`;
+  if (carregando) { t.innerHTML = h + `<p class="cp pulsa" style="text-align:center;margin-top:40px;letter-spacing:2px">CARREGANDO…</p>`; return; }
+  if (ADM.aba === 'jogadores') {
+    const J = ADM.jog || [], n = (f) => J.filter(f).length;
+    const filtros = [['todos', 'Todos', J.length], ['6', '6º ano', n(j => j.turma && j.turma.serie === '6')], ['7', '7º ano', n(j => j.turma && j.turma.serie === '7')], ['sem', 'Sem turma', n(j => !j.gm && !j.turma)], ['gm', 'GMs', n(j => j.gm)], ['bloq', 'Bloqueados', n(j => j.bloqueado)]];
+    h += `<div class="campo" style="flex:none"><label class="rot" for="adm-busca">BUSCAR POR NICK OU USUÁRIO</label><input id="adm-busca" autocomplete="off" value="${esc(ADM.busca)}" placeholder="ex.: joao"></div>`
+      + `<div style="display:flex;gap:6px;overflow-x:auto;flex:none;padding-bottom:2px">${filtros.map(([k, l, c]) => `<button class="chip" data-adm-f="${k}" aria-pressed="${ADM.filtro === k}" style="flex:none">${l} · ${c}</button>`).join('')}</div>`
+      + `<div class="cartao" id="adm-lista" style="display:flex;flex-direction:column;padding-top:4px;padding-bottom:4px">${linhasJogHTML()}</div>`;
+  } else if (ADM.aba === 'guildas') {
+    const G = ADM.guildas || [];
+    h += `<p class="aviso" style="font-size:12px;flex:none">${G.length} ${G.length === 1 ? 'guilda' : 'guildas'}. Toque numa guilda para renomear ou apagar.</p>`
+      + (G.length ? `<div class="cartao" style="display:flex;flex-direction:column;padding-top:4px;padding-bottom:4px">${G.map(g => `<button data-adm-g="${g.id}" style="display:flex;align-items:center;gap:10px;width:100%;min-height:58px;padding:6px 0;background:transparent;border:0;border-top:1px solid var(--borda);color:var(--texto);text-align:left;cursor:pointer">${emblemaSVG(g.emblema, 34)}<div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nome)}</p><p style="margin:1px 0 0;font-size:11px;color:var(--texto2)">${g.serie}º ano · ${g.membros.length}/10 · líder ${esc(g.lider || '—')}</p></div><p class="cp" style="margin:0;font-size:13px;flex:none">${g.andar > 100 ? '100 ✦' : 'ANDAR ' + g.andar}</p></button>`).join('')}</div>` : `<div class="cartao" style="text-align:center;padding:24px 16px"><p class="aviso">Nenhuma guilda foi criada ainda.</p></div>`);
+  } else {
+    const R = ADM.reg || [];
+    h += `<p class="aviso" style="font-size:12px;flex:none">As últimas 100 ações dos professores: mudanças de turma, bloqueios e contas ou guildas apagadas.</p>`
+      + (R.length ? `<div class="cartao" style="display:flex;flex-direction:column;padding-top:4px;padding-bottom:4px">${R.map(r => `<div style="display:flex;flex-direction:column;gap:1px;padding:8px 0;border-top:1px solid var(--borda)"><p style="margin:0;font-size:11px;color:var(--texto3)">${dataBR(r.criado_em, true)} · ${esc(r.gm_nick)}</p><p style="margin:0;font-size:13px"><b style="color:${/apagou|bloqueou/.test(r.acao) && r.acao !== 'desbloqueou' ? 'var(--vermelho)' : 'var(--ciano)'}">${esc(r.acao)}</b> ${esc(r.alvo)}</p></div>`).join('')}</div>` : `<div class="cartao" style="text-align:center;padding:24px 16px"><p class="aviso">Nenhuma ação registrada ainda.</p></div>`);
+  }
+  t.innerHTML = h;
+  const bus = $('adm-busca'); if (bus) bus.oninput = () => { ADM.busca = bus.value; $('adm-lista').innerHTML = linhasJogHTML(); };
+}
+$('t-admin').addEventListener('click', async e => {
+  const v = e.target.closest('[data-adm]'), a = e.target.closest('[data-adm-aba]'), f = e.target.closest('[data-adm-f]'), j = e.target.closest('[data-adm-j]'), g = e.target.closest('[data-adm-g]');
+  if (v && v.dataset.adm === 'voltar') irAba('turma');
+  else if (v && v.dataset.adm === 'recarregar') { renderAdmin(true); await carregarAdmin(ADM.aba); renderAdmin(); }
+  else if (a) { ADM.aba = a.dataset.admAba; if (ADM.aba === 'registro' || !(ADM.aba === 'jogadores' ? ADM.jog : ADM.guildas)) { renderAdmin(true); await carregarAdmin(ADM.aba); } renderAdmin(); }
+  else if (f) { ADM.filtro = f.dataset.admF; renderAdmin(); }
+  else if (j) fichaJogador(j.dataset.admJ);
+  else if (g) fichaGuilda(g.dataset.admG);
+});
+async function admAcao(fn, ok, recarregar) {
+  try { await fn(); fecharFolha(); avisar(ok); ADM.reg = null; await carregarAdmin(recarregar); renderAdmin(); return true; }
+  catch (e) { const er = $('adm-erro'); if (er) er.textContent = msgAdm(e); else avisar(msgAdm(e)); return false; }
+}
+function fichaJogador(id) {
+  const j = (ADM.jog || []).find(x => x.id === id); if (!j) return;
+  const info = [['Usuário', esc(j.usuario)], ['Turma', j.gm ? 'professor' : j.turma ? esc(j.turma.nome) + ' · ' + j.turma.serie + 'º ano' : 'sem turma'], ['Nível', j.nivel + ' · ' + fmtN(j.xp) + ' XP'], ['Partidas', j.partidas], ['Guilda', j.guilda ? esc(j.guilda) : '—'], ['Criou a conta', dataBR(j.criado)], ['Último acesso', j.acesso ? dataBR(j.acesso) : 'nunca entrou']];
+  let h = cabFolha('FICHA DO JOGADOR')
+    + `<div style="display:flex;align-items:center;gap:12px">${j.av ? molduraAv(j.mol, `<div class="mini-av" style="border:0;width:56px;height:56px">${avatarHTML(j.av, 3)}</div>`, true) : ''}<div style="min-width:0"><p class="cp" style="margin:0;font-size:18px;color:var(--amarelo)">${j.gm ? '[GM] ' : ''}${esc(j.nick)}</p>${j.bloqueado ? '<p class="cp" style="margin:2px 0 0;font-size:11px;color:var(--vermelho)">CONTA BLOQUEADA</p>' : ''}</div></div>`
+    + `<div style="display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--borda);padding:4px 12px">${info.map(([k, v]) => `<div style="display:flex;justify-content:space-between;gap:10px;min-height:30px;align-items:center;border-top:1px solid #22264A;font-size:13px"><span style="color:var(--texto2)">${k}</span><b style="text-align:right">${v}</b></div>`).join('')}</div>`;
+  if (j.gm) h += `<p class="aviso">Contas de professor não podem ser alteradas por outro professor.</p>`;
+  else h += `<p class="rot">MUDAR DE TURMA</p><div style="display:flex;gap:8px"><select id="adm-turma" style="flex:1;min-height:44px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);padding:0 10px;font-size:14px"><option value="">Sem turma</option>${ADM.turmas.map(t => `<option value="${t.id}" ${j.turma && j.turma.id === t.id ? 'selected' : ''}>${esc(t.nome)} · ${t.serie}º · ${esc(t.turno)}${t.professor ? ' (' + esc(t.professor) + ')' : ''}</option>`).join('')}</select><button class="btn btn-sec" id="adm-turma-ok" style="flex:none;min-height:44px;padding:0 14px;font-size:13px">SALVAR</button></div>`
+    + `<button class="btn btn-sec" id="adm-bloq" style="min-height:46px;${j.bloqueado ? 'border-color:var(--verde);color:var(--verde)' : 'border-color:var(--amarelo);color:var(--amarelo)'}">${j.bloqueado ? 'DESBLOQUEAR CONTA' : 'BLOQUEAR CONTA'}</button>`
+    + `<p class="aviso" style="font-size:12px">${j.bloqueado ? 'Desbloqueada, a conta volta a funcionar com todo o progresso.' : 'Bloqueada, o aluno não consegue entrar nem jogar. Dá para desbloquear depois, sem perder nada.'}</p>`
+    + `<div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid rgba(255,77,109,.5);background:rgba(255,77,109,.06)"><p class="rot" style="color:var(--vermelho)">APAGAR CONTA PARA SEMPRE</p><p style="margin:0;font-size:12px;color:var(--texto2)">Apaga a conta, o progresso e o histórico do aluno. Não tem como desfazer. Para confirmar, digite o usuário <b style="color:var(--texto)">${esc(j.usuario)}</b>.</p><input id="adm-conf" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${esc(j.usuario)}" style="min-height:42px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);padding:0 10px;font-size:14px"><button class="btn btn-prim" id="adm-apagar" disabled style="background:var(--vermelho);opacity:.45;min-height:44px">APAGAR CONTA</button></div>`;
+  h += `<p class="aviso" id="adm-erro" role="alert" style="color:var(--vermelho)"></p>`;
+  abrirFolha(h, 'Ficha de ' + j.nick);
+  if (j.gm) return;
+  $('adm-turma-ok').onclick = () => { const v = $('adm-turma').value || null; admAcao(() => rpc('adm_mudar_turma', { p_aluno: j.id, p_turma: v }), j.nick + (v ? ' agora está na turma ' + ADM.turmas.find(t => t.id === v).nome + '.' : ' ficou sem turma.'), 'jogadores'); };
+  $('adm-bloq').onclick = () => admAcao(() => rpc('adm_bloquear', { p_aluno: j.id, p_bloquear: !j.bloqueado }), j.bloqueado ? j.nick + ' foi desbloqueado.' : j.nick + ' foi bloqueado.', 'jogadores');
+  $('adm-conf').oninput = () => { const okc = $('adm-conf').value.trim().toLowerCase() === j.usuario.toLowerCase(); $('adm-apagar').disabled = !okc; $('adm-apagar').style.opacity = okc ? '1' : '.45'; };
+  $('adm-apagar').onclick = () => admAcao(() => rpc('adm_apagar_conta', { p_aluno: j.id, p_confirma: $('adm-conf').value }), 'A conta de ' + j.nick + ' foi apagada.', 'jogadores');
+}
+function fichaGuilda(id) {
+  const g = (ADM.guildas || []).find(x => x.id === id); if (!g) return;
+  abrirFolha(cabFolha('GUILDA')
+    + `<div style="display:flex;align-items:center;gap:12px">${emblemaSVG(g.emblema, 52)}<div><p class="cp" style="margin:0;font-size:18px;color:var(--amarelo)">${esc(g.nome)}</p><p class="aviso" style="font-size:12px">${g.serie}º ano · ${g.andar > 100 ? 'torre completa' : 'andar ' + g.andar} · ${fmtN(g.dano_total)} de dano · código ${g.codigo}</p></div></div>`
+    + `<div style="display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--borda);padding:6px 12px"><p class="rot">MEMBROS · ${g.membros.length}/10</p><p style="margin:4px 0 0;font-size:13px;line-height:1.6">${g.membros.map(n => (n === g.lider ? '♛ ' : '') + esc(n)).join(' · ') || '—'}</p></div>`
+    + `<p class="rot">RENOMEAR</p><div style="display:flex;gap:8px"><input id="adm-gnome" maxlength="20" autocomplete="off" value="${esc(g.nome)}" style="flex:1;min-height:44px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);padding:0 10px;font-size:14px"><button class="btn btn-sec" id="adm-gnome-ok" style="flex:none;min-height:44px;padding:0 14px;font-size:13px">SALVAR</button></div>`
+    + `<div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid rgba(255,77,109,.5);background:rgba(255,77,109,.06)"><p class="rot" style="color:var(--vermelho)">APAGAR GUILDA</p><p style="margin:0;font-size:12px;color:var(--texto2)">Os membros ficam sem guilda e o andar alcançado se perde. As contas dos alunos continuam. Para confirmar, digite o nome <b style="color:var(--texto)">${esc(g.nome)}</b>.</p><input id="adm-gconf" autocomplete="off" placeholder="${esc(g.nome)}" style="min-height:42px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);padding:0 10px;font-size:14px"><button class="btn btn-prim" id="adm-gapagar" disabled style="background:var(--vermelho);opacity:.45;min-height:44px">APAGAR GUILDA</button></div>`
+    + `<p class="aviso" id="adm-erro" role="alert" style="color:var(--vermelho)"></p>`, 'Guilda ' + g.nome);
+  $('adm-gnome-ok').onclick = () => {
+    const nome = $('adm-gnome').value.replace(/\s+/g, ' ').trim();
+    if (nome.length < 3 || !/^[A-Za-z0-9ÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú ]+$/.test(nome)) { $('adm-erro').textContent = 'Use de 3 a 20 letras, números ou espaços.'; return; }
+    if (nickOfensivo(nome.replace(/\s/g, ''))) { $('adm-erro').textContent = 'Esse nome não é permitido.'; return; }
+    admAcao(() => rpc('adm_renomear_guilda', { p_guilda: g.id, p_nome: nome }), 'Guilda renomeada para ' + nome + '.', 'guildas');
+  };
+  $('adm-gconf').oninput = () => { const okc = $('adm-gconf').value.trim().toLowerCase() === g.nome.toLowerCase(); $('adm-gapagar').disabled = !okc; $('adm-gapagar').style.opacity = okc ? '1' : '.45'; };
+  $('adm-gapagar').onclick = () => admAcao(() => rpc('adm_apagar_guilda', { p_guilda: g.id, p_confirma: $('adm-gconf').value }), 'A guilda ' + g.nome + ' foi apagada.', 'guildas');
+}
+
 /* ================== v1.0: servidor (Supabase) ==================
    Com o endereço e a chave do Supabase preenchidos no build, o jogo usa:
    contas com usuário e senha, progresso salvo na nuvem, Turma de verdade e
@@ -3627,6 +3757,7 @@ function sbCliente() {
   return sb;
 }
 const ERROS_SERV = [
+  ['conta_bloqueada', 'Sua conta foi bloqueada por um professor. Fale com ele para desbloquear.'],
   ['Invalid login credentials', 'Usuário ou senha errados.'], ['already registered', 'Esse usuário já existe. Escolha outro ou entre na conta.'],
   ['nick_em_uso', 'Esse nick já existe. Escolha outro.'], ['nick_invalido', 'Use de 4 a 14 letras ou números.'], ['turma_nao_existe', 'Código de turma não encontrado. Confira com o professor.'],
   ['codigo_errado', 'Código de professor errado.'], ['so_professor', 'Só professores podem fazer isso.'], ['nao_e_seu_aluno', 'Esse aluno não é de uma turma sua.'],
@@ -3697,6 +3828,7 @@ async function posLogin() {
     if (antigo && antigo.nick && antigo.el && PAPEL_ENTRADA !== 'gm' && !antigo.importado) { oferecerImportar(antigo); return; }
     iniciarRegistro(); mostrar('registro'); return;
   }
+  if (CONTA.bloqueado) { try { await sbCliente().auth.signOut(); } catch (e) { } CONTA = null; P = null; mostrar('login'); abrirFolha(cabFolha('CONTA BLOQUEADA') + `<p style="margin:0;font-size:14px;line-height:1.5">Sua conta foi bloqueada por um professor. Fale com ele para desbloquear. O seu progresso continua guardado.</p><button class="btn btn-prim" data-fechar>ENTENDI</button>`, 'Conta bloqueada'); return; }
   await aplicarConta();
   if (PAPEL_ENTRADA === 'gm' && !CONTA.gm) { avisar('Esta conta não é de professor. Entrou como aluno.'); }
   pedirPin = !!CONTA.gm;
@@ -3817,6 +3949,7 @@ async function renderTurmaOnline(recarregar) {
   const t = turmaSel(), pct = (a) => a.total ? Math.round(a.acertos / a.total * 100) : null, hoje = hojeStr();
   let h = `<div class="topo"><h1 class="titulo">TURMA</h1><button class="voltar" id="tm-recarregar" aria-label="Atualizar" style="width:44px;height:44px">${ICO('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>', '#A9ADD6')}</button></div>`;
   h += `<div style="display:flex;gap:6px;overflow-x:auto;flex:none;padding-bottom:2px">${(UTS.dados || []).map(x => `<button class="chip" data-turma="${x.id}" aria-pressed="${t && x.id === t.id}" style="flex:none">${esc(x.nome)}</button>`).join('')}<button class="chip" id="tm-nova" style="flex:none;color:var(--amarelo);border-color:var(--amarelo)">+ TURMA</button></div>`;
+  h += admCartaoHTML();
   if (!t) h += `<div class="cartao" style="text-align:center;padding:26px 16px;display:flex;flex-direction:column;gap:10px;align-items:center"><p class="cp" style="margin:0;font-size:16px">Nenhuma turma ainda</p><p class="aviso">Crie uma turma e passe o código para os alunos. Eles digitam o código ao criar a conta ou na aba Conta.</p><button class="btn btn-prim" id="tm-nova2" style="flex:none;min-height:48px;padding:0 20px">+ CRIAR TURMA</button></div>`;
   else {
     const al = t.alunos || [];
