@@ -638,7 +638,7 @@ const AV_BASE = [
   '.....SSSSSSS', '.....sSSSSSS', '......SSSSSS', '......SSSSSS', '.......SSSSS', '........sSSS', '..........ss',
   '......NNNNBY', '.....NNNNNBY', '....NNKNNNCY', '....NNKNNNNY', '....NNKNNNNN', '....NNKNNNNN', '....NNKNNNNN',
   '....SSKLLLLL', '....SSKLLLLL', '.......LLLL.', '.......LLLL.', '.......LLLL.', '.......LLLL.',
-  '.......BBBB.', '......DDDDD.', '......OOOOO.', ''
+  '.......oooo.', '......DDDDD.', '......OOOOO.', ''
 ].map(m => m ? avEspelhar(m.padEnd(12, '.')) : '.'.repeat(AVW));
 const AV_CABELOS = {
   espetado: ['........................', '..........H...H.........', '........HHHH.HHH.H......', '.......HHHHHHHHHHHH.....',
@@ -705,9 +705,12 @@ function avSombra(cfg, t) {
     }
   }
   const camada = (mapa) => mapa.forEach((linha, y) => linha.split('').forEach((c, x) => { if (c !== '.') por(x, y, c); }));
+  const roupa = AV_ROUPAS[cfg.roupa] || AV_ROUPAS.padrao;
+  if (roupa.mapa) camada(roupa.mapa);
   camada(AV_CABELOS[cfg.cabelo] || AV_CABELOS.espetado);
   let acess = AV_ACESSORIOS[cfg.acessorio] || AV_ACESSORIOS.nenhum;
-  if (costas && cfg.acessorio === 'oculos') acess = [];
+  if (costas && (cfg.acessorio === 'oculos' || cfg.acessorio === 'oculosSol')) acess = [];
+  if (costas && cfg.acessorio === 'mochila') acess = AV_MOCHILA_COSTAS;
   if (costas && cfg.acessorio === 'bone') acess = acess.slice(0, 6).map(l => l.replace(/Y/g, 'P'));
   camada(acess);
   const cheio = (x, y) => x >= 0 && x < AVW && y >= 0 && y < AVH && g[y][x] !== '.' && g[y][x] !== 'k';
@@ -718,7 +721,9 @@ function avSombra(cfg, t) {
   const cab = AV_CORES_CABELO[cfg.corCabelo] || AV_CORES_CABELO[0];
   const cores = { k: '#0B0C18', K: '#0B0C18', S: pele, s: avEscurecer(pele, 0.14), H: cab, h: avEscurecer(cab, 0.28),
     E: AV_OLHOS[cfg.olhos] || AV_OLHOS[0], W: '#FFFFFF', B: '#F2F3FF', N: '#2E2A6B', C: '#5EE6FF', Y: '#FFD23F', L: '#23263F',
-    D: '#3A3F7A', O: '#F2F3FF', M: '#5A1E2A', P: '#E8475F', p: '#B8304A', F: '#3A3F7A', f: '#5EE6FF', G: '#5EE6FF', T: '#FF6B8B' };
+    D: '#3A3F7A', O: '#F2F3FF', M: '#5A1E2A', P: '#E8475F', p: '#B8304A', F: '#3A3F7A', f: '#5EE6FF', G: '#5EE6FF', T: '#FF6B8B',
+    o: '#F2F3FF', Q: '#14151F', R: '#2A2E55', r: '#9AA0D8', X: '#FF6BA8', x: '#C2306F', U: '#3FA9F5', u: '#2A6FB0', V: '#F2F3FF', Z: '#FFD23F', a: '#FF4D6D', b: '#FF7A3D', n: '#B8541F' };
+  Object.assign(cores, roupa.cores);
   const partes = [];
   for (let y = 0; y < AVH; y++) for (let x = 0; x < AVW; x++) {
     const c = g[y][x];
@@ -726,6 +731,51 @@ function avSombra(cfg, t) {
   }
   return partes.join(',');
 }
+
+/* ---------- Loja do avatar: roupas, acessórios, cabelos e cores novas ---------- */
+const AV_E = (m) => avEspelhar(m.padEnd(12, '.'));
+const AV_LINHA = (m) => m.padEnd(AVW, '.');
+// cabelos novos
+Object.assign(AV_CABELOS, {
+  raspado: ['', '', '', '........hHHH', '.......HHHHH', '......HhHHHH', '......H.....', '......H.....'].map(AV_E),
+  moicano: ['.........H.H', '..........HH', '.........HHH', '.........HHh', '........sHHH', '.......ssHHH', '......ss....', '......s.....'].map(AV_E),
+  black: ['.......HHHHH', '.....HHHHHHH', '....HHHHHHHH', '...HHHHHHHHH', '..HHHHHHHHHH', '..HHHHHhHHHH', '..HHHHH.....', '..HHHH......', '..HHHH......',
+    '..HHH.......', '..HHH.......', '...HH.......', '...HH.......', '....H.......'].map(AV_E),
+  franja: ['', '', '', '........HHHH', '.......HHHHH', '......HHHHHH', '.....HHHHHHH', '.....HHhHHHH', '.....HH.....', '.....HH.....',
+    '.....HH.....', '.....HH.....', '.....HHh....', '.....hh.....'].map(AV_E),
+  rabo: ['', '', '', '........HHHHHHHH', '.......HHHHHHHHHH', '......HHHHHHHHHHHH', '.....HHHHHHhHHHHHHHH', '.....HHHH......HHHHHH',
+    '.....HH..........HHHH', '.....H............HHH', '..................HHH', '..................HHh', '...................HH',
+    '...................Hh', '...................HH', '...................TT'].map(AV_LINHA)
+});
+Object.assign(AV_COSTAS, { raspado: [10, 6, 17], moicano: [8, 6, 17], black: [13, 2, 21], franja: [13, 5, 18], rabo: [15, 5, 19] });
+// acessórios novos
+Object.assign(AV_ACESSORIOS, {
+  oculosSol: ['', '', '', '', '', '', '', '', '.......QQQQ.', '......QQrRQQ', '.......QRRQ.', '.......QRRQ.', '.......QQQQ.'].map(AV_E),
+  laco: ['', '', '', '...............XX.XX', '...............XXxXX', '...............XX.XX'].map(AV_LINHA),
+  gorro: ['...........V', '..........VV', '........UUUU', '.......UUUUU', '......UUuUUU', '......UUUUUU', '.....uuuuuuu'].map(AV_E),
+  coroa: ['', '........Z..Z', '........ZZ.Z', '........ZZZZ', '........ZaZZ'].map(AV_E),
+  mochila: [...Array(17).fill(''), ...Array(7).fill('........b...')].map(AV_E)
+});
+AV_ACESSORIOS.oculosSol[9] = AV_ACESSORIOS.oculosSol[9].slice(0, 11) + 'QQ' + AV_ACESSORIOS.oculosSol[9].slice(13);
+const AV_MOCHILA_COSTAS = [...Array(17).fill(''), '.......bbbbb', '......bbbbbb', '......bbnnnn', '......bbnbbb', '......bbnbbb', '......bbnnnn', '......bbbbbb', '.......bbbbb'].map(AV_E);
+// roupas de escola: trocam as cores do uniforme e desenham por cima
+const AV_ROUPAS = {
+  padrao: { cores: {} },
+  agasalho: { cores: { N: '#1F7A82', B: '#1F7A82', C: '#1F7A82', Y: '#E9EDF7', A: '#F2F3FF', c: '#155A60' },
+    mapa: [...Array(16).fill(''), '......cc....', '......c.....', '....A.......', '....A.......', '....A.......', '....A...ccc.', '....A...ccc.', '....A.......'].map(AV_E) },
+  jaleco: { cores: { N: '#F2F3FF', B: '#9FD8FF', C: '#9FD8FF', Y: '#3A6FE0', A: '#C9CDF0', c: '#3FA9F5' },
+    mapa: [...Array(18).fill(''), '.........A..', '.........A..', '.........A..', '........cA..', '.........A..', '.........A..', '.......NNANN', '.......NNANN', '.......NNANN'].map(AV_E) },
+  edfisica: { cores: { N: '#F2F3FF', B: '#FF7A3D', C: '#F2F3FF', Y: '#F2F3FF', A: '#FF7A3D', L: '#2E2A6B' },
+    mapa: [...Array(20).fill(''), '....AA.AAAAA', '....SS......', '....SS......', '....SS......', '', '', '', '.......SSSS.', '.......SSSS.', '.......WWWW.'].map(AV_E) },
+  inverno: { cores: { N: '#5A3E8E', B: '#5A3E8E', C: '#5A3E8E', Y: '#3E2A66', A: '#E8475F', c: '#B8304A' },
+    mapa: [...Array(16).fill(''), '.......AAAAAAAAAA', '.......AAAAAAAAAA', '..............AA', '..............Ac', '..............AA', '..............cA'].map(AV_LINHA) },
+  robotica: { cores: { N: '#2E2A6B', B: '#F2F3FF', C: '#5EE6FF', Y: '#FFD23F', A: '#FF7A3D', c: '#E2E6F5' },
+    mapa: [...Array(17).fill(''), '.......AAA..', '.......AAA..', '.......AAA..', '.......AAA..', '.......ccc..', '.......AAA..', '.......AAA..'].map(AV_E) }
+};
+// cores novas: as primeiras são as do cadastro, as seguintes vêm da loja
+AV_CORES_CABELO.push('#2BB3A3', '#FF7A3D', '#C9CDF0', '#E84855', '#5EE6FF');
+AV_OLHOS.push('#C77DFF', '#E84855');
+const AV_BASE_N = { corCabelo: 8, olhos: 6 };
 
 </script>
 <script>
@@ -886,8 +936,8 @@ function renderRegistro() {
   const cores = (campo, lista, rot) => `<div class="chips" role="group" aria-label="${rot}">${lista.map((c, i) => `<button class="cor" style="background:${c}" aria-label="${rot} ${i + 1}" aria-pressed="${a[campo] === i}" data-campo="${campo}" data-v="${i}" data-num="1"></button>`).join('')}</div>`;
   if (abaAv === 'corpo') h = chips('corpo', OPC.corpo) + `<p class="aviso" style="margin-top:8px">O uniforme é padrão e igual para todos.</p>`;
   else if (abaAv === 'pele') h = cores('pele', AV_PELES, 'Tom de pele');
-  else if (abaAv === 'cabelo') h = chips('cabelo', OPC.cabelo) + `<p class="rot" style="margin:10px 0 6px">COR DO CABELO</p>` + cores('corCabelo', AV_CORES_CABELO, 'Cor do cabelo');
-  else if (abaAv === 'olhos') h = cores('olhos', AV_OLHOS, 'Cor dos olhos');
+  else if (abaAv === 'cabelo') h = chips('cabelo', OPC.cabelo) + `<p class="rot" style="margin:10px 0 6px">COR DO CABELO</p>` + cores('corCabelo', AV_CORES_CABELO.slice(0, AV_BASE_N.corCabelo), 'Cor do cabelo');
+  else if (abaAv === 'olhos') h = cores('olhos', AV_OLHOS.slice(0, AV_BASE_N.olhos), 'Cor dos olhos');
   else if (abaAv === 'rosto') h = chips('rosto', OPC.rosto);
   else h = chips('acessorio', OPC.acessorio);
   $('opcoes-av').innerHTML = h;
@@ -3092,16 +3142,66 @@ irAba = function (aba) {
   if (novas.length) avisar(novas.length === 1 ? 'Nova moldura liberada: ' + novas[0].nome + '! Veja na loja, em Conta.' : novas.length + ' molduras novas liberadas! Veja na loja, em Conta.');
 };
 
+/* ---------- Loja do avatar (armário): roupas, acessórios, cabelos e cores ----------
+   Os itens do cadastro são grátis; os novos são comprados com moedas, sem conquista. */
+const LOJA_ITENS = [
+  ['roupa', 'padrao', 'Uniforme da escola', 0], ['roupa', 'agasalho', 'Agasalho da escola', 100], ['roupa', 'jaleco', 'Jaleco de laboratório', 120],
+  ['roupa', 'edfisica', 'Educação física', 80], ['roupa', 'inverno', 'Casaco com cachecol', 120], ['roupa', 'robotica', 'Colete de robótica', 150],
+  ['acessorio', 'nenhum', 'Nenhum', 0], ['acessorio', 'oculos', 'Óculos', 0], ['acessorio', 'bone', 'Boné', 0], ['acessorio', 'fone', 'Fone', 0], ['acessorio', 'faixa', 'Faixa', 0],
+  ['acessorio', 'oculosSol', 'Óculos escuros', 60], ['acessorio', 'laco', 'Laço', 40], ['acessorio', 'gorro', 'Gorro', 60], ['acessorio', 'mochila', 'Mochila', 80], ['acessorio', 'coroa', 'Coroa', 150],
+  ['cabelo', 'espetado', 'Espetado', 0], ['cabelo', 'liso', 'Liso', 0], ['cabelo', 'cacheado', 'Cacheado', 0], ['cabelo', 'crespo', 'Crespo', 0], ['cabelo', 'trancas', 'Tranças', 0], ['cabelo', 'coque', 'Coque', 0],
+  ['cabelo', 'raspado', 'Raspado', 50], ['cabelo', 'moicano', 'Moicano', 70], ['cabelo', 'black', 'Black power', 70], ['cabelo', 'franja', 'Franja', 50], ['cabelo', 'rabo', 'Rabo de cavalo', 50],
+  ...AV_CORES_CABELO.map((c, k) => ['corCabelo', k, 'Cabelo ' + ['preto', 'castanho escuro', 'castanho', 'ruivo', 'loiro', 'azul', 'roxo', 'rosa', 'verde-água', 'laranja', 'prateado', 'vermelho', 'azul neon'][k], k < AV_BASE_N.corCabelo ? 0 : 40]),
+  ...AV_OLHOS.map((c, k) => ['olhos', k, 'Olhos ' + ['castanhos', 'pretos', 'verdes', 'azuis', 'mel', 'cinza', 'violeta', 'vermelhos'][k], k < AV_BASE_N.olhos ? 0 : 30])
+].map(([campo, v, nome, preco]) => ({ id: campo + ':' + v, campo, v, nome, preco }));
+const LOJA_ABAS = [['roupa', 'ROUPAS'], ['acessorio', 'ACESSÓRIOS'], ['cabelo', 'CABELO'], ['cores', 'CORES'], ['molduras', 'MOLDURAS']];
+let LOJA_ABA = 'roupa';
+const temItem = (it) => it.preco === 0 || (P.itens || []).includes(it.id);
+const usandoItem = (it) => (P.av[it.campo] ?? (it.campo === 'roupa' ? 'padrao' : undefined)) === it.v;
+
 function cartaoLojaHTML() {
   molPrep();
-  const lib = MOLDURAS.filter(m => P.conq[m.id]).length, atual = MOLD[P.moldura];
+  const novos = LOJA_ITENS.filter(it => it.preco > 0).length, meus = (P.itens || []).length;
   return `<button class="cartao" id="ct-loja" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;color:var(--texto)">`
     + `<div style="flex:none">${miniAvHTML()}</div>`
-    + `<div style="flex:1;min-width:0"><p class="rot">LOJA DE MOLDURAS</p><p style="margin:2px 0 0;font-size:13px;font-weight:600">${atual ? 'Usando: ' + esc(atual.nome) : 'Nenhuma moldura em uso'}</p><p class="aviso" style="font-size:12px">${lib} de ${MOLDURAS.length} liberadas por conquista · ${P.molduras.length} compradas</p></div>`
+    + `<div style="flex:1;min-width:0"><p class="rot">LOJA E ARMÁRIO</p><p style="margin:2px 0 0;font-size:13px;font-weight:600">Roupas, acessórios, cabelos e molduras</p><p class="aviso" style="font-size:12px">${meus + P.molduras.length} itens comprados · ${novos + MOLDURAS.length} na loja</p></div>`
     + `<span class="cp" style="color:var(--ciano);font-size:18px">›</span></button>`;
 }
-function abrirLoja() {
-  checarConquistas(); molPrep();
+function abrirLoja(aba) {
+  checarConquistas(); molPrep(); if (!P.itens) P.itens = [];
+  if (aba) LOJA_ABA = aba;
+  const f = $('folha'), y = f.scrollTop;
+  const abas = `<div role="tablist" aria-label="Seções da loja" style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px">${LOJA_ABAS.map(([k, l]) => `<button role="tab" aria-selected="${k === LOJA_ABA}" data-loja-aba="${k}" class="cp" style="min-height:36px;font-size:10px;letter-spacing:.5px;cursor:pointer;background:${k === LOJA_ABA ? 'var(--ciano)' : 'var(--bg)'};color:${k === LOJA_ABA ? 'var(--bg)' : 'var(--texto2)'};border:1px solid var(--borda)">${l}</button>`).join('')}</div>`;
+  const topo = cabFolha('LOJA E ARMÁRIO') + `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div style="flex:none">${molduraAv(P.moldura, `<div class="mini-av" style="border:0;width:64px;height:64px">${avatarHTML(P.av, 3)}</div>`, true)}</div><p class="aviso" style="font-size:12px;flex:1">${LOJA_ABA === 'molduras' ? 'Faça a conquista para liberar a moldura. Depois, compre com moedas.' : 'As peças do cadastro são grátis. As novas você compra com moedas e usa quando quiser.'}</p><p class="cp moedas" style="flex:none">${MOEDA}${P.moedas}</p></div>` + abas;
+  if (LOJA_ABA === 'molduras') { abrirFolha(topo + molduraListaHTML(), 'Loja de molduras'); ligarMolduras(); }
+  else {
+    const lista = LOJA_ITENS.filter(it => LOJA_ABA === 'cores' ? (it.campo === 'corCabelo' || it.campo === 'olhos') : it.campo === LOJA_ABA);
+    const card = (it) => {
+      const tem = temItem(it), usa = usandoItem(it), pode = P.moedas >= it.preco;
+      const prev = Object.assign({}, P.av, { [it.campo]: it.v });
+      const amostra = it.campo === 'corCabelo' ? `<i style="position:absolute;right:6px;top:6px;width:14px;height:14px;border-radius:50%;background:${AV_CORES_CABELO[it.v]};border:2px solid #0B0C18"></i>` : it.campo === 'olhos' ? `<i style="position:absolute;right:6px;top:6px;width:14px;height:14px;border-radius:50%;background:${AV_OLHOS[it.v]};border:2px solid #0B0C18"></i>` : '';
+      const btn = usa ? `<span class="cp" style="font-size:11px;color:var(--verde)">✓ EM USO</span>`
+        : tem ? `<button class="btn btn-sec" data-item-usar="${it.id}" style="min-height:32px;padding:0 10px;font-size:12px;width:100%">USAR</button>`
+          : `<button class="btn ${pode ? 'btn-prim' : 'btn-sec'}" data-item-comprar="${it.id}" ${pode ? '' : 'disabled'} style="min-height:32px;padding:0 8px;font-size:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:4px${pode ? '' : ';opacity:.55'}">${MOEDA}${it.preco}</button>`;
+      return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;background:var(--bg);border:1px solid ${usa ? 'var(--verde)' : 'var(--borda)'}">${amostra}${it.preco && !tem ? '<span class="cp" style="position:absolute;left:6px;top:5px;font-size:9px;color:var(--amarelo)">NOVO</span>' : ''}<div style="height:${it.campo === 'roupa' ? 108 : 74}px;overflow:hidden;display:flex;align-items:flex-start">${avatarHTML(prev, it.campo === 'roupa' ? 3 : 3, 'frente')}</div><p style="margin:0;font-size:12px;font-weight:600;text-align:center;min-height:30px">${esc(it.nome)}</p>${btn}</div>`;
+    };
+    abrirFolha(topo + `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${lista.map(card).join('')}</div>`, 'Loja e armário');
+    f.querySelectorAll('[data-item-comprar]').forEach(b => b.onclick = () => {
+      const it = LOJA_ITENS.find(x => x.id === b.dataset.itemComprar);
+      if (!it || temItem(it) || P.moedas < it.preco) return;
+      P.moedas -= it.preco; P.itens.push(it.id); P.av[it.campo] = it.v; salvarPerfil();
+      avisar(it.nome + ' comprado e em uso!'); abrirLoja(); atualizarMolduraTela();
+    });
+    f.querySelectorAll('[data-item-usar]').forEach(b => b.onclick = () => {
+      const it = LOJA_ITENS.find(x => x.id === b.dataset.itemUsar);
+      if (!it || !temItem(it)) return;
+      P.av[it.campo] = it.v; salvarPerfil(); abrirLoja(); atualizarMolduraTela();
+    });
+  }
+  f.querySelectorAll('[data-loja-aba]').forEach(b => b.onclick = () => { LOJA_ABA = b.dataset.lojaAba; abrirLoja(); $('folha').scrollTop = 0; });
+  f.scrollTop = y;
+}
+function molduraListaHTML() {
   const linha = (m) => {
     const tem = P.molduras.includes(m.id), lib = !!P.conq[m.id], usando = P.moldura === m.id, pode = P.moedas >= m.preco;
     const acao = usando ? `<button class="btn btn-sec" data-mold-tirar style="flex:none;min-height:38px;padding:0 12px;font-size:12px">EM USO · TIRAR</button>`
@@ -3112,9 +3212,9 @@ function abrirLoja() {
       + `<div style="flex:none;${lib ? '' : 'filter:grayscale(.85)'}">${molduraAv(m.id, `<div class="mini-av" style="border:0">${avatarHTML(P.av, 3)}</div>`, true)}</div>`
       + `<div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:14px">${esc(m.nome)}</p><p style="margin:2px 0 0;font-size:12px;color:${lib ? 'var(--verde)' : 'var(--texto2)'}">${lib ? '✓ ' : 'Conquista: '}${esc(m.conq)}</p>${lib && !tem && !pode ? `<p class="aviso" style="font-size:11px">Faltam ${m.preco - P.moedas} moedas</p>` : ''}</div>${acao}</div>`;
   };
-  abrirFolha(cabFolha('LOJA DE MOLDURAS')
-    + `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><p class="aviso" style="font-size:12px">Faça a conquista para liberar a moldura. Depois, compre com moedas.</p><p class="cp moedas" style="flex:none">${MOEDA}${P.moedas}</p></div>`
-    + `<div style="display:flex;flex-direction:column">${MOLDURAS.map(linha).join('')}</div>`, 'Loja de molduras');
+  return `<div style="display:flex;flex-direction:column">${MOLDURAS.map(linha).join('')}</div>`;
+}
+function ligarMolduras() {
   const f = $('folha');
   f.querySelectorAll('[data-mold-comprar]').forEach(b => b.onclick = () => {
     const m = MOLD[b.dataset.moldComprar];
@@ -3127,9 +3227,10 @@ function abrirLoja() {
 }
 function atualizarMolduraTela() {
   const a = document.querySelector('.tela.ativa'), id = a ? a.id.slice(2) : '';
+  if (id === 'inicio') { const y = $('t-inicio').scrollTop; renderInicio(); $('t-inicio').scrollTop = y; }
   if (id === 'conta') { const y = $('t-conta').scrollTop; renderConta(); $('t-conta').scrollTop = y; }
 }
-document.addEventListener('click', e => { if (e.target.closest('#ct-loja')) abrirLoja(); });
+document.addEventListener('click', e => { if (e.target.closest('#ct-loja')) abrirLoja('roupa'); });
 
 /* =====================================================================
    Guildas e Torre da Guilda
