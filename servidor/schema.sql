@@ -242,6 +242,7 @@ begin
           'id', p.id, 'nick', p.nick, 'nivel', p.nivel, 'xp', p.xp,
           'av', p.dados -> 'av', 'el', p.dados ->> 'el',
           'nc', coalesce((p.dados ->> 'nc')::int, p.nivel),
+          'mol', coalesce(p.dados ->> 'moldura', ''),
           'liga', coalesce((p.dados -> 'liga' ->> 'idx')::int, 0),
           'dias', (select coalesce(json_agg(a.dia order by a.dia), '[]'::json) from public.acessos a where a.aluno_id = p.id and a.dia > current_date - 60),
           'acertos', (select coalesce(sum(x.acertos), 0) from public.partidas x where x.aluno_id = p.id),
