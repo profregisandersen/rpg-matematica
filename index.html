@@ -2685,7 +2685,8 @@ function abrirPin(erro) {
     + `<div class="pin-tec">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(k => k ? `<button type="button" data-pin="${k}"${trava ? ' disabled' : ''} aria-label="${k === '⌫' ? 'Apagar' : k}">${k}</button>` : '<span></span>').join('')}</div>`
     + `<p class="aviso" style="text-align:center;font-size:12px;color:var(--texto3)">${ONLINE ? 'Esqueceu o PIN? <button type="button" id="pin-senha" style="border:0;background:transparent;color:var(--ciano);text-decoration:underline;font:inherit;padding:0">Entre com usuário e senha</button>.' : 'Protótipo: o PIN de teste é 2027. Com o servidor, cada professor terá o seu.'}</p>`, 'PIN do professor');
   $('folha').querySelectorAll('[data-pin]').forEach(b => b.onclick = () => teclaPin(b.dataset.pin));
-  if ($('pin-senha')) $('pin-senha').onclick = () => { fecharFolha(); abrirEntrada('gm'); };
+  // esqueceu o PIN: apaga o PIN deste aparelho; depois de entrar com a senha, o jogo pede um PIN novo
+  if ($('pin-senha')) $('pin-senha').onclick = () => { try { localStorage.removeItem('codex-pin'); } catch (e) { } pinSalvar({}); EXIGIR_SENHA = true; fecharFolha(); abrirEntrada('gm'); };
 }
 function teclaPin(k) {
   const st = pinEstado(); if (st.ate && st.ate > Date.now()) return;
@@ -3845,7 +3846,7 @@ async function renderEntrada(msg) {
   const olho = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
   const campo = (id, rot, tipo, extra) => `<div class="campo"><label class="rot" for="${id}">${rot}</label>${tipo === 'password' ? `<div style="position:relative"><input id="${id}" type="password" ${extra || ''} style="padding-right:52px"><button type="button" class="ver-s" data-alvo="${id}" aria-label="Mostrar senha" style="position:absolute;right:2px;top:3px;width:44px;height:44px;border:0;background:transparent">${olho}</button></div>` : `<input id="${id}" ${extra || ''}>`}</div>`;
   $('t-entrar').innerHTML = `<div class="topo"><button class="voltar" id="ent-voltar" aria-label="Voltar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#F2F3FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1 class="titulo">${gm ? 'PROFESSOR' : 'ALUNO'}</h1><span style="width:44px"></span></div>`
-    + (usuAtual && !criar ? `<button class="cartao" id="ent-continuar" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;color:var(--texto);border-color:var(--ciano)"><span style="flex:1"><span class="rot" style="display:block">CONECTADO NESTE APARELHO</span><span class="cp" style="display:block;font-size:17px;margin-top:3px">@${esc(usuAtual)}</span></span><span class="cp" style="color:var(--ciano)">CONTINUAR ›</span></button><p class="aviso" style="text-align:center;font-size:12px">Não é você? Entre com a sua conta abaixo.</p>` : '')
+    + (usuAtual && !criar && !EXIGIR_SENHA ? `<button class="cartao" id="ent-continuar" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;color:var(--texto);border-color:var(--ciano)"><span style="flex:1"><span class="rot" style="display:block">CONECTADO NESTE APARELHO</span><span class="cp" style="display:block;font-size:17px;margin-top:3px">@${esc(usuAtual)}</span></span><span class="cp" style="color:var(--ciano)">CONTINUAR ›</span></button><p class="aviso" style="text-align:center;font-size:12px">Não é você? Entre com a sua conta abaixo.</p>` : '')
     + `<div class="chips" role="group" aria-label="Entrar ou criar conta" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="chip" id="ent-m-entrar" aria-pressed="${!criar}">ENTRAR</button><button type="button" class="chip" id="ent-m-criar" aria-pressed="${criar}">${gm ? 'CRIAR CONTA DE PROFESSOR' : 'CRIAR CONTA'}</button></div>`
     + `<form id="form-online" class="cartao" style="display:flex;flex-direction:column;gap:14px" novalidate>`
     + campo('on-usu', 'USUÁRIO', 'text', 'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20" placeholder="ex.: joao.silva"')
@@ -3858,7 +3859,7 @@ async function renderEntrada(msg) {
   $('ent-voltar').onclick = () => mostrar('login');
   $('ent-m-entrar').onclick = () => { MODO_ENT = 'entrar'; renderEntrada(); };
   $('ent-m-criar').onclick = () => { MODO_ENT = 'criar'; renderEntrada(); };
-  if ($('ent-continuar')) $('ent-continuar').onclick = () => posLogin();
+  if ($('ent-continuar')) $('ent-continuar').onclick = () => { CONTINUAR_SESSAO = true; posLogin(); };
   $('t-entrar').querySelectorAll('.ver-s').forEach(b => b.onclick = () => { const i = $(b.dataset.alvo); i.type = i.type === 'password' ? 'text' : 'password'; });
   $('form-online').onsubmit = (e) => { e.preventDefault(); enviarEntrada(); };
 }
@@ -3885,7 +3886,10 @@ async function enviarEntrada() {
   } catch (e) { carregando(''); $('on-ok').disabled = false; erro(e && /Confirm email/.test(e.message) ? e.message : msgErro(e)); }
 }
 /* depois de entrar: busca o perfil no servidor (ou abre o registro do nick e do avatar) */
+/* conta de professor já conectada no aparelho: "Continuar" exige o PIN (ou a senha, se o aparelho não tiver PIN) */
+let CONTINUAR_SESSAO = false, EXIGIR_SENHA = false;
 async function posLogin() {
+  const viaContinuar = CONTINUAR_SESSAO; CONTINUAR_SESSAO = false;
   carregando('Carregando seu perfil…');
   try { CONTA = await rpc('meu_perfil'); }
   catch (e) { carregando(''); avisar(msgErro(e)); mostrar('login'); return; }
@@ -3896,6 +3900,12 @@ async function posLogin() {
     if (antigo && antigo.nick && antigo.el && PAPEL_ENTRADA !== 'gm' && !antigo.importado) { oferecerImportar(antigo); return; }
     iniciarRegistro(); mostrar('registro'); return;
   }
+  if (viaContinuar && CONTA.gm) {
+    CONTA = null; P = null; PAPEL_ENTRADA = 'gm';
+    if (pinDoAparelhoSessao()) { mostrar('login'); abrirPin(); return; }
+    EXIGIR_SENHA = true; MODO_ENT = 'entrar'; renderEntrada('Para entrar como professor, digite a sua senha.'); mostrar('entrar'); return;
+  }
+  EXIGIR_SENHA = false;
   if (CONTA.bloqueado) { try { await sbCliente().auth.signOut(); } catch (e) { } CONTA = null; P = null; mostrar('login'); abrirFolha(cabFolha('CONTA BLOQUEADA') + `<p style="margin:0;font-size:14px;line-height:1.5">Sua conta foi bloqueada por um professor. Fale com ele para desbloquear. O seu progresso continua guardado.</p><button class="btn btn-prim" data-fechar>ENTENDI</button>`, 'Conta bloqueada'); return; }
   await aplicarConta();
   if (PAPEL_ENTRADA === 'gm' && !CONTA.gm) { avisar('Esta conta não é de professor. Entrou como aluno.'); }
@@ -3974,6 +3984,7 @@ const _chFim = chFim; chFim = function (m) { const novo = !CH || !CH.ganho; _chF
 let pedirPin = false;
 const _irAba = irAba; irAba = function (aba) { _irAba(aba); if (pedirPin && CONTA && CONTA.gm && !EVO.on) { pedirPin = false; if (!pinDoAparelho()) setTimeout(criarPin, 500); } };
 const PIN_LOCAL = 'codex-pin';
+const pinDoAparelhoSessao = () => { try { return !!JSON.parse(localStorage.getItem(PIN_LOCAL) || 'null'); } catch (e) { return false; } };
 const pinDoAparelho = () => { try { const x = JSON.parse(localStorage.getItem(PIN_LOCAL) || 'null'); return x && CONTA && x.usuario === CONTA.usuario ? x : x && !CONTA ? x : null; } catch (e) { return null; } };
 async function hashPin(pin, usu) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('codex|' + usu + '|' + pin)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
 let pinNovo = '';
