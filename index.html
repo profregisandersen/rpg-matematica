@@ -361,6 +361,51 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 .feed-lin{display:flex;align-items:center;gap:8px;min-height:26px;font-size:13px;animation:evotexto .3s ease-out both}
 @keyframes bossHit{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}.boss-hit{animation:bossHit .35s steps(4)}
 @keyframes numsobe{0%{opacity:0;transform:translateY(8px) scale(.6)}15%{opacity:1;transform:translateY(0) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translateY(-46px)}}.num-sobe{position:absolute;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:20px;text-shadow:2px 2px 0 #0B0C18;animation:numsobe 1.2s ease-out both;pointer-events:none}
+
+/* ---------- tela larga: computador e tablet deitado ---------- */
+.lg-lado,.lg-mapa,.lg-etapas{display:contents}
+.lg-lado>*,.lg-mapa>*,.lg-etapas>*{flex-shrink:0}
+@media (min-width:960px) and (orientation:landscape){
+#app{max-width:none}
+.tela{padding:20px max(24px,calc((100% - 760px)/2))}
+.tela:has(>.barra-nav){padding-left:max(136px,calc((100% - 760px)/2 + 56px))}
+.barra-nav{position:fixed;left:0;top:0;bottom:0;z-index:5;width:112px;margin:0;padding:20px 10px;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;border-top:0;border-right:1px solid var(--borda);background:rgba(11,12,24,.88)}
+.nav{flex:none;min-height:64px;font-size:12px}
+.nav[aria-current="page"]{background:rgba(94,230,255,.08);box-shadow:inset 3px 0 0 var(--ciano)}
+.jogar{margin:10px auto;width:84px;height:84px}
+.folha{left:calc(50% - 300px);right:calc(50% - 300px);border-left:1px solid var(--borda);border-right:1px solid var(--borda)}
+.toast{left:calc(50% - 280px);right:calc(50% - 280px);bottom:28px}
+#evo-pe{max-width:560px}
+/* início: mapa grande à esquerda, missões e etapas à direita */
+#t-inicio.ativa:has(.lg-mapa){display:grid;grid-template-columns:minmax(0,1080px) 400px;justify-content:center;grid-template-rows:auto auto 1fr;column-gap:28px;row-gap:12px;align-content:start;padding:20px 32px 20px 144px}
+#t-inicio>.topo2{grid-column:1/-1}
+#t-inicio .lg-mapa{display:flex;flex-direction:column;gap:10px;grid-column:1;grid-row:2/4;min-width:0}
+#t-inicio .lg-lado{display:flex;flex-direction:column;gap:10px;grid-column:2;grid-row:2}
+#t-inicio .lg-etapas{display:flex;flex-direction:column;gap:10px;grid-column:2;grid-row:3}
+#t-inicio .mapa{max-width:none;align-self:center}
+/* batalha: cena grande à esquerda, pergunta e teclado à direita */
+#t-batalha.ativa{display:grid;grid-template-columns:minmax(0,1040px) 420px;justify-content:center;grid-template-rows:auto 1fr auto auto 1fr;column-gap:24px;row-gap:12px;padding:20px 32px}
+#t-batalha>.topo{grid-column:1/-1}
+#t-batalha .cena-caixa{grid-column:1;grid-row:2/6;min-height:0}
+#t-batalha .dialogo{grid-column:2;grid-row:3}
+#t-batalha .painel{grid-column:2;grid-row:4;min-height:0}
+/* chefão: batalha e teclado à esquerda, tabela da turma inteira à direita */
+#t-chefao.ativa.lg-jogo{display:grid;grid-template-columns:minmax(0,900px) 440px;justify-content:center;grid-template-rows:auto repeat(6,auto) 1fr;column-gap:24px;row-gap:10px;padding:20px 32px}
+#t-chefao.lg-jogo>*{grid-column:1}
+#t-chefao.lg-jogo>.topo{grid-column:1/-1}
+#t-chefao.lg-jogo>#ch-cena{justify-self:center}
+#t-chefao.lg-jogo>.ch-tabela{grid-column:2;grid-row:2/-1;align-self:stretch;display:flex;flex-direction:column}
+#t-chefao.lg-jogo #ch-placar{max-height:none!important;flex:1;min-height:0}
+#t-chefao.lg-jogo .teclado .tecla{height:42px}
+.lc-fim{padding:24px max(24px,calc((100% - 760px)/2))}
+/* treino solo: cena grande à esquerda, pergunta e teclado à direita */
+#t-licao.ativa{display:grid;grid-template-columns:minmax(0,900px) 420px;justify-content:center;grid-template-rows:auto 1fr auto auto auto 1fr;column-gap:24px;row-gap:12px;padding:20px 32px}
+#t-licao>.topo{grid-column:1/-1}
+#t-licao>#lc-cena{grid-column:1;grid-row:2/7;align-self:center;justify-self:center}
+#t-licao>#lc-narra{grid-column:2;grid-row:3}
+#t-licao>#lc-perg{grid-column:2;grid-row:4}
+#t-licao>#lc-painel{grid-column:2;grid-row:5}
+}
 </style>
 </head>
 <body>
@@ -1445,10 +1490,17 @@ const NIVEIS = { facil: { acc: .5, tmin: 12, tmax: 38 }, medio: { acc: .68, tmin
 const POS = { 1: [[246, 46]], 2: [[204, 46], [276, 34]], 3: [[188, 52], [244, 36], [298, 54]] };
 function ajustarCena() {
   const caixa = $('cena-caixa'), cena = $('cena'); if (!caixa.clientHeight) return;
-  const s = Math.min(1, caixa.clientWidth / 358, caixa.clientHeight / 300);
+  const s = Math.min(largo() ? 2.6 : 1, caixa.clientWidth / 358, caixa.clientHeight / 300);
   cena.style.transform = `scale(${s})`;
 }
-window.addEventListener('resize', ajustarCena);
+/* Tela larga (computador e tablet deitado): o CSS reorganiza as telas e as cenas crescem */
+const LARGO_MQ = window.matchMedia('(min-width: 960px) and (orientation: landscape)');
+const largo = () => LARGO_MQ.matches;
+/* largura da 1ª coluna da grade da tela (no modo largo) */
+function colunaLarga(el) { const t = el && el.closest('.tela'); if (!t) return 0; const g = getComputedStyle(t).gridTemplateColumns || ''; const n = parseFloat(g); return Number.isFinite(n) ? n : t.clientWidth; }
+function reajustarTudo() { [ajustarCena, typeof ajustarMapa === 'function' && ajustarMapa, typeof ajustarCh === 'function' && ajustarCh, typeof ajustarLicao === 'function' && ajustarLicao].forEach(f => { try { f && f(); } catch (e) { } }); }
+window.addEventListener('resize', reajustarTudo);
+if (LARGO_MQ.addEventListener) LARGO_MQ.addEventListener('change', reajustarTudo);
 const J = (id) => B.jog.find(j => j.id === id);
 const EU = () => J(C.meuId);
 const rivais = () => B.jog.filter(j => j.id !== C.meuId);
@@ -2056,11 +2108,12 @@ function renderInicio() {
       + passos.map(([t, ok]) => `<div class="passo"><span class="ok" style="${ok ? 'background:var(--ciano);color:var(--bg)' : 'border:1px solid var(--borda);color:var(--texto3)'}">${ok ? '✓' : ''}</span><span style="${ok ? 'color:var(--texto2);text-decoration:line-through' : ''}">${t}</span></div>`).join('')
       + `</div></div><div class="cartao" style="display:flex;align-items:center;gap:12px;border-style:dashed">${CADEADO('#8B8FB8', 22)}<div><p class="cp" style="margin:0;font-size:14px;letter-spacing:1px;color:var(--texto2)">MISSÕES E MAPA DE TREINO</p><p class="aviso" style="font-size:12px">Abrem quando você terminar os primeiros passos.</p></div></div>`;
   } else {
+    h += '<div class="lg-lado">';
     const feitas = missoesFeitas();
     h += `<div style="display:flex;justify-content:space-between;align-items:center"><p class="rot">MISSÕES DE HOJE · ${feitas}/3</p><p style="margin:0;font-size:11px;color:var(--texto3)">Novas missões amanhã</p></div>`
       + `<div class="missoes">${MISSOES.map(m => { const v = P.dia.prog[m.id], ok = v >= m.meta; return `<div class="missao${ok ? ' ok' : ''}" role="group" aria-label="${m.txt}: ${v} de ${m.meta}${ok ? ', concluída' : ''}"><span style="display:flex;justify-content:space-between">${ICO(m.ic, m.cor)}${ok ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 16) : ''}</span><span class="txt">${m.txt}</span><span class="barra" style="height:5px;border:0;background:#22264A"><i style="width:${v / m.meta * 100}%;background:${ok ? '#6FE3C1' : '#5EE6FF'}"></i></span><span style="display:flex;justify-content:space-between;gap:4px"><span style="font-size:11px;font-weight:600;color:var(--texto2)">${v}/${m.meta}</span><span style="font-size:10px;font-weight:700;color:var(--amarelo);text-align:right">${recompensa(m)}</span></span></div>`; }).join('')}</div>`
       + `<button class="bau-lin" id="bau" aria-label="Baú do dia">${P.dia.bau ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 24) : `<span class="${feitas === 3 ? 'balanca' : ''}" style="display:flex;${feitas === 3 ? '' : 'opacity:.5'}">${BAU_SVG(feitas === 3 ? '#FFD23F' : '#A9ADD6')}</span>`}<span style="flex:1;display:flex;flex-direction:column;gap:5px;text-align:left"><span style="font-size:12px;font-weight:600">${P.dia.bau ? 'Baú aberto: +' + BAU + ' moedas' : feitas === 3 ? 'Baú pronto! Toque para abrir.' : 'Faça as 3 missões e abra o baú (+' + BAU + ' moedas)'}</span><span style="display:flex;gap:3px">${[0, 1, 2].map(i => `<i style="flex:1;height:6px;background:${i < feitas ? '#6FE3C1' : '#2A2E55'}"></i>`).join('')}</span></span></button>`;
-    h += guildaCartaoHTML();
+    h += guildaCartaoHTML() + '</div>';
     h += mapaHTML();
   }
   h += `<nav class="barra-nav" aria-label="Menu">${navHTML('inicio')}</nav>`;
@@ -2071,7 +2124,7 @@ function mapaHTML() {
   const a = atual(), cur = ETAPAS[Math.min(a, ETAPAS.length - 1)];
   if (UI.regiao === null || !MUNDOS[UI.regiao[0]]) UI.regiao = [cur.mi, cur.ri];
   const [mi, ri] = UI.regiao, M = MUNDOS[mi];
-  let h = `<p class="rot" style="margin-top:4px">MAPA DE TREINO</p>`
+  let h = `<div class="lg-mapa"><p class="rot" style="margin-top:4px">MAPA DE TREINO</p>`
     + `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--texto2);white-space:nowrap">Treino de hoje: ${P.dia.xpTreino}/${LIMITE_TREINO} XP</span><span class="barra" style="flex:1;height:5px;border:0;background:#22264A"><i style="width:${P.dia.xpTreino}%;background:#36C46B"></i></span></div>`
     + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${W.nome.toUpperCase()}</button>`).join('')}</div>`;
   const pts = M.regioes.map((R, k) => (ILHA[k][0] + 66) + ',' + (ILHA[k][1] + 52));
@@ -2084,7 +2137,7 @@ function mapaHTML() {
         + `<span class="ilha-rot"><span style="display:flex;align-items:center;gap:5px;width:100%"><i style="width:8px;height:8px;flex:none;background:${E.cor}"></i><span class="cp" style="flex:1;font-size:12px">${E.nome}</span>${bloq ? CADEADO('#8B8FB8', 12) : ''}<span class="cp" style="font-size:11px;color:var(--texto2)">${feitasR}/${R.total}</span></span>`
         + `<span style="display:block;width:100%;height:4px;background:#0E0F1E"><span style="display:block;height:100%;width:${feitasR / R.total * 100}%;background:${E.cor}"></span></span></span></button>`
         + (aqui ? `<div class="flutua" style="position:absolute;left:${ILHA[k][0] + (k % 2 ? -22 : 112)}px;top:${ILHA[k][1] + 26}px;pointer-events:none;z-index:2">${avatarHTML(P.av, 1)}</div>` : '');
-    }).join('') + `</div></div>`;
+    }).join('') + `</div></div></div><div class="lg-etapas">`;
   const R = M.regioes[ri], E = EL[R.el], feitasR = Math.max(0, Math.min(R.total, a - R.inicio));
   h += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><i style="width:10px;height:10px;background:${E.cor}"></i><span style="flex:1;display:flex;flex-direction:column;gap:1px"><span class="cp" style="font-size:13px;letter-spacing:2px">${nomeRegiao(R.el).toUpperCase()}</span><span style="font-size:12px;color:var(--texto2)">${R.unidade}</span></span><span class="cp" style="font-size:13px;color:var(--texto2)">${feitasR}/${R.total}</span></div>`
     + ETAPAS.map((e, g) => [e, g]).filter(([e]) => e.mi === mi && e.ri === ri).map(([e, g]) => {
@@ -2095,9 +2148,10 @@ function mapaHTML() {
         + (st === 'feita' ? estrelasHTML(P.estrelas[g], 12) : st === 'atual' ? `<span class="cp" style="padding:6px 10px;background:var(--amarelo);color:var(--bg);font-size:11px;letter-spacing:1px">COMEÇAR</span>` : '') + `</button>`;
     }).join('') + `</div>`;
   if (mi === 0) h += `<button class="cartao" data-mundo="1" style="display:flex;align-items:center;gap:12px;border-style:dashed;text-align:left">${mundoLiberado(1) ? ICO('<path d="M9 6l6 6-6 6"/>', '#5EE6FF', 22) : CADEADO('#8B8FB8', 22)}<span><span class="cp" style="display:block;font-size:14px;letter-spacing:1px;color:var(--texto2)">MUNDO 2 · 7º ANO</span><span style="font-size:12px;color:var(--texto3)">${mundoLiberado(1) ? 'Liberado! Toque para ver.' : 'Abre depois do Chefão do Raio'}</span></span></button>`;
+  h += '</div>';
   return h;
 }
-function ajustarMapa() { const m = $('mapa'), i = $('mapa-in'); const pai = m && m.parentElement; if (!m || !i || !pai.clientWidth) return; const cs = getComputedStyle(pai), livre = pai.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const sc = Math.min(1, livre / 354); i.style.transform = `scale(${sc})`; m.style.width = Math.round(354 * sc) + 'px'; m.style.height = Math.round(392 * sc) + 'px'; }
+function ajustarMapa() { const m = $('mapa'), i = $('mapa-in'); const pai = m && (largo() ? m.parentElement : m.closest('.tela')); if (!m || !i || !pai.clientWidth) return; const cs = getComputedStyle(pai), livre = pai.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); let sc = Math.min(1, livre / 354); if (largo()) { const alto = window.innerHeight - m.getBoundingClientRect().top + (m.closest('.tela') || pai).scrollTop - 24; sc = Math.max(1, Math.min(livre / 354, alto / 392)); } i.style.transform = `scale(${sc})`; m.style.width = Math.round(354 * sc) + 'px'; m.style.height = Math.round(392 * sc) + 'px'; }
 window.addEventListener('resize', ajustarMapa);
 function ligarMapa() {
   const t = $('t-inicio');
@@ -2174,7 +2228,7 @@ function montarLicao() {
     + `<div id="lc-tela" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;opacity:0;background:${E.tela}"></div></div>`;
   ajustarLicao();
 }
-function ajustarLicao() { const c = $('lc-cena'), i = $('lc-in'); if (!c || !i || !c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
+function ajustarLicao() { const c = $('lc-cena'), i = $('lc-in'); if (!c || !i) return; if (largo()) { const w = colunaLarga(c) - 2, s = Math.max(1, Math.min(w / 358, (window.innerHeight - 110) / 200)); c.style.width = Math.round(358 * s + 2) + 'px'; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s + 2) + 'px'; return; } c.style.width = ''; if (!c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
 window.addEventListener('resize', ajustarLicao);
 function quebradas() { return L.hist.filter(Boolean).length - (L.fase === 'certo' && !L.impacto ? 1 : 0); }
 function renderLicao() {
@@ -3063,11 +3117,12 @@ function chCenaHTML(pct, eu, morto) {
     + `<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span class="tag" style="background:#F5B80A;font-size:9px">HP</span><div class="hp" style="flex:1"><i style="width:${hp}%;background:${corHp}"></i></div><span class="cp" style="font-size:10px">${hp}</span></div></div>`
     + `</div>`;
 }
-function ajustarCh() { const c = $('ch-cena'), i = $('ch-boss-box'); if (!c || !i || !c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
+function ajustarCh() { const c = $('ch-cena'), i = $('ch-boss-box'); if (!c || !i) return; if (largo()) { const w = colunaLarga(c) - 2; const s = Math.max(1, Math.min(w / 358, window.innerHeight * .42 / 200)); c.style.width = Math.round(358 * s + 2) + 'px'; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; return; } c.style.width = ''; if (!c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
 window.addEventListener('resize', ajustarCh);
 function renderChefao() {
   if (!CH) return;
   const t = $('t-chefao'), f = CH.fase, host = C && C.host;
+  t.classList.remove('lg-jogo');
   if (f === 'lobby') {
     const s = CH.sala || { jog: [] }, n = s.jog.length;
     t.innerHTML = `<div class="topo"><button class="voltar" id="ch-sair" aria-label="Sair do evento"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="#F2F3FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1 class="titulo">CHEFÃO DA SALA</h1><p class="cp" style="margin:0;width:44px;text-align:right;color:var(--ciano)">${n}</p></div>`
@@ -3086,7 +3141,7 @@ function renderChefao() {
   const pct = Math.max(0, CH.hp / CH.hpMax * 100), eu = EL[P.el], morto = CH.meuHp <= 0;
   let h = `<div class="topo" style="min-height:34px"><p class="cp" style="margin:0;padding:6px 8px;background:var(--card2);border:1px solid var(--borda);font-size:12px;letter-spacing:2px">RODADA ${(CH.r || 0) + 1}/${RODADAS_CH}</p><p class="cp" id="ch-tempo" style="margin:0;font-size:18px;color:var(--ciano)">${CH.q ? '' : ''}</p>${host ? `<button class="btn-sec" id="ch-encerrar" style="height:32px;padding:0 10px;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:11px;color:var(--vermelho)">ENCERRAR</button>` : `<p class="rot">${esc((CH.sala && CH.sala.codigo) || '')}</p>`}</div>`;
   h += `<div id="ch-cena" style="position:relative;flex:none;overflow:hidden;border:1px solid var(--borda)">${chCenaHTML(pct, eu, morto)}</div>`;
-  h += `<div style="flex:none;border:1px solid var(--borda);background:var(--card);padding:6px 8px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px"><p class="rot">ATAQUES DA TURMA · AO VIVO</p><p class="rot" style="color:var(--texto3)">${CH.respN || 0}/${CH.respT || (CH.jog || []).length} responderam</p></div>`
+  h += `<div class="ch-tabela" style="flex:none;border:1px solid var(--borda);background:var(--card);padding:6px 8px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px"><p class="rot">ATAQUES DA TURMA · AO VIVO</p><p class="rot" style="color:var(--texto3)">${CH.respN || 0}/${CH.respT || (CH.jog || []).length} responderam</p></div>`
     + `<div id="ch-placar" style="max-height:124px;overflow-y:auto">${chPlacarHTML()}</div><div id="ch-feed" style="min-height:18px;margin-top:3px;border-top:1px solid var(--borda);padding-top:3px">${chFeedHTML()}</div></div>`;
   if (f === 'pergunta') {
     const d = CH.dig, E = EL[CH.q.elemento] || eu;
@@ -3106,7 +3161,7 @@ function renderChefao() {
     const u = CH.ultimo || {};
     h += `<div class="cartao entra" style="display:flex;flex-direction:column;gap:6px;text-align:center;border-color:var(--vermelho)">${u.golpe ? `<p class="cp" style="margin:0;font-size:16px;color:var(--amarelo)">GOLPE DA TURMA! −${u.golpe}</p>` : ''}${u.curaTurma ? `<p class="cp" style="margin:0;font-size:14px;color:var(--verde)">A TURMA TODA ACERTOU! +${CH_CURA_TURMA} HP</p>` : ''}${u.dano ? '<p class="cp" style="margin:0;font-size:16px;color:var(--vermelho)">O CHEFÃO ATACOU A SALA!</p>' : ''}<p style="margin:0;font-size:14px">${u.bloq ? 'Seu escudo bloqueou o golpe!' : u.ko ? 'Você caiu! Se a turma toda acertar uma rodada, todos ganham +' + CH_CURA_TURMA + ' HP.' : CH.meuHp <= 0 ? 'Você está fora da luta, mas continua ganhando XP.' : 'Você perdeu ' + u.dano + ' HP.'}</p><p class="aviso">Resposta da rodada: <b class="cp" style="color:var(--verde)">${esc(u.resposta || '')}</b> · ${u.vivos}/${u.total} ainda de pé</p><p class="cp pulsa" style="margin:0;font-size:12px;letter-spacing:2px;color:var(--texto2)">PRÓXIMA RODADA JÁ VEM…</p></div>`;
   }
-  t.innerHTML = h; ajustarCh();
+  t.classList.add('lg-jogo'); t.innerHTML = h; ajustarCh();
   t.querySelectorAll('[data-chk]').forEach(b => b.onclick = () => chTecla(b.dataset.chk));
   if ($('ch-enviar')) $('ch-enviar').onclick = chEnviar;
   t.querySelectorAll('[data-cha]').forEach(b => b.onclick = () => { if (CH.fase !== 'acao') return; if (b.dataset.cha === 'esc') { const mm = progredirMissao('escudo', 1); if (mm) avisar('Missão concluída: ' + mm.txt); } cliEnviar({ t: 'acao', tipo: b.dataset.cha }); CH.fase = 'espera'; renderChefao(); });
