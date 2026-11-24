@@ -821,9 +821,11 @@ const EL = {
 };
 const ELS = ['fogo', 'agua', 'planta', 'raio', 'pedra'];
 const DANO = [20, 20, 25, 30];
-const CURA = 30; // na Arena; no Chefão da Sala a cura é 15
+const CURA = 30; // na Arena e no Chefão da Sala
 const TEMPO = 45;
-const RODADAS = 5;
+const RODADAS = 5; // padrão; o anfitrião escolhe 5, 7 ou 10
+const MAX_SALA = 8, OPCOES_RODADAS = [5, 7, 10];
+const nRod = () => (SV.on && SV.cfg && SV.cfg.rodadas) || (B && B.rodadas) || RODADAS;
 const NEED = (n) => n === 0 ? 25 : 40 + 10 * n;
 const nivelDe = (xp) => { let n = 0, r = xp; while (r >= NEED(n)) { r -= NEED(n); n++; } return { n, r, need: NEED(n) }; };
 const PONTOS_POS = [30, 20, 10, 5];
@@ -1002,18 +1004,19 @@ function folhaCodigo() {
     fecharFolha(); entrarNaSala(c);
   });
 }
-let cfgCriar = { serie: '6', conteudo: 'mix', nivel: 'medio' };
+let cfgCriar = { serie: '6', conteudo: 'mix', nivel: 'medio', rodadas: 5 };
 function folhaCriar() {
   const c = cfgCriar, lista = CONTEUDOS[c.serie];
   const chip = (grupo, v, r, atual) => `<button type="button" class="chip" data-g="${grupo}" data-v="${v}" aria-pressed="${atual}">${r}</button>`;
   abrirFolha(cabFolha('CRIAR SALA')
     + `<p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano', c.serie === '6')}${chip('serie', '7', '7º ano', c.serie === '7')}</div>`
     + `<p class="rot">CONTEÚDO</p><div class="chips">${chip('conteudo', 'mix', 'Misturado', c.conteudo === 'mix')}${lista.map(x => chip('conteudo', x.id, x.nome, c.conteudo === x.id)).join('')}</div>`
+    + `<p class="rot">RODADAS</p><div class="chips">${OPCOES_RODADAS.map(n => chip('rodadas', n, n + ' rodadas', +(c.rodadas || RODADAS) === n)).join('')}</div>`
     + `<p class="rot">NÍVEL DOS ROBÔS (SE PRECISAR COMPLETAR A SALA)</p><div class="chips">${chip('nivel', 'facil', 'Fácil', c.nivel === 'facil')}${chip('nivel', 'medio', 'Médio', c.nivel === 'medio')}${chip('nivel', 'dificil', 'Difícil', c.nivel === 'dificil')}</div>`
-    + `<p class="aviso">Você vira o anfitrião: o seu aparelho controla a partida. Os colegas entram com o código, e você pode completar a sala com robôs.</p>`
+    + `<p class="aviso">Você vira o anfitrião: o seu aparelho controla a partida. Até ${MAX_SALA} jogadores entram com o código, e você pode completar a sala com robôs.</p>`
     + `<button class="btn btn-prim" id="criar-ok" style="margin-top:6px">CRIAR SALA →</button>`, 'Criar sala');
   $('folha').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
-    cfgCriar[b.dataset.g] = b.dataset.v; if (b.dataset.g === 'serie') cfgCriar.conteudo = 'mix'; folhaCriar();
+    cfgCriar[b.dataset.g] = b.dataset.g === 'rodadas' ? +b.dataset.v : b.dataset.v; if (b.dataset.g === 'serie') cfgCriar.conteudo = 'mix'; folhaCriar();
   });
   $('criar-ok').onclick = () => { fecharFolha(); criarSala(Object.assign({}, cfgCriar)); };
 }
@@ -1135,7 +1138,7 @@ function svMsg(cid, m) {
     if (SV.cids[cid]) return;
     const recusa = (motivo) => canal.enviar(cid, { t: 'recusado', motivo });
     if (SV.fase !== 'lobby' && SV.fase !== 'fim') return recusa('A partida desta sala já começou.');
-    if (SV.jog.length >= 4) return recusa('A sala está cheia (4 jogadores).');
+    if (SV.jog.length >= MAX_SALA) return recusa('A sala está cheia (' + MAX_SALA + ' jogadores).');
     const p = m.perfil || {};
     const nick = nickSeguro(p.nick, p.gm);
     const novo = { id: 'j' + (SV.prox++), nick, av: p.av || avAleatorio(), mol: molValida(p.mol), el: EL[p.el] ? p.el : 'agua', nivel: Math.max(0, Math.min(99, Number(p.nivel) || 0)), nc: Math.max(0, Math.min(99, Number(p.nc ?? p.nivel) || 0)), liga: Math.max(0, Math.min(14, Number(p.liga) || 0)), tipo: 'aluno', pronto: false, on: true };
@@ -1151,7 +1154,7 @@ function svMsg(cid, m) {
   if (m.t === 'pronto' && SV.fase === 'lobby' && !SV.contando) { j.pronto = !!m.v; svSala(); svChecar(); }
   else if (m.t === 'fala' && ['Boa sorte!', 'Bora!', 'Valendo!', 'Bom jogo'].includes(m.txt)) svTodos({ t: 'fala', id, txt: m.txt });
   else if (m.t === 'robo' && id === 'h' && SV.fase === 'lobby' && !SV.contando) {
-    if (m.v > 0 && SV.jog.length < 4) { let n; do { n = nickAleatorio(); } while (SV.jog.some(x => x.nick === n)); SV.jog.push({ id: 'r' + (SV.prox++), nick: n, av: avAleatorio(), el: pk(ELS), nivel: Math.floor(rand(1, 16)), liga: Math.floor(rand(0, 6)), tipo: 'robo', pronto: true, on: true }); }
+    if (m.v > 0 && SV.jog.length < MAX_SALA) { let n; do { n = nickAleatorio(); } while (SV.jog.some(x => x.nick === n)); SV.jog.push({ id: 'r' + (SV.prox++), nick: n, av: avAleatorio(), el: pk(ELS), nivel: Math.floor(rand(1, 16)), liga: Math.floor(rand(0, 6)), tipo: 'robo', pronto: true, on: true }); }
     if (m.v < 0) { const i = SV.jog.map(x => x.tipo).lastIndexOf('robo'); if (i >= 0) SV.jog.splice(i, 1); }
     svSala(); svChecar();
   }
@@ -1280,7 +1283,7 @@ function svResolver() {
   const total = 2 * 2300 + falas.reduce((a, f) => a + DUR(f), 0) + 900;
   SV.tn = setTimeout(() => {
     const vivos = SV.jog.filter(j => j.hp > 0).length;
-    if (SV.r >= RODADAS - 1 || vivos <= 1) svFim(); else { SV.r++; svRodada(); }
+    if (SV.r >= nRod() - 1 || vivos <= 1) svFim(); else { SV.r++; svRodada(); }
   }, total);
 }
 /* Placar da Arena: pontos de batalha (não só o HP que sobrou) */
@@ -1400,25 +1403,26 @@ function renderSala() {
   const cont = s.cfg.conteudo === 'mix' ? 'Misturado' : (CONTEUDOS[s.cfg.serie].find(x => x.id === s.cfg.conteudo) || {}).nome;
   const anfitriao = todos.find(j => j.tipo === 'anfitriao');
   $('sala-cod').textContent = s.codigo;
-  $('sala-info').innerHTML = [['MODO', 'Arena'], ['CONTEÚDO', cont], ['SÉRIE', s.cfg.serie + 'º ano'], ['RODADAS', RODADAS + ' × ' + TEMPO + ' s'], ['ANFITRIÃO', anfitriao ? anfitriao.nick : '—']].map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join('');
-  $('sala-lot').textContent = total + '/4';
+  $('sala-info').innerHTML = [['MODO', 'Arena'], ['CONTEÚDO', cont], ['SÉRIE', s.cfg.serie + 'º ano'], ['RODADAS', ((s.cfg && s.cfg.rodadas) || RODADAS) + ' × ' + TEMPO + ' s'], ['JOGADORES', 'até ' + MAX_SALA], ['ANFITRIÃO', anfitriao ? anfitriao.nick : '—']].map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join('');
+  $('sala-lot').textContent = total + '/' + (total > 4 || (C.host && total >= 4) ? MAX_SALA : 4);
   const lobby = s.fase === 'lobby';
   $('sala-status').textContent = !lobby ? 'AGUARDANDO O ANFITRIÃO' : total < 2 ? 'AGUARDANDO JOGADORES' : prontos + '/' + total + ' PRONTOS';
   $('sala-status').style.color = lobby && total >= 2 ? 'var(--verde)' : 'var(--texto)';
-  $('sala-pips').innerHTML = [0, 1, 2, 3].map(i => `<i style="display:block;width:24px;height:4px;background:${i < prontos ? 'var(--verde)' : i < total ? 'var(--ciano)' : 'var(--borda)'}"></i>`).join('');
+  $('sala-pips').innerHTML = Array.from({ length: total > 4 ? MAX_SALA : 4 }, (_, i) => i).map(i => `<i style="display:block;width:${total > 4 ? 14 : 24}px;height:4px;background:${i < prontos ? 'var(--verde)' : i < total ? 'var(--ciano)' : 'var(--borda)'}"></i>`).join('');
   const robos = todos.filter(j => j.tipo === 'robo').length;
   $('sala-host').style.display = C.host && lobby ? 'flex' : 'none';
-  $('add-robo').disabled = total >= 4 || s.contando; $('tirar-robo').disabled = !robos || s.contando;
+  $('add-robo').disabled = total >= MAX_SALA || s.contando; $('tirar-robo').disabled = !robos || s.contando;
   $('sala-nota').textContent = s.sozinho ? 'Sem internet: só você e os robôs, neste aparelho.' : C.host ? 'Passe o código para os colegas. Se você sair, a sala fecha para todos.' : (lobby ? 'Toque em “Estou pronto”. A partida começa quando todos estiverem prontos.' : 'O anfitrião vai reabrir a sala para a próxima partida.');
-  const cols = 4;
+  const cols = 4, slots = total > 4 || (C.host && total >= 4) ? MAX_SALA : 4, mini = slots > 4;
   $('fileira').style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
-  const vagas = todos.concat(Array.from({ length: cols - total }, () => null));
+  const palco = $('fileira').parentElement; palco.style.height = mini ? '322px' : ''; if (palco.children[1]) palco.children[1].style.height = mini ? '24px' : '';
+  const vagas = todos.concat(Array.from({ length: slots - total }, () => null));
   $('fileira').innerHTML = vagas.map((j, i) => {
-    if (!j) return `<div class="vaga"><div class="pulsa" style="width:60px;height:102px;border:2px dashed var(--borda);display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:26px;color:var(--borda)">?</div><div style="width:64px;height:10px;border-radius:50%;background:rgba(94,230,255,.1)"></div><p class="cp" style="margin:0;font-size:10px;letter-spacing:1px;color:#62668F">VAGA LIVRE</p><p style="margin:0;height:18px"></p></div>`;
-    const lado = i === 0 ? 'esq' : i === cols - 1 ? 'dir' : 'meio', fala = C.fala[j.id], voce = j.id === C.meuId;
+    if (!j) return `<div class="vaga"${mini ? ' style="height:150px"' : ''}><div class="pulsa" style="width:${mini ? 40 : 60}px;height:${mini ? 68 : 102}px;border:2px dashed var(--borda);display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:26px;color:var(--borda)">?</div><div style="width:64px;height:10px;border-radius:50%;background:rgba(94,230,255,.1)"></div><p class="cp" style="margin:0;font-size:10px;letter-spacing:1px;color:#62668F">VAGA LIVRE</p><p style="margin:0;height:18px"></p></div>`;
+    const lado = i % cols === 0 ? 'esq' : i % cols === cols - 1 ? 'dir' : 'meio', fala = C.fala[j.id], voce = j.id === C.meuId;
     const balao = fala ? `<div class="balao" role="status" style="${lado === 'esq' ? 'left:0;align-items:flex-start' : lado === 'dir' ? 'right:0;align-items:flex-end' : 'left:50%;transform:translateX(-50%);align-items:center'}"><div class="corpo">${esc(fala)}</div><div class="cauda" style="${lado === 'esq' ? 'margin-left:22px' : lado === 'dir' ? 'margin-right:22px' : ''}" aria-hidden="true"><i style="width:9px;height:3px;box-shadow:-3px 0 0 0 #0B0C18,3px 0 0 0 #0B0C18"></i><i style="width:3px;height:3px;box-shadow:-3px 0 0 0 #0B0C18,3px 0 0 0 #0B0C18,0 3px 0 0 #0B0C18"></i></div></div>` : '';
     const selo = j.tipo === 'robo' ? 'ROBÔ' : j.tipo === 'anfitriao' ? 'ANFITRIÃO' : '';
-    return `<div class="vaga">${balao}<div>${molduraAv(j.mol, avatarHTML(j.av, 3))}</div><div style="width:70px;height:12px;border-radius:50%;background:${EL[j.el].cor}55;box-shadow:0 0 14px ${EL[j.el].cor}88"></div><p class="cp" style="margin:2px 0 0;max-width:100%;display:flex;align-items:center;justify-content:center;gap:3px;font-size:11px;white-space:nowrap;overflow:hidden;color:${voce ? 'var(--amarelo)' : 'var(--texto)'}">${ligaMini(j.liga, 16)}<span style="overflow:hidden;text-overflow:ellipsis">${esc(j.nick)}</span></p><p class="cp" style="margin:0;height:18px;font-size:10px;letter-spacing:1px;white-space:nowrap;color:${j.pronto ? 'var(--verde)' : voce ? 'var(--amarelo)' : 'var(--texto3)'}">${j.pronto ? '✓ PRONTO' : voce ? 'VOCÊ' : selo || '…'}</p></div>`;
+    return `<div class="vaga"${mini ? ' style="height:150px"' : ''}>${balao}<div>${molduraAv(j.mol, avatarHTML(j.av, mini ? 2 : 3))}</div><div style="width:70px;height:12px;border-radius:50%;background:${EL[j.el].cor}55;box-shadow:0 0 14px ${EL[j.el].cor}88"></div><p class="cp" style="margin:2px 0 0;max-width:100%;display:flex;align-items:center;justify-content:center;gap:3px;font-size:11px;white-space:nowrap;overflow:hidden;color:${voce ? 'var(--amarelo)' : 'var(--texto)'}">${ligaMini(j.liga, 16)}<span style="overflow:hidden;text-overflow:ellipsis">${esc(j.nick)}</span></p><p class="cp" style="margin:0;height:18px;font-size:10px;letter-spacing:1px;white-space:nowrap;color:${j.pronto ? 'var(--verde)' : voce ? 'var(--amarelo)' : 'var(--texto3)'}">${j.pronto ? '✓ PRONTO' : voce ? 'VOCÊ' : selo || '…'}</p></div>`;
   }).join('');
   const pr = $('pronto'), meu = !!eu.pronto;
   pr.disabled = !lobby || s.contando;
@@ -1451,7 +1455,7 @@ const rivais = () => B.jog.filter(j => j.id !== C.meuId);
 function novaBatalha(m) {
   limparTimers(); clearInterval(relogio);
   const jog = m.jog.map(j => Object.assign({}, j, { voce: j.id === C.meuId, hp: 100, esc: false, furia: 0 }));
-  B = { jog, r: 0, hist: [], fase: '', q: null, t0: 0, respIds: new Set(), meuTxt: '', meuOk: null, falas: [], i: 0, digitado: '', erroResp: '', codigo: m.codigo };
+  B = { jog, r: 0, hist: [], fase: '', q: null, t0: 0, respIds: new Set(), meuTxt: '', meuOk: null, falas: [], i: 0, digitado: '', erroResp: '', codigo: m.codigo, rodadas: OPCOES_RODADAS.includes(m.cfg && m.cfg.rodadas) ? m.cfg.rodadas : RODADAS };
   $('bt-sala').textContent = 'SALA ' + m.codigo;
   montarCena(); mostrar('batalha');
   renderMsg([{ t: 'A batalha vai começar!' }]); $('painel').innerHTML = '';
@@ -1464,11 +1468,16 @@ function placaHTML(j) {
     + (j.voce ? `<div class="lin" style="margin-top:4px;justify-content:space-between"><span class="cp" style="font-size:11px;color:${EL[j.el].cor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nomeCria(j.el, NC(j))).toUpperCase()}</span><span class="cp" id="hpt-${j.id}" style="font-size:13px">100/100</span></div>` : '')
     + `</div>`;
 }
+function placaMiniHTML(j) {
+  return `<div class="placa" id="pl-${j.id}" style="border-left:3px solid ${EL[j.el].cor};padding:2px 6px 3px"><span class="check" id="ck-${j.id}" style="display:none" aria-label="Respondeu">✓</span>`
+    + `<div class="lin" style="justify-content:space-between;gap:4px"><p class="cp" style="margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px">${esc(j.nick)}</p><p class="cp" id="nv-${j.id}" style="margin:0;flex:none;font-size:9px;color:var(--texto2)">${j.tipo === 'robo' ? 'ROBÔ' : 'Nv ' + j.nivel}</p></div>`
+    + `<div class="lin" style="margin-top:2px;gap:3px"><div class="hp" style="height:5px"><i id="hp-${j.id}" style="width:100%;background:#36C46B"></i></div><span class="tag" id="es-${j.id}" style="background:var(--ciano);display:none;font-size:8px;padding:0 3px">ESC</span><div class="pips" id="pp-${j.id}" role="img" aria-label="Fúria 0 de 3"><i></i><i></i><i></i></div></div></div>`;
+}
 /* W1 · Treinador atrás: a criatura luta na frente do avatar */
-function spriteHTML(j, x, y, eu) {
-  const tag = eu ? 'div' : 'button', cpx = eu ? 118 : 60, W = eu ? 180 : 82, H = eu ? 128 : 104;
+function spriteHTML(j, x, y, eu, mini) {
+  const tag = eu ? 'div' : 'button', cpx = eu ? 118 : mini ? 44 : 60, W = eu ? 180 : mini ? 50 : 82, H = eu ? 128 : mini ? 52 : 104;
   return `<${tag} ${eu ? '' : 'type="button"'} class="sprite" id="sp-${j.id}" style="left:${x}px;${eu ? 'bottom:' + y : 'top:' + y}px;width:${W}px;height:${H}px;padding:0" ${eu ? '' : `aria-label="${esc(j.nick)}, ${esc(nomeCria(j.el, NC(j)))}"`}>`
-    + `<div aria-hidden="true" class="tr-av" style="position:absolute;${eu ? 'left:0;bottom:0' : 'right:0;top:0'}">${avatarHTML(j.av, eu ? 3 : 2, eu ? 'costas' : 'frente')}</div>`
+    + (mini ? '' : `<div aria-hidden="true" class="tr-av" style="position:absolute;${eu ? 'left:0;bottom:0' : 'right:0;top:0'}">${avatarHTML(j.av, eu ? 3 : 2, eu ? 'costas' : 'frente')}</div>`)
     + `<div class="pop" id="pop-${j.id}" style="${eu ? 'left:40px;right:-20px;top:-6px' : 'top:-14px'}"></div>`
     + `<div class="corpo-sprite" id="cs-${j.id}" style="position:absolute;${eu ? 'left:52px' : 'left:0'};bottom:0;width:${cpx}px;height:${cpx}px;--fx:${EL[j.el].cor}">`
     + `<div aria-hidden="true" style="position:absolute;left:12%;right:12%;bottom:-3px;height:12%;border-radius:50%;background:${EL[j.el].cor}55;box-shadow:0 0 12px ${EL[j.el].cor}88"></div>`
@@ -1481,9 +1490,17 @@ function montarCena() {
   const rv = rivais(), pos = POS_W1[rv.length] || POS_W1[3], eu = EU();
   let h = `<div aria-hidden="true" style="position:absolute;left:-80px;right:-80px;bottom:-40px;height:210px;transform:perspective(420px) rotateX(58deg);transform-origin:50% 100%;background-image:linear-gradient(rgba(94,230,255,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(94,230,255,.13) 1px,transparent 1px);background-size:32px 32px"></div>`;
   h += `<div id="tela-fx" aria-hidden="true" style="position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0"></div>`;
+  const muitos = rv.length > 3;
+  if (muitos) {
+    h += `<div style="position:absolute;left:6px;right:6px;top:6px;display:grid;grid-template-columns:1fr 1fr;gap:3px;z-index:3">${rv.map(placaMiniHTML).join('')}</div>`;
+    const k1 = Math.ceil(rv.length / 2), xs1 = [196, 236, 276, 312], xs2 = [214, 254, 294];
+    h += `<div aria-hidden="true" style="position:absolute;left:186px;top:166px;width:172px;height:34px;border-radius:50%;background:radial-gradient(closest-side,#3A3F7A,#24285A 70%,#1C1F44);box-shadow:0 0 0 2px #2F3470"></div>`;
+    h += rv.map((j, i) => i < k1 ? spriteHTML(j, xs1[i], 128, false, true) : spriteHTML(j, xs2[i - k1], 152, false, true)).join('');
+  } else {
   h += `<div style="position:absolute;left:6px;top:8px;width:160px;display:flex;flex-direction:column;gap:5px;z-index:3">${rv.map(placaHTML).join('')}</div>`;
   h += `<div aria-hidden="true" style="position:absolute;left:${rv.length === 1 ? 214 : rv.length === 2 ? 186 : 164}px;top:112px;width:${rv.length === 1 ? 130 : rv.length === 2 ? 168 : 190}px;height:40px;border-radius:50%;background:radial-gradient(closest-side,#3A3F7A,#24285A 70%,#1C1F44);box-shadow:0 0 0 2px #2F3470,0 0 18px rgba(94,230,255,.25)"></div>`;
   h += rv.map((j, i) => spriteHTML(j, pos[i][0], pos[i][1], false)).join('');
+  }
   h += `<div aria-hidden="true" style="position:absolute;left:10px;bottom:2px;width:190px;height:22px;border-radius:50%;background:radial-gradient(closest-side,#3A3F7A,#24285A 70%,#1C1F44);box-shadow:0 0 0 2px #2F3470"></div>`;
   h += spriteHTML(eu, 8, 6, true);
   h += `<div id="dots" aria-hidden="true" style="position:absolute;right:12px;bottom:104px;display:flex;gap:5px;z-index:3"></div>`;
@@ -1509,8 +1526,8 @@ function atualizarCena() {
     $('sp-' + j.id).classList.toggle('alvo', B.fase === 'alvo' && !j.voce && j.hp > 0);
     if (j.on === false) $('nv-' + j.id).textContent = 'SAIU';
   });
-  $('dots').innerHTML = Array.from({ length: RODADAS }, (_, i) => `<i style="display:block;width:12px;height:12px;border-radius:50%;${i < B.r ? 'background:#5EE6FF;border:2px solid #0B0C18' : i === B.r ? 'background:#FFD23F;border:2px solid #0B0C18;box-shadow:0 0 8px #FFD23F' : 'border:2px solid #62668F'}"></i>`).join('');
-  $('bt-rodada').textContent = 'RODADA ' + (B.r + 1) + '/' + RODADAS;
+  $('dots').innerHTML = Array.from({ length: nRod() }, (_, i) => `<i style="display:block;width:12px;height:12px;border-radius:50%;${i < B.r ? 'background:#5EE6FF;border:2px solid #0B0C18' : i === B.r ? 'background:#FFD23F;border:2px solid #0B0C18;box-shadow:0 0 8px #FFD23F' : 'border:2px solid #62668F'}"></i>`).join('');
+  $('bt-rodada').textContent = 'RODADA ' + (B.r + 1) + '/' + nRod();
 }
 const fracHTML = (t) => t.replace(/(\d+)\/(\d+)/g, '<span class="fr"><span>$1</span><span>$2</span></span>');
 function renderPergunta() {
@@ -1693,7 +1710,7 @@ function abrirResultado(m) {
   const eu = EU(), jogadas = m.rodadas;
   const itens = [{ rot: 'Terminou a partida', v: 20 }];
   if (eu.acertos) itens.push({ rot: eu.acertos + (eu.acertos === 1 ? ' acerto × 10' : ' acertos × 10'), v: eu.acertos * 10 });
-  if (eu.acertos === RODADAS && jogadas === RODADAS) itens.push({ rot: 'Partida perfeita (5 de 5)', v: 20 });
+  if (eu.acertos === nRod() && jogadas === nRod()) itens.push({ rot: 'Partida perfeita (' + nRod() + ' de ' + nRod() + ')', v: 20 });
   itens.push({ rot: eu.pos + 'º lugar', v: PONTOS_POS[eu.pos - 1] || 5 });
   const total = itens.reduce((a, i) => a + i.v, 0), xp0 = P.xp, cxp0 = xpCria();
   ganharXp(total); P.partidas++; salvarPerfil(); registrarPartida(m);
@@ -2774,6 +2791,9 @@ function fichaAluno(nick) {
    O aparelho do professor é o anfitrião. Todos enfrentam o mesmo chefão:
    cada acerto dá direito a Atacar, Curar ou Escudo, e o placar de dano é ao vivo. */
 const RODADAS_CH = 15, TEMPO_CH = 45, RECOMP_CH = { xp: 60, moedas: 30 };
+// regras do chefão (ajustadas depois do teste com a turma)
+const CH_ATAQUE = 15, CH_CURA = 30, CH_CURA_TURMA = 30, CH_GOLPE_CADA = 3, CH_GOLPE_META = .5, CH_GOLPE_PARTE = .5, CH_ESPERA_ACAO = 8;
+const chGolpeNaRodada = (r) => (r + 1) % CH_GOLPE_CADA === 0;
 const CS = { on: false };
 const csPub = (j) => ({ id: j.id, nick: j.nick, av: j.av, mol: j.mol || '', el: j.el, nivel: j.nivel, nc: j.nc, liga: j.liga || 0, tipo: j.tipo, hp: j.hp, dano: j.dano, on: j.on });
 const csPlacar = () => CS.jog.filter(j => j.dano > 0).sort((a, b) => b.dano - a.dano).slice(0, 6).map(j => ({ id: j.id, nick: j.nick, dano: j.dano, el: j.el }));
@@ -2825,7 +2845,7 @@ function csComecar() {
 function csRodada() {
   if (CS.fase !== 'jogo') return;
   const q = gerarQuestao(CS.cfg.serie, CS.cfg.conteudo, 'mix');
-  Object.assign(CS, { q, resp: {}, decidiu: {}, primeiro: null, t0: performance.now(), fechando: false });
+  Object.assign(CS, { q, resp: {}, decidiu: {}, primeiro: null, t0: performance.now(), fechando: false, rodadaFechada: false, danoRod: 0 });
   CS.jog.forEach(j => { j.esc = false; if (j.tipo === 'robo') j.plano = { t: rand(6, 38), ok: Math.random() < .66 }; });
   csTodos({ t: 'ch-q', r: CS.r, q: { texto: q.texto, conteudo: q.conteudo, conteudoId: q.conteudoId, elemento: q.elemento }, resta: TEMPO_CH });
   clearInterval(CS.tick); CS.tick = setInterval(csTique, 250);
@@ -2848,13 +2868,13 @@ function csAcao(id, tipo) {
   if (tipo === 'atk') {
     const rapido = CS.primeiro === id, bEl = j.el === CS.q.elemento, bInf = j.el === 'infinito';
     const dano = 20 + (rapido ? 5 : 0) + (bEl ? 5 : 0) + (bInf ? 5 : 0);
-    CS.hp = Math.max(0, CS.hp - dano); j.dano += dano;
+    CS.hp = Math.max(0, CS.hp - dano); j.dano += dano; CS.danoRod = (CS.danoRod || 0) + dano;
     evt = { tipo: 'atk', id, nick: j.nick, el: j.el, cria: nomeCria(j.el, NC(j)), valor: dano, rapido, bonus: bEl || bInf };
-  } else if (tipo === 'cura') { const a = j.hp; j.hp = Math.min(100, j.hp + 15); evt = { tipo: 'cura', id, nick: j.nick, valor: j.hp - a, hp: j.hp }; }
+  } else if (tipo === 'cura') { const a = j.hp; j.hp = Math.min(100, j.hp + CH_CURA); evt = { tipo: 'cura', id, nick: j.nick, valor: j.hp - a, hp: j.hp }; }
   else if (tipo === 'esc') { j.esc = true; evt = { tipo: 'esc', id, nick: j.nick }; }
   else return;
   csTodos({ t: 'ch-evt', evt, hp: CS.hp, placar: csPlacar() });
-  if (CS.hp <= 0) { CS.fechando = true; clearInterval(CS.tick); setTimeout(() => csFim(true), 1400); }
+  if (CS.hp <= 0 && !CS.fechando) { CS.fechando = true; clearInterval(CS.tick); setTimeout(() => csFimRodada(), 1200); }
 }
 function csDecidirRobo(j) { if (j.hp <= 40 && Math.random() < .5) return 'cura'; if (Math.random() < .15) return 'esc'; return 'atk'; }
 function csTique() {
@@ -2866,21 +2886,34 @@ function csTique() {
   });
   CS.jog.filter(j => j.tipo !== 'robo').forEach(j => {
     if (!CS.resp[j.id] && (!j.on || el >= TEMPO_CH + 1.5)) { CS.resp[j.id] = { ok: false, t: TEMPO_CH, tempo: true }; CS.decidiu[j.id] = true; }
-    if (CS.resp[j.id] && !CS.decidiu[j.id] && el >= TEMPO_CH + 12) CS.decidiu[j.id] = true;
+    if (CS.resp[j.id] && !CS.decidiu[j.id] && el - CS.resp[j.id].t >= CH_ESPERA_ACAO) { if (CS.resp[j.id].ok && j.hp > 0) csAcao(j.id, 'atk'); CS.decidiu[j.id] = true; }
   });
   const todos = CS.jog.every(j => (j.tipo === 'robo' ? CS.resp[j.id] || el >= TEMPO_CH : CS.decidiu[j.id]));
-  if (todos || el >= TEMPO_CH + 13) csFimRodada();
+  if (CS.fechando) return;
+  if (todos || el >= TEMPO_CH + CH_ESPERA_ACAO + 1) csFimRodada();
 }
 function csFimRodada() {
-  if (CS.fechando) return;
-  CS.fechando = true; clearInterval(CS.tick);
-  const dano = CS.hp < CS.hpMax / 2 ? 25 : 20, res = {};
+  if (CS.rodadaFechada) return;
+  CS.rodadaFechada = true; CS.fechando = true; clearInterval(CS.tick);
+  // quem conta na porcentagem: jogadores conectados (o professor só conta se respondeu)
+  const conta = CS.jog.filter(j => j.on !== false && (j.id !== 'h' || (CS.resp.h && !CS.resp.h.tempo)));
+  const acertaram = conta.filter(j => CS.resp[j.id] && CS.resp[j.id].ok).length;
+  const taxa = conta.length ? acertaram / conta.length : 0;
+  let golpe = 0, curaTurma = false;
+  if (CS.hp > 0 && chGolpeNaRodada(CS.r) && taxa >= CH_GOLPE_META && CS.danoRod > 0) {
+    golpe = Math.round(CS.danoRod * CH_GOLPE_PARTE); CS.hp = Math.max(0, CS.hp - golpe); CS.golpes = (CS.golpes || 0) + golpe;
+  }
+  if (conta.length && acertaram === conta.length) { curaTurma = true; CS.jog.forEach(j => { j.hp = Math.min(100, j.hp + CH_CURA_TURMA); }); }
+  const venceu = CS.hp <= 0, res = {};
   CS.jog.forEach(j => {
+    if (venceu) { res[j.id] = { hp: j.hp }; return; }
     if (j.hp <= 0) { res[j.id] = { hp: 0 }; return; }
     if (j.esc) { res[j.id] = { hp: j.hp, bloq: true }; return; }
-    j.hp = Math.max(0, j.hp - dano); res[j.id] = { hp: j.hp, ko: j.hp === 0 };
+    j.hp = Math.max(0, j.hp - CH_ATAQUE); res[j.id] = { hp: j.hp, ko: j.hp === 0 };
   });
-  csTodos({ t: 'ch-chefe', dano, res, hp: CS.hp, resposta: CS.q.resposta, r: CS.r, vivos: CS.jog.filter(j => j.hp > 0).length, total: CS.jog.length });
+  csTodos({ t: 'ch-chefe', dano: venceu ? 0 : CH_ATAQUE, res, hp: CS.hp, resposta: CS.q.resposta, r: CS.r, vivos: CS.jog.filter(j => j.hp > 0).length, total: CS.jog.length,
+    golpe, curaTurma, acertaram, contados: conta.length, placar: csPlacar() });
+  if (venceu) { setTimeout(() => csFim(true), 2600); return; }
   setTimeout(() => { if (CS.fase !== 'jogo') return; CS.r++; if (CS.r >= RODADAS_CH) csFim(false); else csRodada(); }, 4200);
 }
 function csFim(venceu) {
@@ -2888,7 +2921,7 @@ function csFim(venceu) {
   clearInterval(CS.tick); CS.fase = 'fim'; CS.q = null;
   const rank = CS.jog.slice().sort((a, b) => b.dano - a.dano || b.acertos - a.acertos);
   const top = rank.filter(j => j.dano > 0).slice(0, 3).map(j => j.id);
-  csTodos({ t: 'ch-fim', venceu, hp: CS.hp, hpMax: CS.hpMax, rodadas: Math.min(CS.r + 1, RODADAS_CH), top, ranking: rank.map((j, i) => ({ id: j.id, pos: i + 1, nick: j.nick, av: j.av, el: j.el, nivel: j.nivel, nc: j.nc, dano: j.dano, acertos: j.acertos, resp: j.resp })) });
+  csTodos({ t: 'ch-fim', venceu, hp: CS.hp, hpMax: CS.hpMax, rodadas: Math.min(CS.r + 1, RODADAS_CH), golpes: CS.golpes || 0, top, ranking: rank.map((j, i) => ({ id: j.id, pos: i + 1, nick: j.nick, av: j.av, el: j.el, nivel: j.nivel, nc: j.nc, dano: j.dano, acertos: j.acertos, resp: j.resp })) });
   CS.jog.forEach(j => { if (j.tipo !== 'robo') turmaResultado(j.nick, j.acertos, j.resp, j.cont); });
 }
 function csEncerrar() { if (!CS.on) return; csTodos({ t: 'encerrada' }); clearInterval(CS.tick); CS.on = false; }
@@ -2903,7 +2936,7 @@ function folhaChefao() {
     + `<p class="rot">VIDA DO CHEFÃO</p><div class="chips">${chip('hp', 1500, '1.500')}${chip('hp', 3000, '3.000')}${chip('hp', 4500, '4.500')}${chip('hp', 6000, '6.000')}</div>`
     + `<p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano')}${chip('serie', '7', '7º ano')}</div>`
     + `<p class="rot">CONTEÚDO</p><div class="chips">${chip('conteudo', 'mix', 'Misturado')}${lista.map(x => chip('conteudo', x.id, x.nome)).join('')}</div>`
-    + `<p class="aviso" style="font-size:12px">${RODADAS_CH} rodadas de ${TEMPO_CH} s. No fim de cada rodada o chefão ataca todos (20 de dano; 25 quando estiver com menos da metade da vida). Quem cair continua respondendo e ganhando XP, mas não dá dano.</p>`
+    + `<p class="aviso" style="font-size:12px">${RODADAS_CH} rodadas de ${TEMPO_CH} s. No fim de cada rodada o chefão tira ${CH_ATAQUE} de vida de todos. Curar recupera ${CH_CURA}. A cada ${CH_GOLPE_CADA} rodadas, se metade da turma acertar, sai o Golpe da Turma (metade do dano da rodada). Se a turma toda acertar, todos ganham +${CH_CURA_TURMA} de vida, até quem tinha caído.</p>`
     + `<button class="btn btn-prim" id="ch-criar">ABRIR O EVENTO →</button>`, 'Chefão da Sala');
   $('folha').querySelectorAll('[data-cg]').forEach(b => b.onclick = () => { const g = b.dataset.cg; cfgChefe[g] = g === 'hp' ? +b.dataset.cv : b.dataset.cv; if (g === 'serie') cfgChefe.conteudo = 'mix'; folhaChefao(); });
   $('ch-criar').onclick = () => { fecharFolha(); criarChefao(Object.assign({}, cfgChefe)); };
@@ -2951,11 +2984,12 @@ function chRecebe(m) {
     case 'ch-evt': {
       if (!CH) return;
       const e = m.evt, eu = e.id === C.meuId, quem = eu ? 'Você' : e.nick;
-      CH.hp = m.hp; CH.placar = m.placar;
+      CH.hp = m.hp; CH.placar = m.placar; CH.ult = CH.ult || {};
+      CH.ult[e.id] = { nick: e.nick, el: e.el || (CH.ult[e.id] || {}).el, t: performance.now(), txt: e.tipo === 'atk' ? '⚔ −' + e.valor + (e.rapido ? ' rápido' : '') : e.tipo === 'cura' ? '✚ +' + e.valor + ' HP' : '🛡 escudo', cor: e.tipo === 'atk' ? EL[e.el].cor : e.tipo === 'cura' ? '#36C46B' : '#5EE6FF' };
       if (e.tipo === 'atk') CH.feed.unshift({ txt: quem + (e.cria && !/^Ovo/.test(e.cria) ? ' com ' + e.cria : '') + ': −' + e.valor + ' de dano' + (e.rapido ? ' · Golpe Rápido' : '') + (e.bonus ? ' · Bônus' : ''), cor: EL[e.el].cor, eu });
       else if (e.tipo === 'cura') { CH.feed.unshift({ txt: quem + ' se curou (+' + e.valor + ' HP)', cor: '#36C46B', eu }); if (eu) CH.meuHp = e.hp; }
       else { CH.feed.unshift({ txt: quem + ' ergueu um Escudo', cor: '#5EE6FF', eu }); if (eu) CH.esc = true; }
-      CH.feed = CH.feed.slice(0, 5);
+      CH.feed = CH.feed.slice(0, 2);
       chAtualizarChefe(e.tipo === 'atk' ? e.valor : 0, e.tipo === 'atk' ? EL[e.el].cor : null);
       break;
     }
@@ -2964,9 +2998,13 @@ function chRecebe(m) {
       clearInterval(chRel);
       const r = m.res[C.meuId] || {};
       CH.meuHp = r.hp ?? CH.meuHp; CH.ultimo = { dano: m.dano, bloq: !!r.bloq, ko: !!r.ko, resposta: m.resposta, vivos: m.vivos, total: m.total };
-      CH.feed.unshift({ txt: 'O chefão atacou a sala: −' + m.dano + ' HP' + (r.bloq ? ' (seu escudo bloqueou!)' : ''), cor: '#FF4D6D' });
-      CH.feed = CH.feed.slice(0, 5);
+      if (m.golpe) CH.feed.unshift({ txt: 'GOLPE DA TURMA! ' + m.acertaram + '/' + m.contados + ' acertaram: −' + m.golpe + ' no chefão', cor: '#F5B80A' });
+      if (m.curaTurma) CH.feed.unshift({ txt: 'A turma toda acertou! +' + CH_CURA_TURMA + ' de vida para todos', cor: '#36C46B' });
+      if (m.dano) CH.feed.unshift({ txt: 'O chefão atacou a sala: −' + m.dano + ' HP' + (r.bloq ? ' (seu escudo bloqueou!)' : ''), cor: '#FF4D6D' });
+      CH.feed = CH.feed.slice(0, 2); if (m.placar) CH.placar = m.placar;
+      Object.assign(CH.ultimo, { golpe: m.golpe || 0, curaTurma: !!m.curaTurma, acertaram: m.acertaram, contados: m.contados });
       CH.fase = 'chefe'; CH.hp = m.hp; renderChefao();
+      if (m.golpe) chAtualizarChefe(m.golpe, '#F5B80A');
       const b = document.querySelector('#t-chefao .ch-eu'); if (b && !r.bloq) reanimar(b, 'boss-hit');
       break;
     }
@@ -2992,7 +3030,40 @@ function chAtualizarChefe(dano, cor) {
   }
 }
 const chFeedHTML = () => CH.feed.map(f => `<div class="feed-lin"><i style="width:6px;height:6px;flex:none;background:${f.cor}"></i><span style="${f.eu ? 'color:var(--amarelo);font-weight:700' : ''}">${esc(f.txt)}</span></div>`).join('');
-const chPlacarHTML = () => (CH.placar.length ? CH.placar.map((p, i) => `<div style="display:flex;align-items:center;gap:6px;min-height:22px;${p.id === C.meuId ? 'color:var(--amarelo)' : ''}"><span class="cp" style="width:20px;font-size:12px;color:${i < 3 ? ['#FFD23F', '#C9CDF0', '#C29A7E'][i] : 'var(--texto3)'}">${i + 1}º</span><span style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nick)}</span><span class="cp" style="font-size:12px">${p.dano}</span></div>`).join('') : '<p class="aviso" style="font-size:11px">Ninguém atacou ainda.</p>');
+const chPlacarHTML = () => {
+  const ult = CH.ult || {}, vistos = new Set(), linhas = [];
+  (CH.placar || []).forEach(p => { vistos.add(p.id); linhas.push({ id: p.id, nick: p.nick, el: p.el, dano: p.dano }); });
+  Object.keys(ult).sort((a, b) => ult[b].t - ult[a].t).forEach(id => { if (!vistos.has(id)) linhas.push({ id, nick: ult[id].nick, el: ult[id].el, dano: 0 }); });
+  if (!linhas.length) return `<p class="aviso" style="font-size:12px;margin:4px 0">Ninguém atacou ainda. Responda para abrir o placar!</p>`;
+  return `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--texto3);font-size:10px;text-align:left"><th style="padding:2px 4px;font-weight:600">#</th><th style="font-weight:600">JOGADOR</th><th style="font-weight:600">ÚLTIMA AÇÃO</th><th style="text-align:right;font-weight:600">DANO</th></tr></thead><tbody>`
+    + linhas.slice(0, 12).map((p, i) => { const u = ult[p.id], eu = p.id === C.meuId, j = (CH.jog || []).find(x => x.id === p.id) || {};
+      return `<tr style="border-top:1px solid var(--borda);${eu ? 'color:var(--amarelo);font-weight:700' : ''}"><td class="cp" style="padding:3px 4px;width:22px;color:${p.dano && i < 3 ? ['#FFD23F', '#C9CDF0', '#C29A7E'][i] : 'var(--texto3)'}">${p.dano ? i + 1 + 'º' : '–'}</td>`
+        + `<td style="max-width:110px"><span style="display:flex;align-items:center;gap:4px;overflow:hidden">${criaHTML(p.el || 'agua', NC(j), 20)}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(eu ? 'Você' : p.nick)}</span></span></td>`
+        + `<td style="color:${u ? u.cor : 'var(--texto3)'};white-space:nowrap">${u ? esc(u.txt) : '—'}</td><td class="cp" style="text-align:right;padding-right:4px">${p.dano}</td></tr>`; }).join('') + `</tbody></table>`;
+};
+const chGolpeTxt = () => { const r = CH.r || 0; if (chGolpeNaRodada(r)) return 'GOLPE DA TURMA NESTA RODADA!'; return 'GOLPE DA TURMA NA RODADA ' + Math.ceil((r + 1) / CH_GOLPE_CADA) * CH_GOLPE_CADA; };
+function chCenaHTML(pct, eu, morto) {
+  const C2 = '#C34BFF', hp = Math.max(0, CH.meuHp), corHp = hp > 50 ? '#36C46B' : hp > 25 ? '#F5B80A' : '#FF4D6D';
+  return `<div id="ch-boss-box" style="position:absolute;left:0;top:0;width:358px;height:200px;transform-origin:0 0">`
+    + `<div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,${C2}33 0%,#1A1430 55%,#12142A 100%)"></div>`
+    + `<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:52px;background-color:#1C1630;background-image:linear-gradient(90deg,${C2}1F 1px,transparent 1px);background-size:16px 16px;border-top:2px solid ${C2}66"></div>`
+    // caixa de vida do chefão (em cima, à esquerda)
+    + `<div style="position:absolute;left:8px;top:8px;width:176px;padding:5px 7px;background:rgba(14,15,30,.88);border:1px solid ${C2};z-index:2"><p class="cp" style="margin:0;font-size:10px;letter-spacing:1px;color:#FF7BEA">PIRÂMIDE DAS FÓRMULAS</p><div class="boss-hp" role="progressbar" aria-label="Vida do chefão" style="margin-top:3px"><i id="ch-hpbar" style="width:${pct}%"></i></div><p class="cp" id="ch-hptxt" style="margin:2px 0 0;font-size:10px;text-align:right">${CH.hp.toLocaleString('pt-BR')} / ${CH.hpMax.toLocaleString('pt-BR')}</p></div>`
+    + `<p class="cp" id="ch-golpe" style="position:absolute;left:8px;top:62px;margin:0;padding:2px 6px;font-size:9px;letter-spacing:1px;background:${chGolpeNaRodada(CH.r || 0) ? '#F5B80A' : 'rgba(14,15,30,.8)'};color:${chGolpeNaRodada(CH.r || 0) ? '#0E0F1E' : 'var(--amarelo)'};border:1px solid #F5B80A;z-index:2">${chGolpeTxt()}</p>`
+    // chefão ao fundo (à direita)
+    + `<div aria-hidden="true" style="position:absolute;left:216px;top:136px;width:104px;height:12px;border-radius:50%;background:rgba(0,0,0,.45)"></div>`
+    + `<div id="ch-boss" class="flutua" style="position:absolute;left:206px;top:14px;width:130px;height:125px">${CHEFE_SALA_SVG.replace(/width="240" height="230"/, 'width="130" height="125"')}</div>`
+    // você: avatar de costas + criatura (embaixo, à esquerda)
+    + `<div class="ch-eu" style="position:absolute;left:0;bottom:0;width:170px;height:120px${morto ? ';filter:grayscale(1);opacity:.6' : ''}"><div style="position:absolute;left:8px;bottom:4px">${avatarHTML(P.av, 3, 'costas')}</div>`
+    + `<div aria-hidden="true" style="position:absolute;left:78px;bottom:10px;width:70px;height:9px;border-radius:50%;background:${eu.cor}55"></div><div class="flutua" style="position:absolute;left:68px;bottom:14px;width:84px;height:84px"><div style="filter:drop-shadow(0 0 8px ${eu.cor}88)">${criaHTML(P.el, nivelVisto(), 84)}</div></div>`
+    + (CH.esc ? `<div aria-hidden="true" style="position:absolute;left:60px;bottom:6px;width:100px;height:100px;border:3px solid #5EE6FF;border-radius:45%;background:rgba(94,230,255,.12)"></div>` : '') + `</div>`
+    // sua caixa de vida (embaixo, à direita)
+    + `<div style="position:absolute;left:186px;top:150px;width:164px;padding:4px 7px;background:rgba(14,15,30,.9);border:1px solid ${eu.cor};z-index:2"><p class="cp" style="margin:0;font-size:10px;color:var(--amarelo);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nickExib())}${morto ? ' · FORA (só XP)' : CH.esc ? ' · ESCUDO' : ''}</p>`
+    + `<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span class="tag" style="background:#F5B80A;font-size:9px">HP</span><div class="hp" style="flex:1"><i style="width:${hp}%;background:${corHp}"></i></div><span class="cp" style="font-size:10px">${hp}</span></div></div>`
+    + `</div>`;
+}
+function ajustarCh() { const c = $('ch-cena'), i = $('ch-boss-box'); if (!c || !i || !c.clientWidth) return; const s = c.clientWidth / 358; i.style.transform = `scale(${s})`; c.style.height = Math.round(200 * s) + 'px'; }
+window.addEventListener('resize', ajustarCh);
 function renderChefao() {
   if (!CH) return;
   const t = $('t-chefao'), f = CH.fase, host = C && C.host;
@@ -3013,21 +3084,18 @@ function renderChefao() {
   if (f === 'fim') { renderChefaoFim(); return; }
   const pct = Math.max(0, CH.hp / CH.hpMax * 100), eu = EL[P.el], morto = CH.meuHp <= 0;
   let h = `<div class="topo" style="min-height:34px"><p class="cp" style="margin:0;padding:6px 8px;background:var(--card2);border:1px solid var(--borda);font-size:12px;letter-spacing:2px">RODADA ${(CH.r || 0) + 1}/${RODADAS_CH}</p><p class="cp" id="ch-tempo" style="margin:0;font-size:18px;color:var(--ciano)">${CH.q ? '' : ''}</p>${host ? `<button class="btn-sec" id="ch-encerrar" style="height:32px;padding:0 10px;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:11px;color:var(--vermelho)">ENCERRAR</button>` : `<p class="rot">${esc((CH.sala && CH.sala.codigo) || '')}</p>`}</div>`;
-  h += `<div style="display:grid;grid-template-columns:1fr 132px;gap:8px;flex:none"><div id="ch-boss-box" style="position:relative;border:1px solid var(--borda);background:radial-gradient(circle at 50% 40%,rgba(195,75,255,.25),#12142A 70%);padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden">`
-    + `<div style="display:flex;justify-content:space-between;align-items:baseline"><p class="cp" style="margin:0;font-size:12px;color:#FF7BEA">PIRÂMIDE DAS FÓRMULAS</p></div><div class="boss-hp" role="progressbar" aria-label="Vida do chefão"><i id="ch-hpbar" style="width:${pct}%"></i></div><p class="cp" id="ch-hptxt" style="margin:0;font-size:12px;text-align:right">${CH.hp.toLocaleString('pt-BR')} / ${CH.hpMax.toLocaleString('pt-BR')}</p>`
-    + `<div id="ch-boss" style="display:flex;justify-content:center">${CHEFE_SALA_SVG.replace(/width="240" height="230"/, 'width="130" height="125"')}</div></div>`
-    + `<div style="border:1px solid var(--borda);background:var(--card);padding:8px;display:flex;flex-direction:column;gap:2px"><p class="rot" style="margin-bottom:4px">PLACAR DE DANO</p><div id="ch-placar">${chPlacarHTML()}</div></div></div>`;
-  h += `<div class="ch-eu" style="display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--borda);border-left:3px solid ${eu.cor};background:var(--card);flex:none${morto ? ';opacity:.6' : ''}">${criaHTML(P.el, nivelVisto(), 40, morto ? 'filter:grayscale(1)' : '')}<div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:12px;color:var(--amarelo)">${esc(nickExib())}${morto ? ' · FORA (só XP)' : CH.esc ? ' · ESCUDO' : ''}</p><div class="lin" style="display:flex;align-items:center;gap:6px;margin-top:3px"><span class="tag" style="background:#F5B80A">HP</span><div class="hp" style="flex:1"><i style="width:${CH.meuHp}%;background:${CH.meuHp > 50 ? '#36C46B' : CH.meuHp > 20 ? '#F5B80A' : '#FF4D6D'}"></i></div><span class="cp" style="font-size:12px">${CH.meuHp}</span></div></div></div>`;
-  h += `<div id="ch-feed" style="flex:none;min-height:60px;display:flex;flex-direction:column;gap:1px">${chFeedHTML()}</div>`;
+  h += `<div id="ch-cena" style="position:relative;flex:none;overflow:hidden;border:1px solid var(--borda)">${chCenaHTML(pct, eu, morto)}</div>`;
+  h += `<div style="flex:none;border:1px solid var(--borda);background:var(--card);padding:6px 8px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px"><p class="rot">ATAQUES DA TURMA · AO VIVO</p><p class="rot" style="color:var(--texto3)">${CH.respN || 0}/${CH.respT || (CH.jog || []).length} responderam</p></div>`
+    + `<div id="ch-placar" style="max-height:124px;overflow-y:auto">${chPlacarHTML()}</div><div id="ch-feed" style="min-height:18px;margin-top:3px;border-top:1px solid var(--borda);padding-top:3px">${chFeedHTML()}</div></div>`;
   if (f === 'pergunta') {
     const d = CH.dig, E = EL[CH.q.elemento] || eu;
     h += `<div class="cartao" style="flex:none;padding:10px 12px"><p class="rot">${morto ? 'FORA DA LUTA · ' : ''}${esc(CH.q.conteudo || '')} · <span style="color:${E.cor}">${E.nome.toUpperCase()} +5</span></p><p class="pergunta" style="${CH.q.texto.length > 34 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:17px' : 'font-size:28px'}">${fracHTML(esc(CH.q.texto))}</p></div>`
       + `<div class="resposta"><p class="rot" style="${CH.erro ? 'color:var(--vermelho)' : ''}">${CH.erro || 'SUA RESPOSTA'}</p><div class="val">${d ? (d.includes('/') ? `<span class="fr" style="font-size:19px"><span>${esc(d.split('/')[0])}</span><span style="min-width:22px;border-top-color:var(--amarelo)">${esc(d.split('/')[1])}</span></span>` : esc(d)) + '<span class="cursor">_</span>' : '<span style="font-size:14px;font-weight:600;color:#62668F">toque nos números</span>'}</div></div>`
       + `<div class="teclado">${TECLAS.map(k => `<button class="tecla${NOME_TECLA[k] ? ' esp' : ''}" data-chk="${k}" aria-label="${NOME_TECLA[k] || k}">${k}</button>`).join('')}<button class="btn btn-prim" id="ch-enviar" style="grid-column:span 2;min-height:46px;font-size:17px${d ? '' : ';opacity:.45'}">ENVIAR</button></div>`;
   } else if (f === 'acao') {
-    h += `<p class="cp" style="margin:0;font-size:15px;color:var(--verde)">Você acertou! O que vai fazer?</p>`
+    h += `<p class="cp" style="margin:0;font-size:15px;color:var(--verde)">Você acertou! O que vai fazer?</p><p class="aviso" style="font-size:12px">Se não escolher em ${CH_ESPERA_ACAO} s, sua criatura ataca sozinha.</p>`
       + `<button class="acao" data-cha="atk" style="border-left:6px solid #FF4D6D"><b style="color:#FF4D6D">ATACAR O CHEFÃO</b><small>${esc(nomeCria(P.el, nivelVisto()))} causa 20${P.el === CH.q.elemento ? ' +5 (elemento)' : P.el === 'infinito' ? ' +5 (Infinito)' : ''} · +5 se for o 1º</small></button>`
-      + `<button class="acao" data-cha="cura" style="border-left:6px solid #36C46B"><b style="color:#36C46B">CURAR</b><small>Recupera 15 HP (seu HP: ${CH.meuHp})</small></button>`
+      + `<button class="acao" data-cha="cura" style="border-left:6px solid #36C46B"><b style="color:#36C46B">CURAR</b><small>Recupera ${CH_CURA} HP (seu HP: ${CH.meuHp})</small></button>`
       + `<button class="acao" data-cha="esc" style="border-left:6px solid #5EE6FF"><b style="color:#5EE6FF">ESCUDO</b><small>Bloqueia o ataque do chefão nesta rodada</small></button>`;
   } else if (f === 'espera' || f === 'aguarda') {
     h += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px;text-align:center">${f === 'aguarda' ? '<p class="cp pulsa" style="margin:0;font-size:13px;letter-spacing:2px">PREPAREM-SE…</p>'
@@ -3035,9 +3103,9 @@ function renderChefao() {
       + (f === 'espera' ? `<p class="aviso" id="ch-resp-n">${CH.respN || 0}/${CH.respT || '?'} responderam</p><p class="aviso" style="font-size:12px">No fim da rodada, o chefão ataca todos.</p>` : '') + `</div>`;
   } else if (f === 'chefe') {
     const u = CH.ultimo || {};
-    h += `<div class="cartao entra" style="display:flex;flex-direction:column;gap:6px;text-align:center;border-color:var(--vermelho)"><p class="cp" style="margin:0;font-size:16px;color:var(--vermelho)">O CHEFÃO ATACOU A SALA!</p><p style="margin:0;font-size:14px">${u.bloq ? 'Seu escudo bloqueou o golpe!' : u.ko ? 'Você caiu! Continue respondendo para ganhar XP.' : CH.meuHp <= 0 ? 'Você está fora da luta, mas continua ganhando XP.' : 'Você perdeu ' + u.dano + ' HP.'}</p><p class="aviso">Resposta da rodada: <b class="cp" style="color:var(--verde)">${esc(u.resposta || '')}</b> · ${u.vivos}/${u.total} ainda de pé</p><p class="cp pulsa" style="margin:0;font-size:12px;letter-spacing:2px;color:var(--texto2)">PRÓXIMA RODADA JÁ VEM…</p></div>`;
+    h += `<div class="cartao entra" style="display:flex;flex-direction:column;gap:6px;text-align:center;border-color:var(--vermelho)">${u.golpe ? `<p class="cp" style="margin:0;font-size:16px;color:var(--amarelo)">GOLPE DA TURMA! −${u.golpe}</p>` : ''}${u.curaTurma ? `<p class="cp" style="margin:0;font-size:14px;color:var(--verde)">A TURMA TODA ACERTOU! +${CH_CURA_TURMA} HP</p>` : ''}${u.dano ? '<p class="cp" style="margin:0;font-size:16px;color:var(--vermelho)">O CHEFÃO ATACOU A SALA!</p>' : ''}<p style="margin:0;font-size:14px">${u.bloq ? 'Seu escudo bloqueou o golpe!' : u.ko ? 'Você caiu! Se a turma toda acertar uma rodada, todos ganham +' + CH_CURA_TURMA + ' HP.' : CH.meuHp <= 0 ? 'Você está fora da luta, mas continua ganhando XP.' : 'Você perdeu ' + u.dano + ' HP.'}</p><p class="aviso">Resposta da rodada: <b class="cp" style="color:var(--verde)">${esc(u.resposta || '')}</b> · ${u.vivos}/${u.total} ainda de pé</p><p class="cp pulsa" style="margin:0;font-size:12px;letter-spacing:2px;color:var(--texto2)">PRÓXIMA RODADA JÁ VEM…</p></div>`;
   }
-  t.innerHTML = h;
+  t.innerHTML = h; ajustarCh();
   t.querySelectorAll('[data-chk]').forEach(b => b.onclick = () => chTecla(b.dataset.chk));
   if ($('ch-enviar')) $('ch-enviar').onclick = chEnviar;
   t.querySelectorAll('[data-cha]').forEach(b => b.onclick = () => { if (CH.fase !== 'acao') return; if (b.dataset.cha === 'esc') { const mm = progredirMissao('escudo', 1); if (mm) avisar('Missão concluída: ' + mm.txt); } cliEnviar({ t: 'acao', tipo: b.dataset.cha }); CH.fase = 'espera'; renderChefao(); });
@@ -3953,7 +4021,7 @@ async function renderTurmaOnline(recarregar) {
   if (!t) h += `<div class="cartao" style="text-align:center;padding:26px 16px;display:flex;flex-direction:column;gap:10px;align-items:center"><p class="cp" style="margin:0;font-size:16px">Nenhuma turma ainda</p><p class="aviso">Crie uma turma e passe o código para os alunos. Eles digitam o código ao criar a conta ou na aba Conta.</p><button class="btn btn-prim" id="tm-nova2" style="flex:none;min-height:48px;padding:0 20px">+ CRIAR TURMA</button></div>`;
   else {
     const al = t.alunos || [];
-    h += `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:18px">${esc(t.nome)}</p><p class="aviso" style="font-size:12px">${t.serie}º ano · ${esc(t.turno)} · ${al.length} aluno${al.length === 1 ? '' : 's'} · ${al.filter(a => (a.dias || []).includes(hoje)).length} hoje</p></div><div style="text-align:right"><p class="rot">CÓDIGO</p><p class="cp" style="margin:0;font-size:22px;letter-spacing:3px;color:var(--amarelo)">${t.codigo}</p></div></div>`
+    h += `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:18px">${esc(t.nome)}</p><p class="aviso" style="font-size:12px">${t.serie}º ano · ${esc(t.turno)} · ${al.length} aluno${al.length === 1 ? '' : 's'} · ${al.filter(a => (a.dias || []).includes(hoje)).length} hoje</p>${t.minha === false && t.professor ? `<p class="aviso" style="font-size:12px;color:var(--ciano)">Criada por ${esc(t.professor)}</p>` : ''}</div><div style="text-align:right"><p class="rot">CÓDIGO</p><p class="cp" style="margin:0;font-size:22px;letter-spacing:3px;color:var(--amarelo)">${t.codigo}</p></div></div>`
       + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-sec" id="tm-add" style="min-height:44px;font-size:13px">+ ALUNO</button><button class="btn btn-sec" id="tm-pedidos" style="min-height:44px;font-size:13px;${t.pedidos.length ? 'border-color:var(--amarelo);color:var(--amarelo)' : ''}">PEDIDOS DE NICK · ${t.pedidos.length}</button></div></div>`;
     if (!al.length) h += `<div class="cartao" style="text-align:center;padding:22px 16px"><p class="cp" style="margin:0;font-size:15px">A turma está vazia</p><p class="aviso" style="margin-top:6px">Os alunos entram digitando o código <b style="color:var(--amarelo)">${t.codigo}</b> ao criar a conta ou em Conta › Entrar numa turma.</p></div>`;
     else {

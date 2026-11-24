@@ -92,12 +92,12 @@ language sql stable security definer set search_path = public as $$
   select coalesce((select gm from public.perfis where id = auth.uid()), false);
 $$;
 
--- o aluno está numa turma deste professor?
+-- o aluno está numa turma? Qualquer GM acompanha todas as turmas da escola.
 create or replace function public._meu_aluno(p_aluno uuid) returns boolean
 language sql stable security definer set search_path = public as $$
-  select exists (
+  select public._eh_gm() and exists (
     select 1 from public.perfis p join public.turmas t on t.id = p.turma_id
-    where p.id = p_aluno and t.professor_id = auth.uid()
+    where p.id = p_aluno
   );
 $$;
 
@@ -240,6 +240,8 @@ begin
   return coalesce((
     select json_agg(json_build_object(
       'id', t.id, 'nome', t.nome, 'serie', t.serie, 'turno', t.turno, 'codigo', t.codigo,
+      'minha', t.professor_id = auth.uid(),
+      'professor', (select nick from public.perfis where id = t.professor_id),
       'alunos', (
         select coalesce(json_agg(json_build_object(
           'id', p.id, 'nick', p.nick, 'nivel', p.nivel, 'xp', p.xp,
@@ -265,7 +267,7 @@ begin
         from public.pedidos_nick r join public.perfis p on p.id = r.aluno_id
         where p.turma_id = t.id and r.status = 'pendente')
     ) order by t.criada_em)
-    from public.turmas t where t.professor_id = auth.uid()
+    from public.turmas t
   ), '[]'::json);
 end $$;
 
