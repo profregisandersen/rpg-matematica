@@ -246,9 +246,11 @@ begin
         select coalesce(json_agg(json_build_object(
           'id', p.id, 'nick', p.nick, 'nivel', p.nivel, 'xp', p.xp,
           'av', p.dados -> 'av', 'el', p.dados ->> 'el',
-          'nc', coalesce((p.dados ->> 'nc')::int, p.nivel),
+          'nc', case when (p.dados ->> 'nc') ~ '^[0-9]{1,3}$' then (p.dados ->> 'nc')::int else p.nivel end,
           'mol', coalesce(p.dados ->> 'moldura', ''),
-          'liga', coalesce((p.dados -> 'liga' ->> 'idx')::int, 0),
+          'liga', case when (p.dados -> 'liga' ->> 'idx') ~ '^[0-9]{1,2}$' then (p.dados -> 'liga' ->> 'idx')::int else 0 end,
+          'seq', case when (p.dados ->> 'seq') ~ '^[0-9]{1,6}$' then (p.dados ->> 'seq')::int else 0 end,
+          'seqMax', case when (p.dados ->> 'seqMax') ~ '^[0-9]{1,6}$' then (p.dados ->> 'seqMax')::int else 0 end,
           'dias', (select coalesce(json_agg(a.dia order by a.dia), '[]'::json) from public.acessos a where a.aluno_id = p.id and a.dia > current_date - 60),
           'acertos', (select coalesce(sum(x.acertos), 0) from public.partidas x where x.aluno_id = p.id),
           'total', (select coalesce(sum(x.total), 0) from public.partidas x where x.aluno_id = p.id),
