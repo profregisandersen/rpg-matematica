@@ -362,6 +362,12 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 @keyframes bossHit{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}.boss-hit{animation:bossHit .35s steps(4)}
 @keyframes numsobe{0%{opacity:0;transform:translateY(8px) scale(.6)}15%{opacity:1;transform:translateY(0) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translateY(-46px)}}.num-sobe{position:absolute;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:20px;text-shadow:2px 2px 0 #0B0C18;animation:numsobe 1.2s ease-out both;pointer-events:none}
 
+.alts{display:flex;flex-direction:column;gap:6px}
+.alt{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 10px 6px 6px;border:2px solid var(--borda);background:var(--card);color:var(--texto);text-align:left;font:600 14px/1.35 Inter,system-ui,sans-serif;cursor:pointer}
+.alt:disabled{cursor:default}
+.alt-l{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;font-size:14px}
+.mundo.des{color:#B79BFF;border-color:#B79BFF66}
+.mundo.des[aria-pressed="true"]{background:rgba(183,155,255,.14);color:#F2F3FF;border-color:#B79BFF}
 /* ---------- tela larga: computador e tablet deitado ---------- */
 .lg-lado,.lg-mapa,.lg-etapas{display:contents}
 .lg-lado>*,.lg-mapa>*,.lg-etapas>*{flex-shrink:0}
@@ -1866,7 +1872,8 @@ window.addEventListener('beforeunload', () => { if (C && C.host) { if (C.chefao)
 const NOMES_ST = {
   '6op': 'Operações com naturais', '6pot': 'Potências', '6mult': 'Múltiplos e divisores', '6fr': 'Frações', '6dec': 'Números decimais', '6pct': 'Porcentagem',
   '6geo': 'Polígonos e ângulos', '6cart': 'Plano cartesiano', '6med': 'Perímetro e área', '6massa': 'Massa e capacidade', '6tempo': 'Tempo', '6alg': 'Igualdades e sequências', '6part': 'Partilha e proporção',
-  '7int': 'Números inteiros', '7fr': 'Operações com frações', '7pct': 'Porcentagem (7º)', '7eq': 'Equações do 1º grau', '7prop': 'Razão e proporção', '7ang': 'Ângulos', '7med': 'Área e volume'
+  '7int': 'Números inteiros', '7fr': 'Operações com frações', '7pct': 'Porcentagem (7º)', '7eq': 'Equações do 1º grau', '7prop': 'Razão e proporção', '7ang': 'Ângulos', '7med': 'Área e volume',
+  'desafio': 'Desafios olímpicos'
 };
 const ST_EL = { '6op': 'fogo', '6pot': 'fogo', '6mult': 'fogo', '6fr': 'agua', '6dec': 'agua', '6pct': 'agua', '6geo': 'planta', '6cart': 'planta', '6med': 'pedra', '6massa': 'pedra', '6tempo': 'pedra', '6alg': 'raio', '6part': 'raio', '7int': 'fogo', '7fr': 'agua', '7pct': 'agua', '7eq': 'raio', '7prop': 'raio', '7ang': 'planta', '7med': 'pedra' };
 const nv3 = (k) => k < 2 ? 'facil' : k < 4 ? 'media' : 'dificil';
@@ -2028,6 +2035,184 @@ function questaoDaEtapa(g, k) {
   return { texto: q.t, valor: q.v, resposta, exp: q.exp || ('A resposta certa é ' + resposta + '.'), st: fonte.st };
 }
 
+/* ================== Ilha dos Desafios ==================
+   Questões originais no estilo das olimpíadas (Canguru, OBMEP), em múltipla escolha.
+   Nível 1: 6º e 7º ano · Nível 2: 8º e 9º ano. c = índice da alternativa certa (0 = A). */
+const DES_FIG = {
+  grade3: `<svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Quadrado dividido em 3 por 3 quadradinhos"><g fill="none" stroke="#5EE6FF" stroke-width="3"><rect x="6" y="6" width="108" height="108"/><path d="M42 6v108M78 6v108M6 42h108M6 78h108"/></g></svg>`,
+  cruz: `<svg viewBox="0 0 132 132" width="120" height="120" role="img" aria-label="Cruz formada por 5 quadradinhos iguais"><g fill="#5EE6FF33" stroke="#5EE6FF" stroke-width="3"><rect x="46" y="6" width="40" height="40"/><rect x="6" y="46" width="40" height="40"/><rect x="46" y="46" width="40" height="40"/><rect x="86" y="46" width="40" height="40"/><rect x="46" y="86" width="40" height="40"/></g><text x="66" y="30" fill="#F2F3FF" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">2 cm</text></svg>`,
+  escada: `<svg viewBox="0 0 160 130" width="150" height="122" role="img" aria-label="Escada de 5 metros apoiada num muro, com o pé a 3 metros do muro"><rect x="120" y="6" width="16" height="110" fill="#3A3F6E"/><line x1="10" y1="116" x2="150" y2="116" stroke="#8B8FB8" stroke-width="3"/><line x1="40" y1="116" x2="120" y2="26" stroke="#FFD23F" stroke-width="5"/><text x="70" y="62" fill="#FFD23F" font-size="13" font-family="Inter,sans-serif">5 m</text><text x="72" y="128" fill="#F2F3FF" font-size="12" font-family="Inter,sans-serif">3 m</text><text x="140" y="74" fill="#F2F3FF" font-size="13" font-family="Inter,sans-serif">?</text></svg>`,
+  circulo: `<svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Círculo dentro de um quadrado de lado 10 centímetros, tocando os quatro lados"><rect x="10" y="10" width="100" height="100" fill="#FF6B6B44" stroke="#F2F3FF" stroke-width="2"/><circle cx="60" cy="60" r="50" fill="#0E0F1E" stroke="#5EE6FF" stroke-width="3"/><text x="60" y="64" fill="#F2F3FF" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">10 cm</text></svg>`,
+  quadrado4: `<svg viewBox="0 0 120 120" width="116" height="116" role="img" aria-label="Quadrado de lado 6 centímetros dividido em 4 retângulos iguais por 3 cortes paralelos"><g fill="none" stroke="#5EE6FF" stroke-width="3"><rect x="6" y="6" width="108" height="108"/><path d="M33 6v108M60 6v108M87 6v108"/></g><text x="60" y="118" fill="#F2F3FF" font-size="11" text-anchor="middle" font-family="Inter,sans-serif">6 cm</text></svg>`
+};
+const DESAFIOS = [
+  /* ---------- Nível 1 · 6º e 7º ano ---------- */
+  { id: 'n1-01', n: 1, tema: 'Lógica', t: 'Ana, Beto e Caio têm idades diferentes. Ana não é a mais nova. Caio é mais velho que Ana. Quem é o mais novo?', ops: ['Ana', 'Beto', 'Caio', 'Ana e Beto têm a mesma idade', 'Não dá para saber'], c: 1, exp: 'Caio é mais velho que Ana, e Ana não é a mais nova. Então quem sobra como mais novo é o Beto.' },
+  { id: 'n1-02', n: 1, tema: 'Números', t: 'Qual é o menor número de três algarismos cuja soma dos algarismos é 20?', ops: ['199', '299', '389', '398', '992'], c: 1, exp: 'Para o número ser o menor possível, a centena deve ser a menor possível. Com centena 1, os outros dois teriam que somar 19, mas o máximo é 9 + 9 = 18. Com centena 2: 2 + 9 + 9 = 20, ou seja, 299.' },
+  { id: 'n1-03', n: 1, tema: 'Contagem', t: 'Quantos números de 1 a 100 têm o algarismo 7 pelo menos uma vez?', ops: ['10', '11', '18', '19', '20'], c: 3, exp: 'Com 7 nas unidades: 7, 17, …, 97 (10 números). Com 7 nas dezenas: 70 a 79 (10 números). O 77 foi contado duas vezes: 10 + 10 − 1 = 19.' },
+  { id: 'n1-04', n: 1, tema: 'Padrões', t: 'Na sequência 2, 5, 11, 23, 47, … cada termo é o dobro do anterior mais 1. Qual é o próximo termo?', ops: ['71', '94', '95', '96', '99'], c: 2, exp: 'O dobro de 47 é 94; somando 1, dá 95.' },
+  { id: 'n1-05', n: 1, tema: 'Geometria', t: 'Um quadrado de lado 6 cm foi dividido em 4 retângulos iguais por 3 cortes paralelos a um dos lados. Qual é o perímetro de cada retângulo?', fig: 'quadrado4', ops: ['12 cm', '13,5 cm', '15 cm', '18 cm', '24 cm'], c: 2, exp: 'Cada retângulo mede 6 cm por 6 ÷ 4 = 1,5 cm. O perímetro é 6 + 1,5 + 6 + 1,5 = 15 cm.' },
+  { id: 'n1-06', n: 1, tema: 'Lógica', t: 'Numa ilha, os cavaleiros sempre falam a verdade e os mentirosos sempre mentem. Lia diz: “Eu e o Téo somos mentirosos.” O que são Lia e Téo?', ops: ['Os dois são cavaleiros', 'Os dois são mentirosos', 'Lia é cavaleira e Téo é mentiroso', 'Lia é mentirosa e Téo é cavaleiro', 'Não dá para saber'], c: 3, exp: 'Se Lia fosse cavaleira, a frase seria verdade, e ela seria mentirosa: impossível. Então Lia mente, e a frase é falsa: os dois não são mentirosos. Logo, Téo é cavaleiro.' },
+  { id: 'n1-07', n: 1, tema: 'Números', t: 'Joana pensou num número, multiplicou por 3, somou 12 e dividiu o resultado por 3. Obteve 11. Em que número ela pensou?', ops: ['5', '7', '9', '11', '33'], c: 1, exp: 'Desfazendo de trás para a frente: 11 × 3 = 33; 33 − 12 = 21; 21 ÷ 3 = 7.' },
+  { id: 'n1-08', n: 1, tema: 'Contagem', t: 'Numa reunião, 6 amigos se cumprimentaram. Cada um apertou a mão de cada um dos outros uma única vez. Quantos apertos de mão aconteceram?', ops: ['12', '15', '18', '30', '36'], c: 1, exp: 'Cada um aperta a mão de 5 pessoas: 6 × 5 = 30. Mas cada aperto foi contado duas vezes (uma para cada pessoa): 30 ÷ 2 = 15.' },
+  { id: 'n1-09', n: 1, tema: 'Números', t: 'Hoje é quarta-feira. Que dia da semana será daqui a 100 dias?', ops: ['Segunda-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'], c: 3, exp: 'A cada 7 dias o dia da semana se repete. 100 = 14 × 7 + 2. Então é como andar só 2 dias: quarta → quinta → sexta.' },
+  { id: 'n1-10', n: 1, tema: 'Geometria', t: 'Quantos quadrados, de todos os tamanhos, aparecem na figura?', fig: 'grade3', ops: ['9', '10', '13', '14', '16'], c: 3, exp: 'Há 9 quadrados pequenos, 4 quadrados de 2 × 2 e 1 quadrado grande: 9 + 4 + 1 = 14.' },
+  { id: 'n1-11', n: 1, tema: 'Lógica', t: 'Numa balança, 3 maçãs pesam o mesmo que 2 peras. Em outra, 1 pera pesa o mesmo que 3 laranjas. Quantas laranjas pesam o mesmo que 6 maçãs?', ops: ['6', '8', '9', '12', '18'], c: 3, exp: '6 maçãs = 2 × (3 maçãs) = 2 × (2 peras) = 4 peras. E 4 peras = 4 × 3 = 12 laranjas.' },
+  { id: 'n1-12', n: 1, tema: 'Números', t: 'A soma de três números inteiros consecutivos é 54. Qual é o maior deles?', ops: ['17', '18', '19', '20', '27'], c: 2, exp: 'O do meio é 54 ÷ 3 = 18. Os três são 17, 18 e 19; o maior é 19.' },
+  { id: 'n1-13', n: 1, tema: 'Frações', t: 'Um tanque estava com 3/4 da sua capacidade de água. Gastou-se metade dessa água. Que fração do tanque ainda tem água?', ops: ['1/8', '1/4', '3/8', '1/2', '3/4'], c: 2, exp: 'Metade de 3/4 é 3/4 ÷ 2 = 3/8. Sobrou 3/8 do tanque.' },
+  { id: 'n1-14', n: 1, tema: 'Padrões', t: 'Com palitos, formam-se quadrados em fila: 1 quadrado usa 4 palitos, 2 quadrados usam 7, 3 quadrados usam 10. Quantos palitos são precisos para 20 quadrados?', ops: ['60', '61', '63', '80', '81'], c: 1, exp: 'O primeiro quadrado usa 4 palitos e cada novo quadrado usa mais 3. Para 20: 4 + 19 × 3 = 61.' },
+  { id: 'n1-15', n: 1, tema: 'Lógica', t: 'Numa fila, Bia é a 7ª contando da frente e a 9ª contando de trás. Quantas pessoas há na fila?', ops: ['14', '15', '16', '17', '63'], c: 1, exp: 'Há 6 pessoas na frente da Bia e 8 atrás dela. Com ela: 6 + 1 + 8 = 15.' },
+  { id: 'n1-16', n: 1, tema: 'Geometria', t: 'Qual é o menor ângulo formado pelos ponteiros de um relógio às 4 horas em ponto?', ops: ['100°', '110°', '120°', '130°', '140°'], c: 2, exp: 'O relógio tem 12 marcas e uma volta tem 360°: cada marca vale 30°. Às 4 horas os ponteiros estão a 4 marcas: 4 × 30° = 120°.' },
+  { id: 'n1-17', n: 1, tema: 'Contagem', t: 'De quantas maneiras diferentes 3 amigos podem se sentar em 3 cadeiras enfileiradas?', ops: ['3', '6', '8', '9', '12'], c: 1, exp: 'Para a 1ª cadeira há 3 escolhas, para a 2ª sobram 2, e para a 3ª sobra 1: 3 × 2 × 1 = 6.' },
+  { id: 'n1-18', n: 1, tema: 'Números', t: 'Pedro tem só moedas de 25 e de 10 centavos: são 9 moedas, que somam R$ 1,65. Quantas moedas de 25 centavos ele tem?', ops: ['3', '4', '5', '6', '7'], c: 2, exp: 'Se as 9 fossem de 10 centavos, seriam 90 centavos. Faltam 75. Cada troca de uma moeda de 10 por uma de 25 soma 15 centavos: 75 ÷ 15 = 5 moedas de 25.' },
+  { id: 'n1-19', n: 1, tema: 'Geometria', t: 'A figura é uma cruz formada por 5 quadradinhos iguais, de lado 2 cm. Qual é o perímetro da cruz?', fig: 'cruz', ops: ['20 cm', '24 cm', '28 cm', '32 cm', '40 cm'], c: 1, exp: 'O contorno da cruz tem 12 lados de quadradinho (3 em cada braço). 12 × 2 cm = 24 cm.' },
+  { id: 'n1-20', n: 1, tema: 'Números', t: 'A média das notas de Rui em 4 provas é 7. Que nota ele precisa tirar na 5ª prova para a média das 5 provas ser 7,4?', ops: ['7,4', '8', '8,5', '9', '10'], c: 3, exp: 'As 4 provas somam 4 × 7 = 28. Para a média de 5 provas ser 7,4, a soma precisa ser 5 × 7,4 = 37. Falta 37 − 28 = 9.' },
+  { id: 'n1-21', n: 1, tema: 'Padrões', t: 'A sequência ABCDEABCDEABCDE… continua sempre assim. Qual é a 103ª letra?', ops: ['A', 'B', 'C', 'D', 'E'], c: 2, exp: 'O bloco ABCDE tem 5 letras. 103 = 20 × 5 + 3: depois de 20 blocos completos, a 3ª letra do bloco é C.' },
+  { id: 'n1-22', n: 1, tema: 'Lógica', t: 'Num dado comum, a soma das faces opostas é sempre 7. Um dado está sobre a mesa com o 2 virado para cima. Qual número está encostado na mesa?', ops: ['1', '3', '4', '5', '6'], c: 3, exp: 'A face de baixo é a oposta à de cima: 7 − 2 = 5.' },
+  { id: 'n1-23', n: 1, tema: 'Contagem', t: 'Quantos números pares de dois algarismos têm os dois algarismos iguais?', ops: ['4', '5', '9', '10', '45'], c: 0, exp: 'Os de algarismos iguais são 11, 22, …, 99. Os pares são 22, 44, 66 e 88: são 4.' },
+  { id: 'n1-24', n: 1, tema: 'Proporção', t: 'Uma receita usa 3 ovos para fazer 12 bolinhos. Quantos ovos são necessários para 40 bolinhos?', ops: ['8', '9', '10', '12', '13'], c: 2, exp: 'Cada ovo rende 12 ÷ 3 = 4 bolinhos. Para 40 bolinhos: 40 ÷ 4 = 10 ovos.' },
+  { id: 'n1-25', n: 1, tema: 'Geometria', t: 'Um retângulo tem perímetro de 30 cm e um de seus lados mede 6 cm. Qual é a área desse retângulo?', ops: ['36 cm²', '45 cm²', '54 cm²', '60 cm²', '90 cm²'], c: 2, exp: 'Dois lados de 6 cm somam 12 cm; os outros dois somam 30 − 12 = 18 cm, então cada um mede 9 cm. Área: 6 × 9 = 54 cm².' },
+  /* ---------- Nível 2 · 8º e 9º ano ---------- */
+  { id: 'n2-01', n: 2, tema: 'Números', t: 'Qual é o algarismo das unidades do produto de 20 fatores iguais a 3, isto é, 3²⁰?', ops: ['0', '1', '3', '7', '9'], c: 1, exp: 'As unidades das potências de 3 se repetem de 4 em 4: 3, 9, 7, 1. Como 20 é múltiplo de 4, a unidade é 1.' },
+  { id: 'n2-02', n: 2, tema: 'Números', t: 'Quantos divisores positivos tem o número 36?', ops: ['6', '8', '9', '10', '12'], c: 2, exp: 'Os divisores são 1, 2, 3, 4, 6, 9, 12, 18 e 36: são 9.' },
+  { id: 'n2-03', n: 2, tema: 'Álgebra', t: 'Se x + 1/x = 5, quanto vale x² + 1/x²?', ops: ['10', '23', '24', '25', '27'], c: 1, exp: 'Elevando ao quadrado: (x + 1/x)² = x² + 2 + 1/x² = 25. Então x² + 1/x² = 25 − 2 = 23.' },
+  { id: 'n2-04', n: 2, tema: 'Geometria', t: 'Uma escada de 5 m está apoiada num muro, com o pé a 3 m da base do muro. A que altura a escada toca o muro?', fig: 'escada', ops: ['2 m', '3 m', '4 m', '4,5 m', '8 m'], c: 2, exp: 'A escada, o muro e o chão formam um triângulo retângulo. Pelo Teorema de Pitágoras: altura² = 5² − 3² = 25 − 9 = 16, então a altura é 4 m.' },
+  { id: 'n2-05', n: 2, tema: 'Contagem', t: 'Quantos números de três algarismos distintos podem ser formados usando apenas os algarismos 1, 2, 3 e 4?', ops: ['12', '24', '36', '64', '81'], c: 1, exp: '4 escolhas para a centena, 3 para a dezena e 2 para a unidade: 4 × 3 × 2 = 24.' },
+  { id: 'n2-06', n: 2, tema: 'Probabilidade', t: 'Lançando dois dados comuns, qual é a probabilidade de a soma das faces ser 7?', ops: ['1/12', '1/9', '1/6', '7/36', '1/3'], c: 2, exp: 'Há 6 × 6 = 36 resultados. Dão soma 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1), que são 6. Probabilidade: 6/36 = 1/6.' },
+  { id: 'n2-07', n: 2, tema: 'Álgebra', t: 'Num estacionamento há só carros e motos: são 20 veículos e 64 rodas. Quantas são as motos?', ops: ['6', '8', '10', '12', '14'], c: 1, exp: 'Se os 20 fossem motos, seriam 40 rodas. Sobram 24 rodas; cada carro tem 2 rodas a mais que uma moto: 24 ÷ 2 = 12 carros. Motos: 20 − 12 = 8.' },
+  { id: 'n2-08', n: 2, tema: 'Porcentagem', t: 'O preço de um produto subiu 20% e, depois, o novo preço caiu 20%. Comparado com o preço original, o preço final é:', ops: ['igual', '2% menor', '4% menor', '4% maior', '20% menor'], c: 2, exp: 'Subir 20% é multiplicar por 1,2; cair 20% é multiplicar por 0,8. 1,2 × 0,8 = 0,96: o preço final é 96% do original, ou seja, 4% menor.' },
+  { id: 'n2-09', n: 2, tema: 'Geometria', t: 'Quanto mede cada ângulo interno de um hexágono regular?', ops: ['100°', '108°', '120°', '135°', '144°'], c: 2, exp: 'A soma dos ângulos internos de um polígono de n lados é (n − 2) × 180°. Para o hexágono: 4 × 180° = 720°. Cada ângulo: 720° ÷ 6 = 120°.' },
+  { id: 'n2-10', n: 2, tema: 'Números', t: 'Qual é o menor número inteiro positivo maior que 1 que deixa resto 1 quando dividido por 2, por 3, por 4 e por 5?', ops: ['31', '41', '59', '61', '121'], c: 3, exp: 'Esse número menos 1 precisa ser múltiplo de 2, 3, 4 e 5 ao mesmo tempo. O menor múltiplo comum é 60. Então o número é 60 + 1 = 61.' },
+  { id: 'n2-11', n: 2, tema: 'Álgebra', t: 'Qual é a soma das raízes da equação x² − 7x + 10 = 0?', ops: ['−7', '2', '5', '7', '10'], c: 3, exp: 'As raízes são 2 e 5, porque 2 + 5 = 7 e 2 × 5 = 10. A soma é 7.' },
+  { id: 'n2-12', n: 2, tema: 'Lógica', t: 'Há três caixas: uma só com balas, uma só com chicletes e uma com os dois. Todas as etiquetas estão trocadas, nenhuma está certa. Tirando um único doce de qual caixa dá para descobrir o conteúdo das três?', ops: ['Da etiquetada “balas”', 'Da etiquetada “chicletes”', 'Da etiquetada “misturado”', 'De qualquer uma', 'Não é possível com um só doce'], c: 2, exp: 'A caixa “misturado” está errada, então tem só um tipo. Se sair uma bala, ela é a das balas. A caixa “chicletes” não pode ter chicletes nem balas, então é a misturada, e a “balas” fica com os chicletes. Com chiclete o raciocínio é o mesmo.' },
+  { id: 'n2-13', n: 2, tema: 'Geometria', t: 'Um círculo está dentro de um quadrado de lado 10 cm, tocando os quatro lados. Qual é a área da parte do quadrado que fica fora do círculo? Use π = 3,14.', fig: 'circulo', ops: ['15,7 cm²', '21,5 cm²', '31,4 cm²', '50 cm²', '78,5 cm²'], c: 1, exp: 'O raio do círculo é 5 cm. Área do quadrado: 100 cm². Área do círculo: 3,14 × 5² = 78,5 cm². Fora do círculo: 100 − 78,5 = 21,5 cm².' },
+  { id: 'n2-14', n: 2, tema: 'Padrões', t: 'Qual é o valor da soma 1 + 2 + 3 + … + 100?', ops: ['5000', '5050', '5100', '10000', '10100'], c: 1, exp: 'Juntando os números aos pares, 1 + 100, 2 + 99, …, cada par soma 101. São 50 pares: 50 × 101 = 5050.' },
+  { id: 'n2-15', n: 2, tema: 'Proporção', t: 'Um ciclista percorre metade de um caminho a 10 km/h e a outra metade a 15 km/h. Qual é a velocidade média no caminho todo?', ops: ['11 km/h', '12 km/h', '12,5 km/h', '13 km/h', '25 km/h'], c: 1, exp: 'Imagine um caminho de 60 km. A primeira metade (30 km) leva 3 h e a segunda leva 2 h. Total: 60 km em 5 h = 12 km/h. Não é a média simples, porque ele passa mais tempo na parte lenta.' }
+];
+const DES_POR_PROVA = 5;
+const DES_NIVEIS = [
+  { n: 1, nome: 'Nível 1 · 6º e 7º ano', cor: '#5EE6FF' },
+  { n: 2, nome: 'Nível 2 · 8º e 9º ano', cor: '#B79BFF' }
+];
+const DES_NIVEL_MIN = 3;              // nível do jogador para abrir a ilha
+const DES_XP = 15, DES_MOEDAS = 10;   // XP por questão resolvida pela 1ª vez · moedas por prova concluída pela 1ª vez
+const DES_SEMANA_XP = 40, DES_SEMANA_MOEDAS = 20;
+const DES_MEDALHAS = [[10, 'Bronze', '#E3A46B'], [20, 'Prata', '#C9CDF0'], [30, 'Ouro', '#FFD23F'], [40, 'Mestre Olímpico', '#B79BFF']];
+/* provas: blocos de 5 questões de cada nível, na ordem do banco */
+const DES_PROVAS = [];
+DES_NIVEIS.forEach(N => { const qs = DESAFIOS.filter(q => q.n === N.n); for (let i = 0; i < qs.length; i += DES_POR_PROVA) DES_PROVAS.push({ id: 'p' + N.n + '-' + (i / DES_POR_PROVA + 1), n: N.n, k: i / DES_POR_PROVA + 1, ids: qs.slice(i, i + DES_POR_PROVA).map(q => q.id) }); });
+const desQ = (id) => DESAFIOS.find(q => q.id === id);
+const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+/* transforma uma questão do banco no formato da lição (múltipla escolha: valor = nº da alternativa) */
+const desParaLicao = (q) => ({ id: q.id, texto: q.t, ops: q.ops, fig: q.fig ? DES_FIG[q.fig] : '', valor: q.c + 1, resposta: LETRAS[q.c] + ') ' + q.ops[q.c], exp: q.exp, st: 'desafio' });
+
+/* ---------- estado do aluno ---------- */
+function desEstado() { if (!P.des || typeof P.des !== 'object') P.des = {}; const d = P.des; if (!Array.isArray(d.res)) d.res = []; if (!d.prov || typeof d.prov !== 'object') d.prov = {}; if (!d.sem || typeof d.sem !== 'object') d.sem = {}; return d; }
+const desResolvidas = () => desEstado().res.length;
+const desMedalha = () => DES_MEDALHAS.filter(m => desResolvidas() >= m[0]).pop() || null;
+const desLiberada = () => (P && (P.gm || nivelDe(P.xp).n >= DES_NIVEL_MIN));
+function desProvaLivre(p) { const ant = DES_PROVAS.filter(x => x.n === p.n && x.k === p.k - 1)[0]; return !ant || (desEstado().prov[ant.id] || 0) >= 1; }
+/* semana no formato 2026-W48: a mesma questão para todo mundo na mesma semana */
+function semanaStr(d) { d = d ? new Date(d) : new Date(); const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dia = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dia); const ini = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); const w = Math.ceil(((t - ini) / 864e5 + 1) / 7); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); }
+function desDaSemana() { const s = semanaStr(), n = parseInt(s.slice(0, 4)) * 53 + parseInt(s.slice(6)); const nivel = P && nivelDe(P.xp).n >= 15 ? 2 : 1, lista = DESAFIOS.filter(q => q.n === nivel); return { semana: s, q: lista[(n * 7) % lista.length] }; }
+
+/* ---------- painel da ilha (aparece no lugar do mapa) ---------- */
+const TROFEU = (c, t = 22) => `<svg viewBox="0 0 24 24" width="${t}" height="${t}" aria-hidden="true" style="flex:none;display:block"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="${c}"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="${c}" stroke-width="2"/><rect x="11" y="12" width="2" height="5" fill="${c}"/><rect x="8" y="17" width="8" height="3" fill="${c}"/></svg>`;
+function desafiosHTML() {
+  const d = desEstado(), med = desMedalha(), res = d.res.length, total = DESAFIOS.length, ds = desDaSemana(), feitoSem = d.sem.w === ds.semana;
+  const prox = DES_MEDALHAS.find(m => res < m[0]);
+  let a = `<div class="cartao cantos" style="display:flex;flex-direction:column;gap:10px;padding:14px;border-color:#B79BFF;background:linear-gradient(160deg,#B79BFF22,var(--card) 60%)">`
+    + `<div style="display:flex;align-items:center;gap:12px">${TROFEU(med ? med[2] : '#62668F', 44)}<div style="flex:1;min-width:0"><p class="cp" style="margin:0;font-size:18px;letter-spacing:2px">ILHA DOS DESAFIOS</p><p class="aviso" style="font-size:12px">Questões no estilo das olimpíadas de matemática. Pense com calma: aqui não tem cronômetro nem corações.</p></div></div>`
+    + `<div style="display:flex;align-items:center;gap:8px"><span class="cp" style="font-size:13px;color:${med ? med[2] : 'var(--texto2)'}">${med ? 'MEDALHA ' + med[1].toUpperCase() : 'SEM MEDALHA AINDA'}</span><span class="barra" style="flex:1;height:6px;border:0;background:#22264A"><i style="width:${res / total * 100}%;background:#B79BFF"></i></span><span class="cp" style="font-size:12px;color:var(--texto2)">${res}/${total}</span></div>`
+    + `<p class="aviso" style="font-size:12px">${prox ? 'Resolva ' + (prox[0] - res) + ' ' + (prox[0] - res === 1 ? 'questão' : 'questões') + ' para a medalha ' + prox[1] + '. ' : 'Você resolveu todas! '}Cada questão resolvida pela primeira vez vale +${DES_XP} XP.</p></div>`;
+  a += `<button class="cartao" id="des-semana" style="display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;border-color:${feitoSem ? 'var(--borda)' : 'var(--amarelo)'}${feitoSem ? '' : ';background:rgba(255,210,63,.06)'}">${TROFEU(feitoSem ? (d.sem.ok ? '#6FE3C1' : '#62668F') : '#FFD23F', 30)}<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="cp" style="font-size:14px;letter-spacing:1px;color:${feitoSem ? 'var(--texto2)' : 'var(--amarelo)'}">DESAFIO DA SEMANA</span><span style="font-size:12px;color:var(--texto2)">${feitoSem ? (d.sem.ok ? 'Você acertou! Volte na próxima semana.' : 'Não foi dessa vez. Na próxima semana tem outro.') : 'Uma questão, uma tentativa só. Acerte e ganhe +' + DES_SEMANA_XP + ' XP e +' + DES_SEMANA_MOEDAS + ' moedas.'}</span></span>${feitoSem ? '' : `<span class="cp" style="padding:6px 10px;background:var(--amarelo);color:var(--bg);font-size:11px;letter-spacing:1px">ENCARAR</span>`}</button>`;
+  let b = '';
+  DES_NIVEIS.forEach(N => {
+    const provas = DES_PROVAS.filter(p => p.n === N.n);
+    b += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><i style="width:10px;height:10px;background:${N.cor}"></i><span class="cp" style="flex:1;font-size:13px;letter-spacing:2px">${N.nome.toUpperCase()}</span><span class="cp" style="font-size:12px;color:var(--texto2)">${provas.filter(p => d.prov[p.id] >= 1).length}/${provas.length}</span></div>`
+      + provas.map(p => {
+        const livre = desProvaLivre(p), est = d.prov[p.id] || 0, temas = [...new Set(p.ids.map(id => desQ(id).tema))].slice(0, 3).join(', ');
+        return `<button class="etapa${livre && !est ? ' atual' : ''}" data-prova="${p.id}" aria-label="Prova ${p.k}, ${N.nome}${est ? ', ' + est + ' de 3 estrelas' : livre ? '' : ', bloqueada'}"><span class="bol cp" style="background:${livre ? N.cor : '#22264A'}">${livre ? p.k : CADEADO()}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600;color:${livre ? 'var(--texto)' : '#6E7299'}">Prova ${p.k}</span><span style="font-size:11px;color:var(--texto3)">${temas}</span></span>${est ? estrelasHTML(est, 12) : livre ? `<span class="cp" style="padding:6px 10px;background:${N.cor};color:var(--bg);font-size:11px;letter-spacing:1px">COMEÇAR</span>` : ''}</button>`;
+      }).join('') + `</div>`;
+  });
+  return { a, b };
+}
+function ligarDesafios(t) {
+  if ($('des-semana')) $('des-semana').onclick = abrirSemana;
+  t.querySelectorAll('[data-prova]').forEach(b => b.onclick = () => abrirProva(b.dataset.prova));
+}
+function abrirProva(id) {
+  const p = DES_PROVAS.find(x => x.id === id); if (!p) return;
+  if (!desProvaLivre(p)) { avisar('Conquiste pelo menos 1 estrela na prova ' + (p.k - 1) + ' para liberar esta.'); return; }
+  const N = DES_NIVEIS.find(x => x.n === p.n), est = desEstado().prov[p.id] || 0, novas = p.ids.filter(i => !desEstado().res.includes(i)).length;
+  abrirFolha(cabFolha('ILHA DOS DESAFIOS')
+    + `<p class="cp" style="margin:0;font-size:24px">Prova ${p.k}</p><p class="aviso" style="color:${N.cor}">${N.nome}</p>`
+    + (est ? `<div style="display:flex;align-items:center;gap:10px">${estrelasHTML(est, 18)}<p class="aviso">Sua marca: ${est} de 3 estrelas.</p></div>` : '')
+    + `<p style="margin:0;font-size:14px">${p.ids.length} questões de múltipla escolha · sem cronômetro e sem corações</p>`
+    + `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:var(--bg);border:1px solid var(--borda)"><p class="aviso">★★★ com 5 acertos · ★★ com 4 · ★ com 3 (libera a próxima prova)</p><p class="aviso">Leia com atenção: as alternativas erradas costumam esconder as pegadinhas.</p></div>`
+    + `<p style="margin:0;font-size:13px;color:var(--amarelo);display:flex;align-items:center;gap:6px">${MOEDA}${novas ? '+' + DES_XP + ' XP por questão nova resolvida (' + novas + ' ainda não resolvidas)' : 'Você já resolveu todas desta prova: refaça para treinar'}${est ? '' : ' · +' + DES_MOEDAS + ' moedas ao concluir'}</p>`
+    + `<button class="btn btn-prim" id="prova-ir">${est ? 'REFAZER' : 'COMEÇAR'}</button>`, 'Prova ' + p.k);
+  $('prova-ir').onclick = () => { fecharFolha(); iniciarDesafio({ tipo: 'prova', id: p.id, nome: 'Prova ' + p.k, nivel: p.n, qs: p.ids.map(i => desParaLicao(desQ(i))) }); };
+}
+function abrirSemana() {
+  const d = desEstado(), ds = desDaSemana();
+  if (d.sem.w === ds.semana) { avisar(d.sem.ok ? 'Você já acertou o desafio desta semana!' : 'Você já tentou o desafio desta semana. Na próxima tem outro!'); return; }
+  abrirFolha(cabFolha('DESAFIO DA SEMANA')
+    + `<div style="display:flex;align-items:center;gap:12px">${TROFEU('#FFD23F', 40)}<p class="cp" style="margin:0;font-size:20px">Uma questão. Uma chance.</p></div>`
+    + `<p style="margin:0;font-size:14px">Você tem <b>uma única tentativa</b> nesta semana. Leia com calma antes de escolher.</p>`
+    + `<p style="margin:0;font-size:13px;color:var(--amarelo);display:flex;align-items:center;gap:6px">${MOEDA}Acertou: +${DES_SEMANA_XP} XP e +${DES_SEMANA_MOEDAS} moedas</p>`
+    + `<button class="btn btn-prim" id="sem-ir">ENCARAR O DESAFIO</button>`, 'Desafio da semana');
+  $('sem-ir').onclick = () => { fecharFolha(); d.sem = { w: ds.semana, ok: false, id: ds.q.id }; salvarPerfil(); iniciarDesafio({ tipo: 'semana', id: ds.semana, nome: 'Desafio da Semana', nivel: ds.q.n, qs: [desParaLicao(ds.q)] }); };
+}
+function iniciarDesafio(cfg) {
+  checarDia(); $('toast').classList.remove('on');
+  const ids = Object.keys(CHEFES_ILHA), mid = ids[Math.floor(Math.random() * ids.length)];
+  L = { g: -1, des: cfg, qs: cfg.qs, i: 0, cor: CORACOES, semCor: true, dig: '', erro: '', fase: 'pergunta', hist: [], xp: 0, missoes: [], capou: false, nivel0: nivelDe(P.xp).n, med0: desMedalha(), mon: CHEFES_ILHA[mid], chefe: cfg.tipo === 'semana', elR: CHEFES_ILHA[mid].el };
+  mostrar('licao'); montarLicao(); renderLicao(); requestAnimationFrame(ajustarLicao);
+}
+/* XP do desafio: só na primeira vez que resolve cada questão */
+function desAcertou(q) { const d = desEstado(); if (d.res.includes(q.id) || !q.id || L.des.tipo === 'semana') return 0; d.res.push(q.id); ganharXp(DES_XP); return DES_XP; }
+function fimDesafio() {
+  limparTimers();
+  const D = L.des, d = desEstado(), n = L.qs.length, ac = L.hist.filter(Boolean).length, med0 = L.med0;
+  let titulo, sub, est = 0, moedas = 0, extra = '';
+  if (D.tipo === 'semana') {
+    const ok = ac === 1; d.sem = { w: D.id, ok, id: L.qs[0].id };
+    if (ok) { ganharXp(DES_SEMANA_XP); L.xp += DES_SEMANA_XP; P.moedas += DES_SEMANA_MOEDAS; moedas = DES_SEMANA_MOEDAS; }
+    titulo = ok ? 'DESAFIO DA SEMANA VENCIDO!' : 'NÃO FOI DESSA VEZ!'; sub = ok ? 'Você acertou a questão da semana.' : 'Leia a explicação na correção e volte na próxima semana.';
+  } else {
+    est = ac >= 5 ? 3 : ac === 4 ? 2 : ac === 3 ? 1 : 0;
+    const antes = d.prov[D.id] || 0;
+    if (est > antes) d.prov[D.id] = est;
+    if (est && !antes) { moedas = DES_MOEDAS; P.moedas += moedas; }
+    titulo = est ? (antes ? 'PROVA REFEITA!' : 'PROVA CONCLUÍDA!') : 'QUASE LÁ!';
+    const prox = DES_PROVAS.find(p => p.n === D.nivel && p.id !== D.id && desProvaLivre(p) && !d.prov[p.id]);
+    sub = est ? (!antes && prox ? 'Prova ' + prox.k + ' liberada!' : 'Sua melhor marca foi guardada.') : 'Acerte pelo menos 3 de 5 para conquistar a primeira estrela.';
+  }
+  const med = desMedalha();
+  if (med && (!med0 || med[0] > med0[0])) extra = `<div class="entra" style="padding:10px 12px;border:1px solid ${med[2]};background:${med[2]}14;display:flex;align-items:center;gap:10px">${TROFEU(med[2], 30)}<p style="margin:0;font-size:14px;font-weight:600">Nova medalha na Ilha dos Desafios: <span style="color:${med[2]}">${med[1]}</span>!</p></div>`;
+  salvarPerfil();
+  const subiu = nivelDe(P.xp).n > L.nivel0;
+  $('lc-fim').innerHTML = `<p class="cp" style="margin:0;text-align:center;font-size:24px;letter-spacing:2px;color:var(--amarelo)">${titulo}</p>`
+    + `<p style="margin:0;text-align:center;font-size:14px;color:var(--texto2)">${esc(D.nome)} · ${ac} de ${n} ${n === 1 ? 'questão' : 'acertos'}</p>`
+    + (D.tipo === 'prova' ? `<div role="img" aria-label="${est} de 3 estrelas" style="display:flex;justify-content:center;gap:12px;padding:4px 0">${[0, 1, 2].map(i => `<i class="estrela-fim" style="animation-delay:${0.25 + i * 0.3}s;background:${i < est ? '#FFD23F' : '#2A2E55'}"></i>`).join('')}</div>` : `<div style="display:flex;justify-content:center">${TROFEU(ac ? '#FFD23F' : '#62668F', 56)}</div>`)
+    + `<div style="display:flex;justify-content:center;gap:8px"><span class="cp" style="padding:6px 10px;background:rgba(94,230,255,.12);font-size:15px;color:var(--ciano)">+${L.xp} XP</span><span class="cp" style="padding:6px 10px;background:rgba(255,210,63,.12);font-size:15px;color:var(--amarelo);display:flex;align-items:center;gap:6px">${MOEDA}+${moedas}</span></div>`
+    + (subiu ? `<p class="cp" style="margin:0;text-align:center;font-size:15px;color:var(--ciano)">Você subiu para o nível ${nivelDe(P.xp).n}!</p>` : '')
+    + `<p style="margin:0;text-align:center;font-size:14px;font-weight:600">${sub}</p>` + extra
+    + `<div style="flex:1;min-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--borda);padding:10px 12px"><p class="rot">CORREÇÃO</p>`
+    + L.qs.map((q, k) => `<div style="display:flex;gap:10px;border-top:1px solid #22264A;padding-top:6px"><span role="img" aria-label="${L.hist[k] ? 'Acertou' : 'Errou'}" style="display:flex;padding-top:2px">${L.hist[k] ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1') : ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D')}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-size:13px">${fracHTML(esc(q.texto))}</span><span style="font-size:12px;color:${L.hist[k] ? '#6FE3C1' : 'var(--texto2)'}">Resposta: ${fracHTML(esc(q.resposta))}</span>${L.hist[k] ? '' : `<span style="font-size:12px;color:var(--texto2)">${fracHTML(esc(q.exp))}</span>`}</span></div>`).join('') + `</div>`
+    + (D.tipo === 'prova' ? `<button class="btn btn-prim" id="lc-mapa">VOLTAR À ILHA</button>${est < 3 ? `<button class="btn btn-sec" id="lc-denovo" style="flex:none;min-height:44px">${est ? 'REFAZER PARA BUSCAR AS 3 ESTRELAS' : 'TENTAR DE NOVO'}</button>` : ''}` : `<button class="btn btn-prim" id="lc-mapa">VOLTAR À ILHA</button>`);
+  $('t-licao').scrollTop = 0; $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
+  $('lc-mapa').onclick = () => { $('lc-fim').classList.remove('on'); L = null; UI.desafios = true; irAba('inicio'); };
+  if ($('lc-denovo')) $('lc-denovo').onclick = () => { $('lc-fim').classList.remove('on'); const D2 = L.des; L = null; abrirProva(D2.id); };
+}
+/* cartão da conta */
+function desCartaoHTML() {
+  const res = desResolvidas(), med = desMedalha(), estr = Object.values(desEstado().prov).reduce((a, x) => a + x, 0);
+  return `<div class="cartao" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px">${TROFEU(med ? med[2] : '#62668F', 22)}<p class="rot" style="flex:1">ILHA DOS DESAFIOS</p><span class="cp" style="font-size:12px;color:${med ? med[2] : 'var(--texto3)'}">${med ? med[1].toUpperCase() : desLiberada() ? 'SEM MEDALHA' : 'ABRE NO NÍVEL ' + DES_NIVEL_MIN}</span></div>`
+    + `<div class="stats" style="grid-template-columns:repeat(3,1fr)">${[[res + '/' + DESAFIOS.length, 'RESOLVIDAS', '#B79BFF'], [estr, 'ESTRELAS', 'var(--amarelo)'], [desEstado().sem.ok ? 'SIM' : '—', 'SEMANA', 'var(--verde)']].map(([v, r, c]) => `<div class="stat"><b style="color:${c}">${v}</b><small>${r}</small></div>`).join('')}</div></div>`;
+}
+
 /* ================== v0.04/v0.05: abas, missões, trilha e Treino Solo ================== */
 const hojeStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const LIMITE_TREINO = 100, BAU = 30;
@@ -2149,7 +2334,8 @@ function mapaHTML() {
   const [mi, ri] = UI.regiao, M = MUNDOS[mi];
   let h = `<div class="lg-mapa"><p class="rot" style="margin-top:4px">MAPA DE TREINO</p>`
     + `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--texto2);white-space:nowrap">Treino de hoje: ${P.dia.xpTreino}/${LIMITE_TREINO} XP</span><span class="barra" style="flex:1;height:5px;border:0;background:#22264A"><i style="width:${P.dia.xpTreino}%;background:#36C46B"></i></span></div>`
-    + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${W.nome.toUpperCase()}</button>`).join('')}</div>`;
+    + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi && !UI.desafios}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${W.nome.toUpperCase()}</button>`).join('')}<button class="mundo des" data-mundo="des" aria-pressed="${!!UI.desafios}">${desLiberada() ? TROFEU('#B79BFF', 13) : CADEADO('#8B8FB8', 13)}DESAFIOS</button></div>`;
+  if (UI.desafios) { const D = desafiosHTML(); return h + D.a + D.b + `</div><div class="lg-etapas"></div>`; }
   const pts = M.regioes.map((R, k) => (ILHA[k][0] + 66) + ',' + (ILHA[k][1] + 52));
   const livres = M.regioes.filter(R => a >= R.inicio).length;
   h += `<div class="mapa" id="mapa"><div id="mapa-in" style="position:absolute;left:0;top:0;width:354px;height:392px;transform-origin:0 0"><svg viewBox="0 0 354 392" width="354" height="392" aria-hidden="true" style="position:absolute;left:0;top:0"><polyline points="${pts.join(' ')}" fill="none" stroke="#2A2E55" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/><polyline points="${pts.slice(0, livres).join(' ')}" fill="none" stroke="#FFD23F" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/></svg>`
@@ -2180,12 +2366,15 @@ function ligarMapa() {
   const t = $('t-inicio');
   ajustarMapa(); requestAnimationFrame(ajustarMapa);
   t.querySelectorAll('[data-mundo]').forEach(b => b.onclick = () => {
+    if (b.dataset.mundo === 'des') { if (!desLiberada()) { avisar('A Ilha dos Desafios abre no nível ' + DES_NIVEL_MIN + '. Continue treinando!'); return; } UI.desafios = true; renderInicio(); return; }
+    UI.desafios = false;
     const k = +b.dataset.mundo;
     if (!mundoLiberado(k)) { avisar('O Mundo 2 (7º ano) abre quando você vencer o Chefão do Raio do Mundo 1.'); return; }
     UI.regiao = [k, 0]; UI.destaque = null; renderInicio(); const m = $('t-inicio').querySelector('.mapa'); if (m) m.scrollIntoView({ block: 'start' });
   });
   t.querySelectorAll('[data-regiao]').forEach(b => b.onclick = () => { UI.regiao = [UI.regiao[0], +b.dataset.regiao]; UI.destaque = null; const y = t.scrollTop; renderInicio(); $('t-inicio').scrollTop = y; });
   t.querySelectorAll('[data-etapa]').forEach(b => b.onclick = () => abrirEtapa(+b.dataset.etapa));
+  ligarDesafios(t);
   const bau = $('bau'); if (bau) bau.onclick = () => {
     const f = missoesFeitas();
     if (P.dia.bau) { avisar('Você já abriu o baú de hoje. Amanhã tem mais!'); return; }
@@ -2213,7 +2402,7 @@ function irParaEtapa(st) {
   let g;
   if (cands.length) g = cands[cands.length - 1][1];
   else { g = a; avisar('Esse conteúdo aparece mais à frente na trilha. Continue de onde parou!'); }
-  const e = ETAPAS[g]; UI.regiao = [e.mi, e.ri]; UI.destaque = g;
+  const e = ETAPAS[g]; UI.regiao = [e.mi, e.ri]; UI.destaque = g; UI.desafios = false;
   irAba('inicio');
   const b = $('t-inicio').querySelector('[data-etapa="' + g + '"]'); if (b) b.scrollIntoView({ block: 'center' });
   if (cands.length) setTimeout(() => abrirEtapa(g), 350);
@@ -2234,12 +2423,14 @@ function iniciarLicao(g) {
   L = { g, qs, i: 0, cor: CORACOES, dig: '', erro: '', fase: 'pergunta', hist: [], xp: 0, missoes: [], capou: false, nivel0: nivelDe(P.xp).n, mon, chefe: e.chefe, elR };
   mostrar('licao'); montarLicao(); renderLicao(); requestAnimationFrame(ajustarLicao);
 }
+/* dados da lição: etapa da trilha ou prova da Ilha dos Desafios */
+function lcInfo() { if (L.des) return { nome: L.des.nome, chefe: L.des.tipo === 'semana', cor: '#B79BFF', ilha: 'ILHA DOS DESAFIOS' }; const e = ETAPAS[L.g], R = MUNDOS[e.mi].regioes[e.ri]; return { nome: e.nome, chefe: e.chefe, cor: EL[R.el].cor, ilha: NOME_ILHA[R.el] }; }
 function montarLicao() {
-  const e = ETAPAS[L.g], R = MUNDOS[e.mi].regioes[e.ri], C = EL[R.el].cor, E = EL[P.el], nv = nivelDe(P.xp).n, tam = L.chefe ? 112 : 92;
+  const I = lcInfo(), C = I.cor, E = EL[P.el], nv = nivelDe(P.xp).n, tam = L.chefe ? 112 : 92;
   $('lc-cena').innerHTML = `<div id="lc-in" style="position:absolute;left:0;top:0;width:358px;height:200px;transform-origin:0 0">`
     + `<div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,${C}33 0%,#1A1430 55%,#12142A 100%)"></div>`
     + `<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:52px;background-color:#1C1630;background-image:linear-gradient(90deg,${C}1F 1px,transparent 1px);background-size:16px 16px;border-top:2px solid ${C}66"></div>`
-    + `<p class="cp" style="position:absolute;left:10px;top:10px;margin:0;padding:3px 8px;background:var(--card);border:1px solid ${C};font-size:10px;letter-spacing:2px;color:${C}">${NOME_ILHA[R.el]}</p>`
+    + `<p class="cp" style="position:absolute;left:10px;top:10px;margin:0;padding:3px 8px;background:var(--card);border:1px solid ${C};font-size:10px;letter-spacing:2px;color:${C}">${I.ilha}</p>`
     + `<div style="position:absolute;left:190px;top:8px;width:160px;display:flex;flex-direction:column;gap:3px;z-index:2"><p class="cp" style="margin:0;display:flex;justify-content:space-between;gap:6px;font-size:11px"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(L.mon.nome.toUpperCase())}${L.chefe ? ' · CHEFÃO' : ''}</span><span id="lc-arm-n"></span></p><div id="lc-arm" role="img" style="display:flex;gap:2px"></div></div>`
     + `<div aria-hidden="true" style="position:absolute;left:${266 - tam / 2 + 8}px;top:${150 - 6}px;width:${tam - 16}px;height:10px;border-radius:50%;background:rgba(0,0,0,.4)"></div>`
     + `<div style="position:absolute;left:${266 - tam / 2}px;top:${150 - tam}px;width:${tam}px;height:${tam}px"><div id="lc-boneco" style="width:100%;height:100%">${L.mon.svg}</div><div id="lc-fx" aria-hidden="true" style="position:absolute;left:50%;top:50%;width:100px;height:140px;margin:-70px 0 0 -50px;pointer-events:none;z-index:4"></div><div id="lc-esc" aria-hidden="true" style="position:absolute;left:-8px;top:-6px;width:${tam + 16}px;height:${tam + 12}px;border:3px solid #A9ADD6;border-radius:45%;background:rgba(169,173,214,.15);opacity:0"></div></div>`
@@ -2255,30 +2446,46 @@ function ajustarLicao() { const c = $('lc-cena'), i = $('lc-in'); if (!c || !i) 
 window.addEventListener('resize', ajustarLicao);
 function quebradas() { return L.hist.filter(Boolean).length - (L.fase === 'certo' && !L.impacto ? 1 : 0); }
 function renderLicao() {
-  const n = L.qs.length, q = L.qs[L.i], e = ETAPAS[L.g], resp = L.fase === 'certo' || L.fase === 'errado';
+  const n = L.qs.length, q = L.qs[L.i], e = lcInfo(), resp = L.fase === 'certo' || L.fase === 'errado';
   $('lc-segs').innerHTML = L.qs.map((_, k) => { const h = L.hist[k]; return `<i style="flex:1;height:10px;${h === true ? 'background:#6FE3C1' : h === false ? 'background:#FF4D6D' : k === L.i ? 'border:2px solid #F2F3FF' : 'background:#22264A'}"></i>`; }).join('');
   $('lc-segs').setAttribute('aria-label', 'Questão ' + (L.i + 1) + ' de ' + n + ', ' + L.hist.filter(Boolean).length + ' acertos');
   $('lc-cont').textContent = (L.i + 1) + '/' + n;
-  const qb = quebradas(), C = EL[MUNDOS[e.mi].regioes[e.ri].el].cor;
+  const qb = quebradas(), C = e.cor;
   $('lc-arm').innerHTML = L.qs.map((_, k) => `<i style="flex:1;height:8px;background:${k < qb ? '#2A2E55' : C}"></i>`).join('');
   $('lc-arm-n').textContent = 'VIDA ' + (n - qb) + '/' + n; $('lc-arm').setAttribute('aria-label', 'Vida de ' + L.mon.nome + ': ' + (n - qb) + ' de ' + n);
-  $('lc-cor').innerHTML = coracoesHTML(L.cor); $('lc-cor').setAttribute('aria-label', L.cor + ' de ' + CORACOES + ' corações');
+  $('lc-cor').innerHTML = L.semCor ? '' : coracoesHTML(L.cor); $('lc-cor').setAttribute('aria-label', L.semCor ? 'Sem corações' : L.cor + ' de ' + CORACOES + ' corações');
   const E = EL[P.el];
   const quem = nomeCria(P.el, nivelVisto()), mn = L.mon.nome;
   const efe = efetividade(P.el, L.mon.el);
   $('lc-narra').textContent = L.fase === 'certo' ? 'Você acertou! ' + quem + ' lançou ' + (E.art === 'o' ? 'um ' : 'uma ') + E.golpe + ' em ' + mn + '.' + (efe > 0 ? ' É super efetivo!' : efe < 0 ? ' Não foi muito efetivo…' : '')
-    : L.fase === 'errado' ? mn + (L.cor > 0 ? ' atacou! Você perdeu um coração. ' : ' atacou e seus corações acabaram. ') + 'A resposta é ' + q.resposta + '.'
+    : L.fase === 'errado' ? (L.semCor ? mn + ' se defendeu! ' : mn + (L.cor > 0 ? ' atacou! Você perdeu um coração. ' : ' atacou e seus corações acabaram. ')) + 'A resposta é ' + q.resposta + '.'
+      : L.semCor ? (L.i === 0 && !L.hist.length ? mn + ', guardião da Ilha dos Desafios, apareceu! Pense com calma: aqui não há pressa.' : 'Acerte para ' + quem + ' atacar. Leia cada alternativa com atenção.')
       : L.i === 0 && !L.hist.length ? (L.chefe ? 'O chefão ' + mn + ' apareceu! ' : mn + ' selvagem apareceu! ') + 'Você tem 3 corações: cada erro custa um.'
         : 'Acerte para ' + quem + ' atacar. ' + (L.cor === 1 ? 'Só resta 1 coração!' : 'Restam ' + L.cor + ' corações.');
-  $('lc-perg').innerHTML = `<p class="rot">${e.chefe ? 'CHEFÃO · ' : ''}${esc(e.nome.toUpperCase())} · QUESTÃO ${L.i + 1} DE ${n}</p><p class="pergunta" style="${q.texto.length > 34 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:18px' : 'font-size:34px'}">${fracHTML(q.texto)}</p>`
+  $('lc-perg').innerHTML = `<p class="rot">${e.chefe && !L.des ? 'CHEFÃO · ' : ''}${esc(e.nome.toUpperCase())} · QUESTÃO ${L.i + 1} DE ${n}</p><p class="pergunta" style="${q.texto.length > 90 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:16px;line-height:1.45;text-align:left' : q.texto.length > 34 ? 'font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:18px' : 'font-size:34px'}">${fracHTML(q.ops ? esc(q.texto) : q.texto)}</p>${q.fig ? `<div style="display:flex;justify-content:center;padding:4px 0">${q.fig}</div>` : ''}`
     + (L.fase === 'errado' ? `<p class="aviso entra" style="padding:8px 10px;color:var(--texto);background:rgba(255,77,109,.10);border-left:3px solid var(--vermelho)">${fracHTML(esc(q.exp))}</p>` : '');
   const p = $('lc-painel'), d = L.dig;
   const val = !d ? `<span style="font-size:14px;font-weight:600;color:#62668F">toque nos números</span>` : d.includes('/') ? (() => { const [a, b] = d.split('/'); return `<span class="fr" style="font-size:19px"><span>${esc(a)}</span><span style="min-width:22px;border-top-color:var(--amarelo)">${esc(b)}${b || resp ? '' : '<span class="cursor">_</span>'}</span></span>`; })() : esc(d) + (resp ? '' : '<span class="cursor">_</span>');
   const marca = L.fase === 'certo' ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1', 22) : L.fase === 'errado' ? ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D', 22) : '';
+  if (q.ops) { painelEscolha(p, q, resp); return; }
   p.innerHTML = `<div class="resposta" style="border-color:${L.fase === 'certo' ? 'var(--verde)' : L.fase === 'errado' ? 'var(--vermelho)' : 'var(--ciano)'}"><p class="rot" style="${L.erro ? 'color:var(--vermelho)' : ''}">${L.erro || 'SUA RESPOSTA'}</p><div class="val" aria-live="polite">${val}<span style="margin-left:8px;display:flex">${marca}</span></div></div>`
     + (resp ? `<button class="btn btn-prim entra" id="lc-seguir" style="min-height:${L.fase === 'certo' ? 150 : 120}px;font-size:18px">${L.i >= n - 1 || L.cor <= 0 ? 'VER RESULTADO' : 'CONTINUAR'}</button>`
       : `<div class="teclado">${TECLAS.map(k => `<button class="tecla${NOME_TECLA[k] ? ' esp' : ''}" data-lk="${k}" aria-label="${NOME_TECLA[k] || k}">${k}</button>`).join('')}<button class="btn btn-prim" id="lc-conferir" style="grid-column:span 2;min-height:46px;font-size:17px${d ? '' : ';opacity:.45'}">CONFERIR</button></div>`);
   p.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => teclaLicao(b.dataset.lk));
+  if ($('lc-conferir')) $('lc-conferir').onclick = conferirLicao;
+  if ($('lc-seguir')) $('lc-seguir').onclick = seguirLicao;
+}
+/* múltipla escolha: alternativas A–E; toque escolhe, CONFERIR confirma */
+function painelEscolha(p, q, resp) {
+  const esc_ = +L.dig || 0, certa = q.valor;
+  p.innerHTML = (L.erro ? `<p class="rot" style="color:var(--vermelho)">${L.erro}</p>` : '')
+    + `<div class="alts" role="radiogroup" aria-label="Alternativas">` + q.ops.map((o, i) => {
+      const k = i + 1, sel = esc_ === k, cor = resp ? (k === certa ? 'var(--verde)' : sel ? 'var(--vermelho)' : 'var(--borda)') : sel ? 'var(--ciano)' : 'var(--borda)';
+      return `<button class="alt" role="radio" aria-checked="${sel}" data-alt="${k}" ${resp ? 'disabled' : ''} style="border-color:${cor};${sel || (resp && k === certa) ? 'background:' + (resp ? (k === certa ? 'rgba(111,227,193,.12)' : 'rgba(255,77,109,.12)') : 'rgba(94,230,255,.10)') : ''}"><span class="alt-l cp" style="background:${resp && k === certa ? 'var(--verde)' : sel ? (resp ? 'var(--vermelho)' : 'var(--ciano)') : '#22264A'};color:${sel || (resp && k === certa) ? 'var(--bg)' : 'var(--texto2)'}">${LETRAS[i]}</span><span style="flex:1;min-width:0">${fracHTML(esc(o))}</span></button>`;
+    }).join('') + `</div>`
+    + (resp ? `<button class="btn btn-prim entra" id="lc-seguir" style="min-height:56px;font-size:18px">${L.i >= L.qs.length - 1 || (!L.semCor && L.cor <= 0) ? 'VER RESULTADO' : 'CONTINUAR'}</button>`
+      : `<button class="btn btn-prim" id="lc-conferir" style="min-height:52px;font-size:17px${esc_ ? '' : ';opacity:.45'}">CONFERIR</button>`);
+  p.querySelectorAll('[data-alt]').forEach(b => b.onclick = () => { if (L.fase !== 'pergunta') return; L.dig = b.dataset.alt; L.erro = ''; renderLicao(); });
   if ($('lc-conferir')) $('lc-conferir').onclick = conferirLicao;
   if ($('lc-seguir')) $('lc-seguir').onclick = seguirLicao;
 }
@@ -2295,12 +2502,13 @@ function teclaLicao(k) {
 function conferirLicao() {
   if (!L || L.fase !== 'pergunta' || !L.dig) return;
   const txt = L.dig.replace('−', '-');
-  if (!Number.isFinite(interpretar(txt))) { L.erro = 'COMPLETE A RESPOSTA'; renderLicao(); return; }
+  if (!Number.isFinite(interpretar(txt))) { L.erro = L.qs[L.i].ops ? 'ESCOLHA UMA ALTERNATIVA' : 'COMPLETE A RESPOSTA'; renderLicao(); return; }
   const q = L.qs[L.i], ok = confere(txt, q.valor);
   L.hist.push(ok); L.fase = ok ? 'certo' : 'errado'; L.impacto = false;
-  if (!ok) L.cor = Math.max(0, L.cor - 1);
+  if (!ok && !L.semCor) L.cor = Math.max(0, L.cor - 1);
   registrarResposta(q.st, ok);
-  if (ok) {
+  if (ok && L.des) { const g = desAcertou(q); L.xp += g; const m = progredirMissao('acertos', 1); if (m) L.missoes.push(m); }
+  else if (ok) {
     const ganho = Math.max(0, Math.min(5, LIMITE_TREINO - P.dia.xpTreino));
     if (ganho < 5) L.capou = true;
     ganharXp(ganho); P.dia.xpTreino += ganho; L.xp += ganho;
@@ -2339,6 +2547,7 @@ function seguirLicao() {
   L.i++; L.dig = ''; L.erro = ''; L.fase = 'pergunta'; L.impacto = false; renderLicao();
 }
 function fimLicao() {
+  if (L && L.des) { fimDesafio(); return; }
   limparTimers();
   const e = ETAPAS[L.g], n = L.qs.length, feitas = L.hist.length, ac = L.hist.filter(Boolean).length, passou = L.cor > 0 && feitas >= n, est = passou ? L.cor : 0, novo = L.g === atual();
   let moedas = 0, liberou = '';
@@ -2370,7 +2579,7 @@ function fimLicao() {
     + L.qs.slice(0, feitas).map((q, k) => `<div style="display:flex;align-items:center;gap:10px;min-height:34px;border-top:1px solid #22264A;padding-top:4px"><span role="img" aria-label="${L.hist[k] ? 'Acertou' : 'Errou'}" style="display:flex">${L.hist[k] ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1') : ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D')}</span><span style="flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fracHTML(q.texto)}</span><span class="cp" style="font-size:14px;color:var(--texto2)">${esc(q.resposta)}</span></div>`).join('') + `</div>`
     + (passou ? `<button class="btn btn-prim" id="lc-mapa">VOLTAR AO MAPA</button>` : `<button class="btn btn-prim" id="lc-denovo">TENTAR DE NOVO</button><button class="btn btn-sec" id="lc-mapa" style="flex:none;min-height:44px">VOLTAR AO MAPA</button>`)
     + (passou && est < 3 ? `<button class="btn btn-sec" id="lc-denovo" style="flex:none;min-height:44px">REFAZER PARA BUSCAR AS 3 ESTRELAS</button>` : '');
-  $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
+  $('t-licao').scrollTop = 0; $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
   $('lc-mapa').onclick = () => { $('lc-fim').classList.remove('on'); L = null; irAba('inicio'); };
   if ($('lc-denovo')) $('lc-denovo').onclick = () => { $('lc-fim').classList.remove('on'); iniciarLicao(L.g); };
 }
@@ -2383,6 +2592,8 @@ document.addEventListener('keydown', e => {
   if (!L || !$('t-licao').classList.contains('ativa') || $('folha-fundo').classList.contains('on')) return;
   if (L.fase === 'pergunta') {
     const mapa = { Backspace: '⌫', '-': '−', '.': ',', ',': ',', '/': '/' };
+    const q = L.qs[L.i];
+    if (q && q.ops) { const k = 'abcde'.indexOf(e.key.toLowerCase()), d = /^[1-5]$/.test(e.key) ? +e.key - 1 : k; if (d >= 0 && d < q.ops.length) { L.dig = String(d + 1); L.erro = ''; renderLicao(); } else if (e.key === 'Enter') { e.preventDefault(); conferirLicao(); } return; }
     if (/^[0-9]$/.test(e.key)) teclaLicao(e.key); else if (mapa[e.key]) { e.preventDefault(); teclaLicao(mapa[e.key]); } else if (e.key === 'Enter') { e.preventDefault(); conferirLicao(); }
   } else if (e.key === 'Enter' && (L.fase === 'certo' || L.fase === 'errado')) { e.preventDefault(); seguirLicao(); }
 });
@@ -2408,6 +2619,7 @@ function renderConta() {
     + `<p class="aviso" style="font-size:12px">${P.partidas} partida${P.partidas === 1 ? '' : 's'} · ${P.xp} XP no total · ${P.estrelas.length} etapa${P.estrelas.length === 1 ? '' : 's'} da trilha</p></div></div>`
     + ligaCartaoHTML()
     + seqCartaoHTML()
+    + desCartaoHTML()
     + cartaoLojaHTML()
     + `<div class="cartao" style="padding:6px 14px"><p class="rot" style="padding:8px 0 4px">MINHA CONTA</p>${dados.map(([k, v]) => `<div class="dado"><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>`
     + (ONLINE && CONTA && !CONTA.gm ? `<button class="btn ${tur ? 'btn-sec' : 'btn-prim'}" id="ct-turma" style="flex:none;min-height:48px">${tur ? 'TROCAR DE TURMA' : 'ENTRAR NUMA TURMA'}</button>` : '')
@@ -2603,6 +2815,39 @@ const semestreAtual = () => { const d = new Date(); return d.getFullYear() + '-'
 function checarLigaSemestre() {
   const s = semestreAtual();
   if (P.liga.sem !== s) { P.liga.idx = Math.max(0, P.liga.idx - 3); P.liga.pts = 0; P.liga.sem = s; P.liga.hist = []; }
+}
+/* ---------- Ranking completo dos alunos (só GMs) ---------- */
+const RK = { crit: 'nivel', ordem: 'desc', escopo: 'turma' };
+const RK_CRIT = {
+  nivel: { rot: 'NÍVEL', val: a => a.nivel * 1e6 + a.xp, txt: a => 'Nv ' + a.nivel, sub: a => a.xp + ' XP', dica: 'Nível mostra quem mais joga. Quem está embaixo é quem precisa de incentivo para jogar.' },
+  acertos: { rot: 'ACERTOS', val: a => a.resp >= 10 ? a.pct : null, txt: a => a.resp >= 10 ? a.pct + '%' : '—', sub: a => a.resp + ' respostas', dica: '% de acertos mostra quem domina o conteúdo. Quem está embaixo é quem precisa de ajuda na matéria. Alunos com menos de 10 respostas ficam no fim.' },
+  partidas: { rot: 'PARTIDAS', val: a => a.partidas, txt: a => String(a.partidas), sub: a => 'Nv ' + a.nivel, dica: 'Partidas na Arena e no Treino.' },
+  liga: { rot: 'LIGA', val: a => a.liga, txt: a => ligaNome(Math.max(0, Math.min(14, a.liga))), sub: a => 'Nv ' + a.nivel, dica: 'Liga do semestre, conquistada na Arena contra colegas.' },
+  seq: { rot: 'RECORDE', val: a => a.seqMax, txt: a => a.seqMax + ' seguidas', sub: a => 'Nv ' + a.nivel, dica: 'Maior sequência de vitórias seguidas na Arena.' }
+};
+/* fonte(escopo) devolve [{id, nick, liga, nivel, xp, pct, resp, partidas, seqMax, seq, turma, abrir}] */
+function abrirRanking(fonte, nomeTurma) {
+  const C = RK_CRIT[RK.crit], lista = fonte(RK.escopo);
+  const ord = lista.slice().sort((a, b) => { const va = C.val(a), vb = C.val(b); if (va == null && vb == null) return b.xp - a.xp; if (va == null) return 1; if (vb == null) return -1; return RK.ordem === 'desc' ? (vb - va || b.xp - a.xp) : (va - vb || a.xp - b.xp); });
+  const chip = (g, v, r, on) => `<button class="chip" data-rk="${g}" data-v="${v}" aria-pressed="${on}" style="flex:none">${r}</button>`;
+  const cor = (i, a) => C.val(a) == null ? 'var(--texto3)' : RK.ordem === 'desc' ? (i < 3 ? ['#FFD23F', '#C9CDF0', '#C29A7E'][i] : 'var(--texto3)') : (i < 3 ? '#FF6B6B' : 'var(--texto3)');
+  let h = cabFolha('RANKING DOS ALUNOS')
+    + `<div style="display:flex;gap:6px;overflow-x:auto">${chip('escopo', 'turma', esc(nomeTurma || 'Esta turma'), RK.escopo === 'turma')}${chip('escopo', 'todas', 'Todas as turmas', RK.escopo === 'todas')}</div>`
+    + `<div style="display:flex;flex-wrap:wrap;gap:6px">${Object.keys(RK_CRIT).map(k => chip('crit', k, RK_CRIT[k].rot, RK.crit === k)).join('')}</div>`
+    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${chip('ordem', 'desc', '▲ DO MELHOR', RK.ordem === 'desc')}${chip('ordem', 'asc', '▼ DO PIOR', RK.ordem === 'asc')}</div>`
+    + `<p class="aviso" style="font-size:12px">${C.dica}</p>`;
+  if (!ord.length) h += `<p class="aviso" style="text-align:center;padding:20px">Nenhum aluno ainda.</p>`;
+  else h += `<div id="rk-lista" style="display:flex;flex-direction:column">` + ord.map((a, i) => `<button data-rk-al="${i}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 2px;border:0;border-top:1px solid #22264A;background:none;color:var(--texto);text-align:left;cursor:pointer;font:inherit"><span class="cp" style="width:30px;flex:none;color:${cor(i, a)}">${i + 1}º</span>${ligaMini(a.liga, 16)}<span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.nick)}</span>${chamaSeq(a.seq, 12)}</span>${RK.escopo === 'todas' ? `<span style="font-size:11px;color:var(--texto3)">${esc(a.turma)}</span>` : ''}</span><span style="display:flex;flex-direction:column;align-items:flex-end"><span class="cp" style="font-size:14px;color:${C.val(a) == null ? 'var(--texto3)' : 'var(--texto)'}">${C.txt(a)}</span><span style="font-size:11px;color:var(--texto3)">${C.sub(a)}</span></span></button>`).join('') + `</div>`;
+  abrirFolha(h, 'Ranking dos alunos');
+  $('folha').querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { RK[b.dataset.rk] = b.dataset.v; abrirRanking(fonte, nomeTurma); });
+  $('folha').querySelectorAll('[data-rk-al]').forEach(b => b.onclick = () => { const a = ord[+b.dataset.rkAl]; fecharFolha(); setTimeout(() => a.abrir(), 260); });
+}
+/* cartão com o pódio e o botão para o ranking completo */
+function rankingCartaoHTML(al) {
+  const top = al.slice().sort((a, b) => b.nivel - a.nivel || b.xp - a.xp).slice(0, 3);
+  return `<button class="cartao" id="tm-ranking" style="display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer;width:100%"><span style="display:flex;align-items:center;width:100%"><span class="rot" style="flex:1">RANKING DOS ALUNOS · SÓ PROFESSORES</span><span class="cp" style="font-size:12px;color:var(--ciano)">VER TODOS ›</span></span>`
+    + top.map((a, i) => `<span style="display:flex;align-items:center;gap:8px;min-height:28px;width:100%;border-top:1px solid #22264A"><span class="cp" style="width:24px;color:${['#FFD23F', '#C9CDF0', '#C29A7E'][i]}">${i + 1}º</span><span style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.nick)}</span>${chamaSeq(a.seq, 12)}</span><span class="cp" style="font-size:12px;color:var(--texto2)">Nv ${a.nivel}</span></span>`).join('')
+    + `<span class="aviso" style="font-size:12px;margin-top:2px">Ordene por nível, acertos, partidas, liga ou recorde, do melhor para o pior ou ao contrário.</span></button>`;
 }
 function ligaSomar(pos, n, mult) {
   if (!P.liga || n < 2) return;
@@ -2829,7 +3074,7 @@ function renderTurma() {
     if (!al.length) h += `<div class="cartao" style="text-align:center;padding:22px 16px"><p class="cp" style="margin:0;font-size:15px">A turma está vazia</p><p class="aviso" style="margin-top:6px">Crie uma sala ou um Chefão da Sala pelo JOGAR. Cada aluno que entrar com o código é guardado aqui.</p></div>`;
     else {
       h += `<p class="rot">FICHÁRIO · TOQUE NUM ALUNO</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` + al.sort((a, b) => a.nick.localeCompare(b.nick)).map(a => { const p = pct(a); return `<button class="cartao" data-aluno="${esc(a.nick)}" style="display:flex;flex-direction:column;gap:6px;padding:10px;text-align:left;cursor:pointer;color:var(--texto);border-left:3px solid ${EL[a.el] ? EL[a.el].cor : '#2A2E55'}"><span style="display:flex;align-items:flex-end;gap:6px"><span style="width:48px;height:68px;flex:none">${avatarHTML(a.av, 2)}</span>${criaHTML(a.el, NC(a), 40)}</span><span class="cp" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.nick)}</span><span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--texto2)">${ligaMini(a.liga, 14)}Nv ${a.nivel} · ${a.dias.length} dia${a.dias.length === 1 ? '' : 's'}</span><span style="display:flex;align-items:center;gap:6px"><span style="flex:1;height:6px;background:#22264A"><span style="display:block;height:100%;width:${p || 0}%;background:${pctCor(p)}"></span></span><span class="cp" style="font-size:11px">${p == null ? '—' : p + '%'}</span></span></button>`; }).join('') + `</div>`;
-      h += `<div class="cartao" style="display:flex;flex-direction:column;gap:4px"><p class="rot" style="margin-bottom:4px">RANKING DA TURMA · SÓ PROFESSORES</p>` + al.slice().sort((a, b) => b.nivel - a.nivel || (pct(b) || 0) - (pct(a) || 0)).slice(0, 10).map((a, i) => `<div style="display:flex;align-items:center;gap:8px;min-height:30px;border-top:1px solid #22264A"><span class="cp" style="width:24px;color:${i < 3 ? ['#FFD23F', '#C9CDF0', '#C29A7E'][i] : 'var(--texto3)'}">${i + 1}º</span><span style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.nick)}</span>${chamaSeq(a.seq, 12)}</span><span class="cp" style="font-size:12px;color:var(--texto2)">Nv ${a.nivel} · ${pct(a) == null ? '—' : pct(a) + '%'}</span></div>`).join('') + `</div>`;
+      h += rankingCartaoHTML(al);
     }
   }
   h += `<nav class="barra-nav" aria-label="Menu">${navHTML('turma')}</nav>`;
@@ -2842,6 +3087,11 @@ function renderTurma() {
   };
   if ($('tm-pedidos')) $('tm-pedidos').onclick = () => abrirFolha(cabFolha('PEDIDOS DE NICK') + `<p class="aviso">Nenhum pedido. Quando houver servidor, os pedidos de troca de nick dos alunos chegam aqui para você aprovar ou recusar.</p>`, 'Pedidos de nick');
   $('t-turma').querySelectorAll('[data-aluno]').forEach(b => b.onclick = () => fichaAluno(b.dataset.aluno));
+  if ($('tm-ranking')) $('tm-ranking').onclick = () => abrirRanking((esc_) => {
+    const pct = (a) => a.total ? Math.round(a.acertos / a.total * 100) : 0, ts = esc_ === 'todas' ? (P.turmas || []) : [turmaAtiva()], vis = new Set(), r = [];
+    ts.forEach(T => Object.values(T.alunos || {}).forEach(a => { if (vis.has(a.nick)) return; vis.add(a.nick); r.push({ id: a.nick, nick: a.nick, liga: a.liga || 0, nivel: a.nivel || 1, xp: a.xp || 0, pct: pct(a), resp: a.total || 0, partidas: a.partidas || 0, seqMax: a.seqMax || 0, seq: a.seq || 0, turma: T.nome, abrir: () => { P.turmaAtiva = T.id; renderTurma(); fichaAluno(a.nick); } }); }));
+    return r;
+  }, turmaAtiva().nome);
 }
 function folhaNovaTurma() {
   const cfg = folhaNovaTurma.cfg = folhaNovaTurma.cfg || { serie: '6', turno: 'Manhã' };
@@ -4126,7 +4376,7 @@ async function renderTurmaOnline(recarregar) {
     if (!al.length) h += `<div class="cartao" style="text-align:center;padding:22px 16px"><p class="cp" style="margin:0;font-size:15px">A turma está vazia</p><p class="aviso" style="margin-top:6px">Os alunos entram digitando o código <b style="color:var(--amarelo)">${t.codigo}</b> ao criar a conta ou em Conta › Entrar numa turma.</p></div>`;
     else {
       h += `<p class="rot">FICHÁRIO · TOQUE NUM ALUNO</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` + al.map(a => { const p = pct(a), el = EL[a.el] ? a.el : 'agua'; return `<button class="cartao" data-aluno="${a.id}" style="display:flex;flex-direction:column;gap:6px;padding:10px;text-align:left;cursor:pointer;color:var(--texto);border-left:3px solid ${EL[el].cor}"><span style="display:flex;align-items:flex-end;gap:6px"><span style="width:48px;height:68px;flex:none">${a.av ? avatarHTML(a.av, 2) : ''}</span>${criaHTML(el, NC(a), 40)}</span><span class="cp" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.nick)}</span><span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--texto2)">${ligaMini(a.liga, 14)}Nv ${a.nivel} · ${(a.dias || []).length} dia${(a.dias || []).length === 1 ? '' : 's'}</span><span style="display:flex;align-items:center;gap:6px"><span style="flex:1;height:6px;background:#22264A"><span style="display:block;height:100%;width:${p || 0}%;background:${pctCor(p)}"></span></span><span class="cp" style="font-size:11px">${p == null ? '—' : p + '%'}</span></span></button>`; }).join('') + `</div>`;
-      h += `<div class="cartao" style="display:flex;flex-direction:column;gap:4px"><p class="rot" style="margin-bottom:4px">RANKING DA TURMA · SÓ PROFESSORES</p>` + al.slice().sort((a, b) => b.xp - a.xp).slice(0, 10).map((a, i) => `<div style="display:flex;align-items:center;gap:8px;min-height:30px;border-top:1px solid #22264A"><span class="cp" style="width:24px;color:${i < 3 ? ['#FFD23F', '#C9CDF0', '#C29A7E'][i] : 'var(--texto3)'}">${i + 1}º</span><span style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.nick)}</span>${chamaSeq(a.seq, 12)}</span><span class="cp" style="font-size:12px;color:var(--texto2)">Nv ${a.nivel} · ${a.xp} XP</span></div>`).join('') + `</div>`;
+      h += rankingCartaoHTML(al);
     }
   }
   h += `<nav class="barra-nav" aria-label="Menu">${navHTML('turma')}</nav>`;
@@ -4137,6 +4387,11 @@ async function renderTurmaOnline(recarregar) {
   if ($('tm-add')) $('tm-add').onclick = () => abrirFolha(cabFolha('ADICIONAR ALUNOS') + `<p class="aviso">Cada aluno cria a própria conta (usuário e senha) e digita o código da turma:</p><p class="cp" style="margin:6px 0;text-align:center;font-size:40px;letter-spacing:8px;color:var(--amarelo)">${t.codigo}</p><p class="aviso">Quem já tem conta entra pela aba <b>Conta › Entrar numa turma</b>. Os alunos aparecem aqui assim que entrarem.</p>`, 'Adicionar alunos');
   if ($('tm-pedidos')) $('tm-pedidos').onclick = () => folhaPedidos(t);
   $('t-turma').querySelectorAll('[data-aluno]').forEach(b => b.onclick = () => fichaAlunoOnline(t, b.dataset.aluno));
+  if ($('tm-ranking')) $('tm-ranking').onclick = () => abrirRanking((esc_) => {
+    const ts = esc_ === 'todas' ? (UTS.dados || []) : [t], vis = new Set(), r = [];
+    ts.forEach(T => (T.alunos || []).forEach(a => { if (vis.has(a.id)) return; vis.add(a.id); r.push({ id: a.id, nick: a.nick, liga: a.liga || 0, nivel: a.nivel || 1, xp: a.xp || 0, pct: a.total ? Math.round(a.acertos / a.total * 100) : 0, resp: a.total || 0, partidas: a.partidas || 0, seqMax: a.seqMax || 0, seq: a.seq || 0, turma: T.nome, abrir: () => { UTS.ativa = T.id; renderTurmaOnline(); fichaAlunoOnline(T, a.id); } }); }));
+    return r;
+  }, t.nome);
 }
 function folhaNovaTurmaOnline() {
   const cfg = folhaNovaTurmaOnline.cfg = folhaNovaTurmaOnline.cfg || { serie: '6', turno: 'Manhã' };
