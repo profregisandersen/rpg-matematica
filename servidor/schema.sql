@@ -15,12 +15,15 @@ create extension if not exists pgcrypto with schema extensions;
 create table if not exists public.turmas (
   id uuid primary key default gen_random_uuid(),
   nome text not null check (char_length(nome) between 2 and 20),
-  serie text not null check (serie in ('6', '7')),
+  serie text not null check (serie in ('6', '7', '8', '9')),
   turno text not null check (turno in ('Manhã', 'Tarde')),
   codigo text not null unique,
   professor_id uuid not null references auth.users (id) on delete cascade,
   criada_em timestamptz not null default now()
 );
+-- 8º e 9º ano (2026-11): bancos criados antes só aceitavam 6º e 7º
+alter table public.turmas drop constraint if exists turmas_serie_check;
+alter table public.turmas add constraint turmas_serie_check check (serie in ('6', '7', '8', '9'));
 
 create table if not exists public.perfis (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -319,7 +322,7 @@ create table if not exists public.guildas (
   nome text not null check (char_length(nome) between 3 and 20),
   emblema jsonb not null default '{}'::jsonb,
   codigo text not null unique,
-  serie text not null check (serie in ('6', '7')),
+  serie text not null check (serie in ('6', '7', '8', '9')),
   lider_id uuid references public.perfis (id) on delete set null,
   andar int not null default 1,
   porta boolean not null default false,
@@ -327,6 +330,9 @@ create table if not exists public.guildas (
   dano_total bigint not null default 0,
   criada_em timestamptz not null default now()
 );
+-- 8º e 9º ano (2026-11): bancos criados antes só aceitavam 6º e 7º
+alter table public.guildas drop constraint if exists guildas_serie_check;
+alter table public.guildas add constraint guildas_serie_check check (serie in ('6', '7', '8', '9'));
 create unique index if not exists guildas_nome_unico on public.guildas (lower(nome));
 
 create table if not exists public.guilda_membros (
@@ -431,7 +437,7 @@ begin
   if public._guilda_de(u) is not null then raise exception 'ja_tem_guilda'; end if;
   s := public._serie_de(u);
   if s is null then
-    if public._eh_gm() and p_serie in ('6', '7') then s := p_serie; else raise exception 'sem_turma'; end if;
+    if public._eh_gm() and p_serie in ('6', '7', '8', '9') then s := p_serie; else raise exception 'sem_turma'; end if;
   end if;
   if not public._nome_guilda_ok(p_nome) then raise exception 'nome_invalido'; end if;
   if exists (select 1 from public.guildas where lower(nome) = lower(p_nome)) then raise exception 'nome_em_uso'; end if;

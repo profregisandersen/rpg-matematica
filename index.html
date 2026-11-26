@@ -1060,7 +1060,7 @@ function folhaCriar() {
   const c = cfgCriar, lista = CONTEUDOS[c.serie];
   const chip = (grupo, v, r, atual) => `<button type="button" class="chip" data-g="${grupo}" data-v="${v}" aria-pressed="${atual}">${r}</button>`;
   abrirFolha(cabFolha('CRIAR SALA')
-    + `<p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano', c.serie === '6')}${chip('serie', '7', '7º ano', c.serie === '7')}</div>`
+    + `<p class="rot">SÉRIE</p><div class="chips">${['6', '7', '8', '9'].map(n => chip('serie', n, n + 'º ano', c.serie === n)).join('')}</div>`
     + `<p class="rot">CONTEÚDO</p><div class="chips">${chip('conteudo', 'mix', 'Misturado', c.conteudo === 'mix')}${lista.map(x => chip('conteudo', x.id, x.nome, c.conteudo === x.id)).join('')}</div>`
     + `<p class="rot">RODADAS</p><div class="chips">${OPCOES_RODADAS.map(n => chip('rodadas', n, n + ' rodadas', +(c.rodadas || RODADAS) === n)).join('')}</div>`
     + `<p class="rot">NÍVEL DOS ROBÔS (SE PRECISAR COMPLETAR A SALA)</p><div class="chips">${chip('nivel', 'facil', 'Fácil', c.nivel === 'facil')}${chip('nivel', 'medio', 'Médio', c.nivel === 'medio')}${chip('nivel', 'dificil', 'Difícil', c.nivel === 'dificil')}</div>`
@@ -1865,17 +1865,221 @@ $('res-denovo').onclick = () => {
 window.addEventListener('beforeunload', () => { if (C && C.host) { if (C.chefao) csEncerrar(); else svEncerrar(); } });
 
 
+/* ================== 8º e 9º ano ==================
+   Geradores da trilha (k = 0..5, do mais fácil ao mais difícil) e conteúdos da Arena.
+   Todas as respostas são números, para funcionarem no teclado da Arena, do Chefão e da Torre.
+   Cada gerador devolve { t, v, s?, exp, chk? }: chk(v) confere a resposta por outro caminho (usado nos testes). */
+const SUP = (n) => `<sup>${String(n).replace('-', '−')}</sup>`;
+const fx = (x, c) => x.toFixed(c).replace('.', ',').replace('-', '−');      // decimal com casas fixas
+const R3 = (x) => Math.round(x * 1000) / 1000;
+const PI = 3.14;
+const TRIPLAS = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [12, 16, 20], [7, 24, 25], [15, 20, 25]];
+const sinal = (n) => n < 0 ? '− ' + fmtN(-n) : '+ ' + fmtN(n);           // "+ 3" ou "− 3" no meio de uma expressão
+const termo = (a, x) => (a === 1 ? '' : a === -1 ? '−' : fmtN(a)) + x;
+const GEN89 = {
+  /* ---------- 8º ano · Potências e raízes ---------- */
+  pot8: (k) => {
+    if (k === 0) { const b = r(2, 15), e = pick([0, 1]); return { t: `Quanto é ${b}${SUP(e)}?`, v: b ** e, exp: e === 0 ? `Todo número diferente de zero elevado a 0 dá 1.` : `Elevado a 1, o número não muda: ${b}.` }; }
+    if (k === 1) { const b = r(2, 9), a = r(2, 9), c = r(2, 9); return { t: `${b}${SUP(a)} × ${b}${SUP(c)} = ${b}${SUP('?')}`, v: a + c, exp: `Na multiplicação de potências de mesma base, somamos os expoentes: ${a} + ${c} = ${a + c}.`, chk: (v) => b ** a * b ** c === b ** v }; }
+    if (k === 2) { const b = r(2, 9), c = r(2, 8), a = c + r(1, 7); return { t: `${b}${SUP(a)} ÷ ${b}${SUP(c)} = ${b}${SUP('?')}`, v: a - c, exp: `Na divisão de potências de mesma base, subtraímos os expoentes: ${a} − ${c} = ${a - c}.`, chk: (v) => b ** a / b ** c === b ** v }; }
+    if (k === 3) { const b = r(2, 7), a = r(2, 5), c = r(2, 4); return { t: `(${b}${SUP(a)})${SUP(c)} = ${b}${SUP('?')}`, v: a * c, exp: `Potência de potência: multiplicamos os expoentes: ${a} × ${c} = ${a * c}.`, chk: (v) => (b ** a) ** c === b ** v }; }
+    if (k === 4) { const [b, n] = pick([[2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [4, 1], [4, 2], [5, 1], [5, 2], [10, 1], [10, 2], [10, 3]]); return { t: `Quanto é ${b}${SUP(-n)}?`, v: 1 / b ** n, s: '1/' + b ** n, exp: `Expoente negativo inverte a base: ${b}${SUP(-n)} = 1/${b}${SUP(n)} = 1/${b ** n}.`, chk: (v) => Math.abs(v - Math.pow(b, -n)) < 1e-12 }; }
+    const b = pick([2, 3]), n = r(2, b === 2 ? 7 : 5); return { t: `Quanto é (−${b})${SUP(n)}?`, v: (-b) ** n, exp: `Base negativa: expoente par dá resultado positivo e expoente ímpar dá negativo. (−${b})${SUP(n)} = ${fmtN((-b) ** n)}.` };
+  },
+  raiz8: (k) => {
+    if (k === 0) { const a = r(4, 15); return { t: `Quanto é √${a * a}?`, v: a, exp: `${a} × ${a} = ${a * a}, então √${a * a} = ${a}.`, chk: (v) => v * v === a * a && v > 0 }; }
+    if (k === 1) { const a = r(2, 6); return { t: `Quanto é ∛${a ** 3}?`, v: a, exp: `${a} × ${a} × ${a} = ${a ** 3}, então a raiz cúbica é ${a}.`, chk: (v) => v ** 3 === a ** 3 }; }
+    if (k === 2) { const a = r(2, 9); return { t: `Quanto é √${fx(a * a / 100, 2)}?`, v: a / 10, exp: `${fx(a / 10, 1)} × ${fx(a / 10, 1)} = ${fx(a * a / 100, 2)}, então a raiz é ${fx(a / 10, 1)}.`, chk: (v) => Math.abs(v * v - a * a / 100) < 1e-9 }; }
+    if (k === 3) { const a = r(2, 9), b = r(2, 9); return { t: `Quanto é √${a * a} × √${b * b}?`, v: a * b, exp: `√${a * a} = ${a} e √${b * b} = ${b}. Então ${a} × ${b} = ${a * b}.` }; }
+    if (k === 4) { let n; do { n = r(20, 150); } while (Number.isInteger(Math.sqrt(n))); const f = Math.floor(Math.sqrt(n)); return { t: `√${n} fica entre dois números inteiros consecutivos. Qual é o menor deles?`, v: f, exp: `${f}² = ${f * f} e ${f + 1}² = ${(f + 1) ** 2}. Como ${n} está entre eles, √${n} fica entre ${f} e ${f + 1}.`, chk: (v) => v * v < n && (v + 1) ** 2 > n }; }
+    const a = r(4, 20); return { t: `Um terreno quadrado tem área de ${a * a} m². Quanto mede cada lado, em metros?`, v: a, exp: `O lado é √${a * a} = ${a} m, porque ${a} × ${a} = ${a * a}.`, chk: (v) => v * v === a * a };
+  },
+  cient8: (k) => {
+    if (k === 0) { const a = r(2, 9), n = r(2, 4); return { t: `Quanto é ${a} × 10${SUP(n)}?`, v: a * 10 ** n, exp: `Multiplicar por 10${SUP(n)} acrescenta ${n} zeros: ${fmtN(a * 10 ** n)}.` }; }
+    if (k === 1) { const m = r(11, 99), n = r(2, 4); return { t: `Quanto é ${fx(m / 10, 1)} × 10${SUP(n)}?`, v: m * 10 ** (n - 1), exp: `Multiplicar por 10${SUP(n)} anda a vírgula ${n} casas para a direita: ${fmtN(m * 10 ** (n - 1))}.` }; }
+    if (k === 2) { let m; do { m = r(11, 99); } while (m % 10 === 0); const n = r(4, 8), N = m * 10 ** (n - 1); return { t: `${fmtN(N)} = ${fx(m / 10, 1)} × 10${SUP('?')}`, v: n, exp: `A vírgula anda ${n} casas para chegar em ${fx(m / 10, 1)}. Então o expoente é ${n}.`, chk: (v) => Math.round(m / 10 * 10 ** v) === N }; }
+    if (k === 3) { let m; do { m = r(11, 99); } while (m % 10 === 0); const n = r(2, 5), casas = n + 1; return { t: `${fx(m / 10 * 10 ** -n, casas)} = ${fx(m / 10, 1)} × 10${SUP('?')}`, v: -n, exp: `Para números menores que 1, o expoente é negativo. A vírgula anda ${n} casas para a direita, então o expoente é −${n}.`, chk: (v) => Math.abs(m / 10 * 10 ** v - m / 10 * 10 ** -n) < 1e-12 }; }
+    if (k === 4) { const a = r(2, 4), b = r(2, 3), p = r(2, 5), q = r(2, 6); return { t: `(${a} × 10${SUP(p)}) × (${b} × 10${SUP(q)}) = ${a * b} × 10${SUP('?')}`, v: p + q, exp: `Multiplicamos ${a} × ${b} = ${a * b} e somamos os expoentes: ${p} + ${q} = ${p + q}.` }; }
+    const [txt, m, n] = pick([['A distância da Terra ao Sol é de cerca de 150.000.000 km', '1,5', 8], ['A luz percorre cerca de 300.000 km por segundo', '3', 5], ['Uma bactéria mede cerca de 0,000002 m', '2', -6], ['O Brasil tem cerca de 210.000.000 habitantes', '2,1', 8], ['Um fio de cabelo tem cerca de 0,00008 m de espessura', '8', -5]]);
+    return { t: `${txt}. Em notação científica, isso é ${m} × 10${SUP('?')}. Qual é o expoente?`, v: n, exp: `A vírgula anda ${Math.abs(n)} casas${n < 0 ? ' para a direita, então o expoente é negativo' : ''}: o expoente é ${fmtN(n)}.` };
+  },
+  /* ---------- 8º ano · Porcentagem e estatística ---------- */
+  pct8: (k) => {
+    if (k === 0) { const p = pick([10, 20, 25, 30, 40, 50, 75]), N = pick([40, 80, 120, 200, 240, 360, 400]); return { t: `Quanto é ${p}% de ${N}?`, v: p * N / 100, exp: `${p}% de ${N} = ${N} × ${p} ÷ 100 = ${fmtN(p * N / 100)}.` }; }
+    if (k === 1) { const P0 = r(4, 40) * 10, x = pick([5, 10, 15, 20, 25, 30]); return { t: `Um produto de R$ ${P0} teve aumento de ${x}%. Qual é o novo preço, em reais?`, v: R3(P0 * (1 + x / 100)), exp: `O aumento é ${x}% de ${P0} = ${fmtN(P0 * x / 100)}. Novo preço: ${P0} + ${fmtN(P0 * x / 100)} = ${fmtN(R3(P0 * (1 + x / 100)))}.` }; }
+    if (k === 2) { const C = r(2, 20) * 100, i = r(1, 5), t = r(2, 10); return { t: `R$ ${fmtN(C)} foram aplicados a juros simples de ${i}% ao mês durante ${t} meses. Quantos reais de juros rendeu?`, v: C * i * t / 100, exp: `Juros simples: ${i}% de ${fmtN(C)} = ${fmtN(C * i / 100)} por mês. Em ${t} meses: ${fmtN(C * i / 100)} × ${t} = ${fmtN(C * i * t / 100)}.` }; }
+    if (k === 3) { const C = r(2, 20) * 100, i = r(1, 5), t = r(2, 10); return { t: `Uma dívida de R$ ${fmtN(C)} cresce a juros simples de ${i}% ao mês. Quanto ela valerá depois de ${t} meses, em reais?`, v: C + C * i * t / 100, exp: `Juros: ${fmtN(C)} × ${i}% × ${t} = ${fmtN(C * i * t / 100)}. Montante: ${fmtN(C)} + ${fmtN(C * i * t / 100)} = ${fmtN(C + C * i * t / 100)}.` }; }
+    if (k === 4) { const P0 = pick([400, 800, 1200, 1600, 2000]), a = pick([10, 20, 25, 50]), b = pick([10, 20, 25]); const v = R3(P0 * (1 - a / 100) * (1 - b / 100)); return { t: `Um produto de R$ ${fmtN(P0)} teve desconto de ${a}% e, depois, mais ${b}% de desconto sobre o novo preço. Qual é o preço final, em reais?`, v, exp: `Depois de ${a}%: ${fmtN(P0)} × ${fmtN(1 - a / 100)} = ${fmtN(R3(P0 * (1 - a / 100)))}. Depois de ${b}%: × ${fmtN(1 - b / 100)} = ${fmtN(v)}. Não é o mesmo que ${a + b}% de desconto!` }; }
+    const C = r(2, 20) * 100, i = r(1, 6), t = r(2, 8); return { t: `Uma aplicação de R$ ${fmtN(C)} rendeu R$ ${fmtN(C * i * t / 100)} de juros simples em ${t} meses. Qual foi a taxa mensal, em %?`, v: i, exp: `Por mês rendeu ${fmtN(C * i * t / 100)} ÷ ${t} = ${fmtN(C * i / 100)}. Isso é ${i}% de ${fmtN(C)}.`, chk: (v) => C * v * t / 100 === C * i * t / 100 };
+  },
+  est8: (k) => {
+    if (k === 0) { const n = pick([4, 5]), m = r(5, 9); let xs; do { xs = Array.from({ length: n - 1 }, () => r(m - 4, m + 4)); xs.push(m * n - xs.reduce((a, x) => a + x, 0)); } while (xs[n - 1] < 0 || xs[n - 1] > 10); return { t: `Qual é a média das notas ${xs.join(', ')}?`, v: m, exp: `Somamos tudo: ${xs.reduce((a, x) => a + x, 0)}. Dividimos por ${n}: ${xs.reduce((a, x) => a + x, 0)} ÷ ${n} = ${m}.`, chk: (v) => xs.reduce((a, x) => a + x, 0) / n === v }; }
+    if (k === 1) { const xs = Array.from({ length: 5 }, () => r(1, 30)), o = xs.slice().sort((a, b) => a - b); return { t: `Qual é a mediana dos números ${xs.join(', ')}?`, v: o[2], exp: `Em ordem: ${o.join(', ')}. A mediana é o do meio: ${o[2]}.` }; }
+    if (k === 2) { let xs, m; do { m = r(2, 15); xs = [m, m, m, ...Array.from({ length: 4 }, () => r(1, 15))]; } while (xs.filter(x => x === m).length !== 3 || new Set(xs.filter(x => x !== m)).size !== xs.length - 3); xs.sort(() => Math.random() - .5); return { t: `Qual é a moda do conjunto ${xs.join(', ')}?`, v: m, exp: `A moda é o valor que mais aparece: o ${m} aparece 3 vezes.` }; }
+    if (k === 3) { const xs = Array.from({ length: 6 }, () => r(1, 40)), o = xs.slice().sort((a, b) => a - b), v = (o[2] + o[3]) / 2; return { t: `Qual é a mediana dos números ${xs.join(', ')}?`, v, exp: `Em ordem: ${o.join(', ')}. Com 6 números, a mediana é a média dos dois do meio: (${o[2]} + ${o[3]}) ÷ 2 = ${fmtN(v)}.` }; }
+    if (k === 4) { const a = r(2, 9), b = r(2, 9); return { t: `Uma urna tem ${a} bolas azuis e ${b} vermelhas. Sorteando uma, qual é a probabilidade de sair azul?`, v: a / (a + b), s: frac(a, a + b), exp: `São ${a} azuis em ${a + b} bolas: ${a}/${a + b}${mdc(a, a + b) > 1 ? ' = ' + frac(a, a + b) : ''}.` }; }
+    const n = r(1, 19); return { t: `Uma roleta tem 20 partes iguais e ${n} delas são vermelhas. Qual é a probabilidade, em %, de parar no vermelho?`, v: n * 5, exp: `${n}/20 = ${n * 5}/100 = ${n * 5}%.` };
+  },
+  /* ---------- 8º ano · Álgebra ---------- */
+  alg8: (k) => {
+    if (k === 0) { const x = r(2, 9), a = r(2, 6), b = r(1, 12); return { t: `Se x = ${x}, quanto vale ${a}x + ${b}?`, v: a * x + b, exp: `${a} × ${x} + ${b} = ${a * x} + ${b} = ${a * x + b}.` }; }
+    if (k === 1) { const x = r(-5, 8), y = r(-5, 8), a = r(2, 5), b = r(2, 5); return { t: `Se x = ${fmtN(x)} e y = ${fmtN(y)}, quanto vale ${a}x − ${b}y?`, v: a * x - b * y, exp: `${a} × ${z(x)} − ${b} × ${z(y)} = ${fmtN(a * x)} − ${z(b * y)} = ${fmtN(a * x - b * y)}.` }; }
+    if (k === 2) { const x = r(-3, 6), b = r(1, 6), c = r(1, 9); return { t: `Se x = ${fmtN(x)}, quanto vale x² − ${b}x + ${c}?`, v: x * x - b * x + c, exp: `${z(x)}² − ${b} × ${z(x)} + ${c} = ${x * x} ${sinal(-b * x)} + ${c} = ${fmtN(x * x - b * x + c)}.` }; }
+    if (k === 3) { const a = r(4, 9), b = r(1, a - 1), c = r(1, 9), d = r(1, 9); return { t: `Reduzindo ${a}x + ${c} − ${termo(b, 'x')} + ${d}, obtemos ?x + ${c + d}. Qual é o número no lugar do ponto de interrogação?`, v: a - b, exp: `Juntamos os termos com x: ${a}x − ${termo(b, 'x')} = ${termo(a - b, 'x')}. E os números: ${c} + ${d} = ${c + d}.` }; }
+    if (k === 4) { const x = r(-4, 7), a = r(1, 6), b = r(1, 6); return { t: `Se x = ${fmtN(x)}, quanto vale (x + ${a})(x − ${b})?`, v: (x + a) * (x - b), exp: `(${fmtN(x)} + ${a}) × (${fmtN(x)} − ${b}) = ${z(x + a)} × ${z(x - b)} = ${fmtN((x + a) * (x - b))}.` }; }
+    const x = r(3, 15), d = r(1, 6), P0 = 4 * x + 2 * d; return { t: `Um retângulo tem lados x e x + ${d}, em cm. O perímetro é ${P0} cm. Quanto vale x?`, v: x, exp: `Perímetro: x + (x + ${d}) + x + (x + ${d}) = 4x + ${2 * d} = ${P0}. Então 4x = ${P0 - 2 * d} e x = ${x}.`, chk: (v) => 4 * v + 2 * d === P0 };
+  },
+  prod8: (k) => {
+    if (k === 0) { const a = r(2, 9); return { t: `(x + ${a})² = x² + ?x + ${a * a}. Qual é o número no lugar do ponto de interrogação?`, v: 2 * a, exp: `(x + ${a})² = x² + 2 · ${a} · x + ${a}² = x² + ${2 * a}x + ${a * a}.`, chk: (v) => [1, 2, 3].every(x => (x + a) ** 2 === x * x + v * x + a * a) }; }
+    if (k === 1) { const a = r(2, 9); return { t: `(x − ${a})² = x² − ?x + ${a * a}. Qual é o número no lugar do ponto de interrogação?`, v: 2 * a, exp: `(x − ${a})² = x² − 2 · ${a} · x + ${a}² = x² − ${2 * a}x + ${a * a}.`, chk: (v) => [1, 2, 3].every(x => (x - a) ** 2 === x * x - v * x + a * a) }; }
+    if (k === 2) { const a = r(2, 12); return { t: `(x + ${a})(x − ${a}) = x² − ?. Qual é o número no lugar do ponto de interrogação?`, v: a * a, exp: `Produto da soma pela diferença: (x + ${a})(x − ${a}) = x² − ${a}² = x² − ${a * a}.`, chk: (v) => [1, 2, 3].every(x => (x + a) * (x - a) === x * x - v) }; }
+    if (k === 3) { const d = r(2, 9) * 10, u = r(1, 3), n = d + u; return { t: `Usando (a + b)² = a² + 2ab + b², calcule ${n}².`, v: n * n, exp: `${n}² = (${d} + ${u})² = ${d * d} + 2 · ${d} · ${u} + ${u * u} = ${d * d} + ${2 * d * u} + ${u * u} = ${fmtN(n * n)}.` }; }
+    if (k === 4) { const b = r(2, 12); return pick([{ t: `Fatorando: x² − ${b * b} = (x − ${b})(x + ?). Qual é o número?`, v: b, exp: `Diferença de quadrados: x² − ${b}² = (x − ${b})(x + ${b}).`, chk: (v) => [1, 2, 3].every(x => x * x - b * b === (x - b) * (x + v)) }, { t: `Fatorando: x² + ${2 * b}x + ${b * b} = (x + ?)². Qual é o número?`, v: b, exp: `Trinômio quadrado perfeito: ${b * b} = ${b}² e ${2 * b} = 2 · ${b}. Então é (x + ${b})².`, chk: (v) => [1, 2, 3].every(x => x * x + 2 * b * x + b * b === (x + v) ** 2) }]); }
+    const a = r(1, 9), b = r(1, 9); return { t: `Sabendo que a + b = ${a + b} e a · b = ${a * b}, quanto vale a² + b²?`, v: a * a + b * b, exp: `(a + b)² = a² + 2ab + b². Então a² + b² = ${a + b}² − 2 · ${a * b} = ${(a + b) ** 2} − ${2 * a * b} = ${a * a + b * b}.` };
+  },
+  sis8: (k) => {
+    if (k < 2) { const x = r(3, 15), y = r(1, x - 1); return { t: `Resolva o sistema: x + y = ${x + y} e x − y = ${x - y}. Quanto vale ${k === 0 ? 'x' : 'y'}?`, v: k === 0 ? x : y, exp: `Somando as equações: 2x = ${2 * x}, então x = ${x}. Daí y = ${x + y} − ${x} = ${y}.` }; }
+    if (k === 2) { const x = r(1, 9), y = r(1, 9); return { t: `Resolva o sistema: 2x + y = ${2 * x + y} e x − y = ${fmtN(x - y)}. Quanto vale x?`, v: x, exp: `Somando as equações: 3x = ${3 * x}, então x = ${x}.`, chk: (v) => { const yy = 2 * x + y - 2 * v; return v - yy === x - y; } }; }
+    if (k === 3) { const x = r(1, 9), y = r(1, 9); return { t: `Resolva o sistema: 3x + 2y = ${3 * x + 2 * y} e x + y = ${x + y}. Quanto vale y?`, v: y, exp: `Da 2ª equação, x = ${x + y} − y. Substituindo: 3(${x + y} − y) + 2y = ${3 * x + 2 * y}, então ${3 * (x + y)} − y = ${3 * x + 2 * y} e y = ${y}.`, chk: (v) => 3 * (x + y - v) + 2 * v === 3 * x + 2 * y }; }
+    if (k === 4) { const c = r(5, 20), p = r(2, 8); return { t: `Numa papelaria, 2 cadernos e 1 caneta custam R$ ${2 * c + p}. Já 1 caderno e 1 caneta custam R$ ${c + p}. Quanto custa um caderno, em reais?`, v: c, exp: `A diferença entre as duas compras é 1 caderno: ${2 * c + p} − ${c + p} = ${c}.` }; }
+    const g = r(5, 20), pc = r(3, 15); return { t: `Num sítio há galinhas e porcos: são ${g + pc} cabeças e ${2 * g + 4 * pc} pés. Quantos são os porcos?`, v: pc, exp: `Se todos fossem galinhas, seriam ${2 * (g + pc)} pés. Sobram ${2 * pc * 2 - 2 * pc} pés; cada porco tem 2 pés a mais: ${2 * pc} ÷ 2 = ${pc} porcos.`, chk: (v) => 2 * (g + pc - v) + 4 * v === 2 * g + 4 * pc };
+  },
+  /* ---------- 8º ano · Ângulos e polígonos ---------- */
+  ang8: (k) => {
+    const NOMES = { 3: 'triângulo', 4: 'quadrilátero', 5: 'pentágono', 6: 'hexágono', 8: 'octógono', 9: 'eneágono', 10: 'decágono', 12: 'dodecágono' };
+    if (k === 0) { const n = r(5, 10); return { t: `Qual é a soma dos ângulos internos de um polígono de ${n} lados, em graus?`, v: (n - 2) * 180, exp: `Soma = (n − 2) × 180° = (${n} − 2) × 180° = ${(n - 2) * 180}°.` }; }
+    if (k === 1) { const n = pick([4, 5, 6, 8, 9, 10, 12]); return { t: `Quanto mede cada ângulo interno de um ${NOMES[n]} regular, em graus?`, v: (n - 2) * 180 / n, exp: `A soma é (${n} − 2) × 180° = ${(n - 2) * 180}°. Dividindo por ${n} ângulos iguais: ${(n - 2) * 180 / n}°.` }; }
+    if (k === 2) { const n = pick([5, 6, 7, 8, 9, 10, 12]); return pick([{ t: `Quanto mede cada ângulo externo de um polígono regular de ${n} lados, em graus? (Arredonde, se precisar, para o inteiro mais próximo.)`, v: Math.round(360 / n), exp: `Os ângulos externos somam 360°: 360° ÷ ${n} ≈ ${Math.round(360 / n)}°.` }, { t: `Quantas diagonais tem um polígono de ${n} lados?`, v: n * (n - 3) / 2, exp: `Diagonais = n(n − 3) ÷ 2 = ${n} × ${n - 3} ÷ 2 = ${n * (n - 3) / 2}.` }]); }
+    if (k === 3) { const n = pick([5, 6, 8, 9, 10, 12, 15, 18, 20]); return { t: `Um polígono regular tem ângulos internos de ${(n - 2) * 180 / n}°. Quantos lados ele tem?`, v: n, exp: `Cada ângulo externo mede 180° − ${(n - 2) * 180 / n}° = ${360 / n}°. Como os externos somam 360°: 360 ÷ ${360 / n} = ${n} lados.`, chk: (v) => (v - 2) * 180 / v === (n - 2) * 180 / n }; }
+    if (k === 4) { const a = r(10, 70) * 2; return { t: `Num triângulo isósceles, o ângulo entre os dois lados iguais mede ${a}°. Quanto mede cada um dos outros dois ângulos, em graus?`, v: (180 - a) / 2, exp: `Os dois ângulos da base são iguais: (180° − ${a}°) ÷ 2 = ${(180 - a) / 2}°.`, chk: (v) => a + 2 * v === 180 }; }
+    let x, a, b, c, d; do { x = r(10, 40); a = r(2, 5); c = a + r(1, 3); b = r(5, 40); d = (c - a) * x - b; } while (d <= 0 || a * x + b >= 180);
+    return { t: `Duas retas paralelas são cortadas por uma transversal. Dois ângulos alternos internos medem ${a}x + ${b} e ${c}x − ${d}, em graus. Quanto vale x?`, v: x, exp: `Alternos internos são iguais: ${a}x + ${b} = ${c}x − ${d}. Então ${b} + ${d} = ${c}x − ${a}x, ou seja, ${b + d} = ${termo(c - a, 'x')} e x = ${x}.`, chk: (v) => a * v + b === c * v - d };
+  },
+  /* ---------- 8º ano · Círculo e volume ---------- */
+  circ8: (k) => {
+    if (k === 0) { const rr = r(2, 15); return { t: `Qual é o comprimento de uma circunferência de raio ${rr} cm? Use π = 3,14.`, v: R3(2 * PI * rr), exp: `C = 2 × π × r = 2 × 3,14 × ${rr} = ${fmtN(R3(2 * PI * rr))} cm.` }; }
+    if (k === 1) { const rr = r(2, 12); return { t: `Qual é a área de um círculo de raio ${rr} cm, em cm²? Use π = 3,14.`, v: R3(PI * rr * rr), exp: `A = π × r² = 3,14 × ${rr * rr} = ${fmtN(R3(PI * rr * rr))} cm².` }; }
+    if (k === 2) { const rr = r(1, 5), h = r(2, 10); return { t: `Qual é o volume de um cilindro de raio ${rr} cm e altura ${h} cm, em cm³? Use π = 3,14.`, v: R3(PI * rr * rr * h), exp: `V = π × r² × h = 3,14 × ${rr * rr} × ${h} = ${fmtN(R3(PI * rr * rr * h))} cm³.` }; }
+    if (k === 3) { const [a, b, c] = [r(1, 4), r(1, 4), r(1, 3)]; return { t: `Uma caixa-d’água tem a forma de um bloco de ${a} m × ${b} m × ${c} m. Quantos litros cabem nela? (1 m³ = 1.000 litros)`, v: a * b * c * 1000, exp: `Volume: ${a} × ${b} × ${c} = ${a * b * c} m³. Em litros: ${a * b * c} × 1.000 = ${fmtN(a * b * c * 1000)} L.` }; }
+    if (k === 4) { const [a, b, c] = [r(5, 20), r(5, 20), r(4, 15)]; return { t: `Quantos mililitros cabem num recipiente de ${a} cm × ${b} cm × ${c} cm? (1 cm³ = 1 mL)`, v: a * b * c, exp: `Volume: ${a} × ${b} × ${c} = ${fmtN(a * b * c)} cm³ = ${fmtN(a * b * c)} mL.` }; }
+    const d = r(4, 30) * 2; return { t: `Uma roda tem ${d} cm de diâmetro. Quantos centímetros ela percorre ao dar uma volta completa? Use π = 3,14.`, v: R3(PI * d), exp: `Uma volta é o comprimento da roda: C = π × d = 3,14 × ${d} = ${fmtN(R3(PI * d))} cm.` };
+  },
+  /* ---------- 9º ano · Números reais ---------- */
+  rad9: (k) => {
+    if (k === 0) { const [a, b] = pick([[2, 8], [3, 12], [2, 18], [5, 20], [3, 27], [2, 32], [2, 50], [6, 24], [5, 45]]); return { t: `Quanto é √${a} × √${b}?`, v: Math.sqrt(a * b), exp: `√${a} × √${b} = √${a * b} = ${Math.sqrt(a * b)}.`, chk: (v) => v * v === a * b }; }
+    if (k === 1) { const a = r(2, 6), b = pick([2, 3, 5, 6, 7]); return { t: `Simplificando, √${a * a * b} = a√${b}. Quanto vale a?`, v: a, exp: `${a * a * b} = ${a * a} × ${b}, e √${a * a} = ${a}. Então √${a * a * b} = ${a}√${b}.`, chk: (v) => v * v * b === a * a * b }; }
+    if (k === 2) { const b = pick([2, 3, 5, 7]), a = r(2, 9), c = r(2, 9); return pick([{ t: `${a}√${b} + ${c}√${b} = ?√${b}. Qual é o número?`, v: a + c, exp: `Radicais iguais se somam como termos semelhantes: ${a} + ${c} = ${a + c}.` }, { t: `${Math.max(a, c) + 1}√${b} − ${Math.min(a, c)}√${b} = ?√${b}. Qual é o número?`, v: Math.max(a, c) + 1 - Math.min(a, c), exp: `Radicais iguais se subtraem como termos semelhantes: ${Math.max(a, c) + 1} − ${Math.min(a, c)} = ${Math.max(a, c) + 1 - Math.min(a, c)}.` }]); }
+    if (k === 3) { const m = pick([2, 3, 5, 6]), q = r(2, 6); return { t: `Quanto é √${m * q * q} ÷ √${m}?`, v: q, exp: `√${m * q * q} ÷ √${m} = √(${m * q * q} ÷ ${m}) = √${q * q} = ${q}.`, chk: (v) => v * v * m === m * q * q }; }
+    if (k === 4) { const a = r(2, 6), b = pick([2, 3, 5, 7]); return { t: `Quanto é (${a}√${b})²?`, v: a * a * b, exp: `(${a}√${b})² = ${a}² × (√${b})² = ${a * a} × ${b} = ${a * a * b}.` }; }
+    const a = r(2, 12); return { t: `A diagonal de um quadrado mede ${a}√2 cm. Qual é a área desse quadrado, em cm²?`, v: a * a, exp: `A diagonal de um quadrado de lado L é L√2. Então o lado mede ${a} cm e a área é ${a} × ${a} = ${a * a} cm².` };
+  },
+  potf9: (k) => {
+    if (k === 0) { const b = r(2, 12); return { t: `Quanto é ${b * b}${SUP('1/2')}?`, v: b, exp: `Expoente 1/2 é a raiz quadrada: √${b * b} = ${b}.`, chk: (v) => v * v === b * b }; }
+    if (k === 1) { const b = r(2, 5); return { t: `Quanto é ${b ** 3}${SUP('1/3')}?`, v: b, exp: `Expoente 1/3 é a raiz cúbica: ∛${b ** 3} = ${b}.`, chk: (v) => v ** 3 === b ** 3 }; }
+    if (k === 2) { const b = r(2, 4); return { t: `Quanto é ${b ** 3}${SUP('2/3')}?`, v: b * b, exp: `${b ** 3}${SUP('2/3')} = (∛${b ** 3})² = ${b}² = ${b * b}.` }; }
+    if (k === 3) { const b = r(2, 5); return { t: `Quanto é ${b * b}${SUP('3/2')}?`, v: b ** 3, exp: `${b * b}${SUP('3/2')} = (√${b * b})³ = ${b}³ = ${b ** 3}.` }; }
+    if (k === 4) { const [p, q] = pick([[1, 2], [2, 1], [1, 3], [2, 3]]); const v = 2 ** -p + 2 ** -q; return { t: `Quanto é 2${SUP(-p)} + 2${SUP(-q)}?`, v, s: frac(Math.round(v * 8), 8), exp: `2${SUP(-p)} = 1/${2 ** p} e 2${SUP(-q)} = 1/${2 ** q}. Somando: ${frac(Math.round(v * 8), 8)}.` }; }
+    const b = r(2, 5); return { t: `Quanto é (1/${b * b})${SUP('−1/2')}?`, v: b, exp: `O expoente negativo inverte: (1/${b * b})${SUP('−1/2')} = ${b * b}${SUP('1/2')} = √${b * b} = ${b}.` };
+  },
+  /* ---------- 9º ano · Juros compostos ---------- */
+  juros9: (k) => {
+    if (k === 0) { const C = r(1, 20) * 100; return { t: `R$ ${fmtN(C)} aplicados a juros compostos de 10% ao mês. Qual é o montante depois de 2 meses, em reais?`, v: R3(C * 1.21), exp: `1º mês: ${fmtN(C)} × 1,1 = ${fmtN(R3(C * 1.1))}. 2º mês: ${fmtN(R3(C * 1.1))} × 1,1 = ${fmtN(R3(C * 1.21))}.` }; }
+    if (k === 1) { const C = r(1, 20) * 100; return { t: `R$ ${fmtN(C)} aplicados a juros compostos de 20% ao mês. Qual é o montante depois de 2 meses, em reais?`, v: R3(C * 1.44), exp: `M = ${fmtN(C)} × 1,2 × 1,2 = ${fmtN(C)} × 1,44 = ${fmtN(R3(C * 1.44))}.` }; }
+    if (k === 2) { const C = r(1, 10) * 1000; return { t: `R$ ${fmtN(C)} aplicados a juros compostos de 10% ao mês. Qual é o montante depois de 3 meses, em reais?`, v: R3(C * 1.331), exp: `M = ${fmtN(C)} × 1,1³ = ${fmtN(C)} × 1,331 = ${fmtN(R3(C * 1.331))}.` }; }
+    if (k === 3) { const C = r(1, 20) * 100; return { t: `Uma dívida de R$ ${fmtN(C)} cresce a juros compostos de 10% ao mês. Quantos reais de juros ela acumula em 2 meses?`, v: R3(C * 0.21), exp: `O montante é ${fmtN(C)} × 1,21 = ${fmtN(R3(C * 1.21))}. Os juros são ${fmtN(R3(C * 1.21))} − ${fmtN(C)} = ${fmtN(R3(C * 0.21))}.` }; }
+    if (k === 4) { const V = r(2, 9) * 10000; return { t: `Um carro de R$ ${fmtN(V)} perde 10% do valor a cada ano. Quanto ele valerá depois de 2 anos, em reais?`, v: R3(V * 0.81), exp: `Cada ano o valor é multiplicado por 0,9: ${fmtN(V)} × 0,9 × 0,9 = ${fmtN(V)} × 0,81 = ${fmtN(R3(V * 0.81))}.` }; }
+    const C = r(1, 20) * 1000; return { t: `R$ ${fmtN(C)} a 10% ao mês por 2 meses: quantos reais os juros compostos rendem a mais que os juros simples?`, v: R3(C * 0.01), exp: `Simples: ${fmtN(C)} × 0,20 = ${fmtN(C * 0.2)}. Compostos: ${fmtN(C)} × 0,21 = ${fmtN(R3(C * 0.21))}. Diferença: ${fmtN(R3(C * 0.01))}.` };
+  },
+  /* ---------- 9º ano · Equações e funções ---------- */
+  eq29: (k) => {
+    if (k === 0) { const a = r(2, 15); return { t: `Qual é a raiz positiva de x² = ${a * a}?`, v: a, exp: `x = ±√${a * a} = ±${a}. A positiva é ${a}.`, chk: (v) => v * v === a * a && v > 0 }; }
+    const raizes = () => { let p, q; do { p = r(k === 1 ? 1 : -6, 9); q = r(k === 1 ? 1 : -6, 9); } while (p === q || p === 0 || q === 0); return [Math.min(p, q), Math.max(p, q)]; };
+    const eqTxt = (S, P0) => `x² ${S === 0 ? '' : (S > 0 ? '− ' + termo(S, 'x') : '+ ' + termo(-S, 'x')) + ' '}${P0 >= 0 ? '+ ' + P0 : '− ' + (-P0)} = 0`;
+    if (k <= 2) { const [p, q] = raizes(), S = p + q, P0 = p * q, maior = k === 1; return { t: `Qual é a ${maior ? 'maior' : 'menor'} raiz da equação ${eqTxt(S, P0)}?`, v: maior ? q : p, exp: `Procuramos dois números com soma ${fmtN(S)} e produto ${fmtN(P0)}: são ${fmtN(p)} e ${fmtN(q)}. A ${maior ? 'maior' : 'menor'} é ${fmtN(maior ? q : p)}.`, chk: (v) => v * v - S * v + P0 === 0 }; }
+    if (k === 3) { const [p, q] = raizes(); return { t: `Qual é a soma das raízes da equação ${eqTxt(p + q, p * q)}?`, v: p + q, exp: `As raízes são ${fmtN(p)} e ${fmtN(q)}. Soma: ${fmtN(p + q)}. Atalho: a soma é −b/a.` }; }
+    if (k === 4) { const [p, q] = raizes(); return { t: `Qual é o produto das raízes da equação ${eqTxt(p + q, p * q)}?`, v: p * q, exp: `As raízes são ${fmtN(p)} e ${fmtN(q)}. Produto: ${fmtN(p * q)}. Atalho: o produto é c/a.` }; }
+    const a = r(1, 3), b = r(-8, 8), c = pick([-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]); return { t: `Quanto vale o discriminante Δ = b² − 4ac da equação ${termo(a, 'x²')} ${b === 0 ? '' : (b > 0 ? '+ ' : '− ') + termo(Math.abs(b), 'x') + ' '}${c >= 0 ? '+ ' + c : '− ' + (-c)} = 0?`, v: b * b - 4 * a * c, exp: `a = ${a}, b = ${fmtN(b)}, c = ${fmtN(c)}. Δ = ${z(b)}² − 4 × ${a} × ${z(c)} = ${b * b} ${sinal(-4 * a * c)} = ${fmtN(b * b - 4 * a * c)}.` };
+  },
+  func9: (k) => {
+    if (k === 0) { const a = r(2, 6), b = r(-9, 9), n = r(-3, 8); return { t: `Se f(x) = ${a}x ${sinal(b)}, quanto é f(${fmtN(n)})?`, v: a * n + b, exp: `f(${fmtN(n)}) = ${a} × ${z(n)} ${sinal(b)} = ${fmtN(a * n)} ${sinal(b)} = ${fmtN(a * n + b)}.` }; }
+    if (k === 1) { const a = r(2, 6), x0 = r(-5, 8), b = -a * x0; return { t: `Para qual valor de x a função f(x) = ${a}x ${sinal(b)} vale zero?`, v: x0, exp: `${a}x ${sinal(b)} = 0, então ${a}x = ${fmtN(-b)} e x = ${fmtN(x0)}.`, chk: (v) => a * v + b === 0 }; }
+    if (k === 2) { const c = r(1, 20), n = r(-6, 6); return { t: `Se f(x) = x² − ${c}, quanto é f(${fmtN(n)})?`, v: n * n - c, exp: `f(${fmtN(n)}) = ${z(n)}² − ${c} = ${n * n} − ${c} = ${fmtN(n * n - c)}.` }; }
+    if (k === 3) { const a = r(-4, 5) || 2, x1 = r(-3, 3), b = r(-5, 5), x2 = x1 + r(1, 4); return { t: `O gráfico de uma função afim passa pelos pontos (${fmtN(x1)}, ${fmtN(a * x1 + b)}) e (${fmtN(x2)}, ${fmtN(a * x2 + b)}). Qual é a taxa de variação (o coeficiente de x)?`, v: a, exp: `Taxa = (variação de y) ÷ (variação de x) = (${fmtN(a * x2 + b)} − ${z(a * x1 + b)}) ÷ (${fmtN(x2)} − ${z(x1)}) = ${fmtN(a * (x2 - x1))} ÷ ${x2 - x1} = ${fmtN(a)}.` }; }
+    if (k === 4) { const h = r(-5, 6), c = r(-9, 9); return { t: `Qual é o x do vértice da parábola f(x) = x² ${h === 0 ? '' : (h > 0 ? '− ' + termo(2 * h, 'x') : '+ ' + termo(-2 * h, 'x')) + ' '}${c >= 0 ? '+ ' + c : '− ' + (-c)}?`, v: h, exp: `x do vértice = −b ÷ (2a) = ${fmtN(2 * h)} ÷ 2 = ${fmtN(h)}.` }; }
+    const b = pick([4, 5, 6]), a = pick([2, 2.5, 3, 3.5]), n = r(3, 20); return { t: `Um táxi cobra R$ ${b} de bandeirada mais R$ ${fmtN(a)} por quilômetro. Quanto custa uma corrida de ${n} km, em reais?`, v: R3(b + a * n), exp: `f(x) = ${b} + ${fmtN(a)}x. Para x = ${n}: ${b} + ${fmtN(a)} × ${n} = ${b} + ${fmtN(R3(a * n))} = ${fmtN(R3(b + a * n))}.` };
+  },
+  /* ---------- 9º ano · Geometria ---------- */
+  pit9: (k) => {
+    const [a, b, c] = pick(TRIPLAS);
+    if (k === 0) return { t: `Um triângulo retângulo tem catetos de ${a} cm e ${b} cm. Quanto mede a hipotenusa, em cm?`, v: c, exp: `Pitágoras: h² = ${a}² + ${b}² = ${a * a} + ${b * b} = ${c * c}. Então h = ${c} cm.`, chk: (v) => v * v === a * a + b * b };
+    if (k === 1) return { t: `Num triângulo retângulo, a hipotenusa mede ${c} cm e um cateto mede ${a} cm. Quanto mede o outro cateto, em cm?`, v: b, exp: `${c}² = ${a}² + x². Então x² = ${c * c} − ${a * a} = ${b * b} e x = ${b} cm.`, chk: (v) => v * v + a * a === c * c };
+    if (k === 2) return { t: `Qual é a medida da diagonal de um retângulo de ${a} m por ${b} m, em metros?`, v: c, exp: `A diagonal é a hipotenusa: d² = ${a * a} + ${b * b} = ${c * c}, então d = ${c} m.`, chk: (v) => v * v === a * a + b * b };
+    if (k === 3) { const [m, n] = pick([[4, 9], [1, 4], [2, 8], [4, 16], [3, 12], [9, 16], [1, 9], [2, 18], [5, 20]]); return { t: `Num triângulo retângulo, a altura relativa à hipotenusa divide a hipotenusa em segmentos de ${m} cm e ${n} cm. Quanto mede essa altura, em cm?`, v: Math.sqrt(m * n), exp: `Relação métrica: h² = m × n = ${m} × ${n} = ${m * n}. Então h = ${Math.sqrt(m * n)} cm.`, chk: (v) => v * v === m * n }; }
+    if (k === 4) return { t: `Uma escada de ${c} m está apoiada num muro, com o pé a ${a} m da base do muro. A que altura do chão ela toca o muro, em metros?`, v: b, exp: `Escada, muro e chão formam um triângulo retângulo: altura² = ${c}² − ${a}² = ${c * c} − ${a * a} = ${b * b}. Altura = ${b} m.`, chk: (v) => v * v + a * a === c * c };
+    const x1 = r(-4, 4), y1 = r(-4, 4); return { t: `Qual é a distância entre os pontos A(${fmtN(x1)}, ${fmtN(y1)}) e B(${fmtN(x1 + a)}, ${fmtN(y1 + b)}) no plano cartesiano?`, v: c, exp: `As diferenças são ${a} na horizontal e ${b} na vertical. d² = ${a * a} + ${b * b} = ${c * c}, então d = ${c}.`, chk: (v) => v * v === a * a + b * b };
+  },
+  sem9: (k) => {
+    if (k === 0) { const a = r(2, 9), kk = r(2, 5); return { t: `Dois triângulos são semelhantes, e o maior é uma ampliação do menor com razão ${kk}. Um lado do menor mede ${a} cm. Quanto mede o lado correspondente do maior, em cm?`, v: a * kk, exp: `Em figuras semelhantes, os lados ficam multiplicados pela razão: ${a} × ${kk} = ${a * kk} cm.` }; }
+    if (k === 1) { const h = pick([1.5, 1.6, 1.8, 2]), s = pick([0.5, 1, 1.5, 2]), kk = r(3, 8); return { t: `Uma pessoa de ${fmtN(h)} m projeta uma sombra de ${fmtN(s)} m. No mesmo instante, um poste projeta uma sombra de ${fmtN(R3(s * kk))} m. Qual é a altura do poste, em metros?`, v: R3(h * kk), exp: `A sombra do poste é ${kk} vezes a da pessoa (${fmtN(R3(s * kk))} ÷ ${fmtN(s)} = ${kk}). Então a altura também é: ${fmtN(h)} × ${kk} = ${fmtN(R3(h * kk))} m.`, chk: (v) => Math.abs(v / (s * kk) - h / s) < 1e-9 }; }
+    if (k === 2) { const a = r(2, 9), b = r(2, 9), kk = r(2, 4); return { t: `Pelo Teorema de Tales, três retas paralelas cortam duas transversais. Numa delas, os segmentos medem ${a} cm e ${b} cm; na outra, ${a * kk} cm e x cm. Quanto vale x?`, v: b * kk, exp: `Os segmentos são proporcionais: ${a}/${b} = ${a * kk}/x. Então x = ${b} × ${a * kk} ÷ ${a} = ${b * kk} cm.`, chk: (v) => a * v === b * a * kk }; }
+    if (k === 3) { const kk = r(2, 6); return { t: `Uma figura foi ampliada com razão de semelhança ${kk}. Por quanto ficou multiplicada a sua área?`, v: kk * kk, exp: `A área é medida em duas dimensões, então fica multiplicada pelo quadrado da razão: ${kk}² = ${kk * kk}.` }; }
+    if (k === 4) { const [a, b, c] = pick([[3, 4, 5], [4, 5, 6], [5, 6, 7], [2, 3, 4]]), kk = r(2, 4); return { t: `Um triângulo tem lados ${a} cm, ${b} cm e ${c} cm. Um triângulo semelhante a ele tem o menor lado medindo ${a * kk} cm. Qual é o perímetro do triângulo maior, em cm?`, v: (a + b + c) * kk, exp: `A razão é ${a * kk} ÷ ${a} = ${kk}. O perímetro também é multiplicado: (${a} + ${b} + ${c}) × ${kk} = ${(a + b + c) * kk} cm.` }; }
+    const A = r(2, 12), kk = r(2, 4); return { t: `Dois quadrados são semelhantes com razão ${kk}. O menor tem área de ${A} cm². Qual é a área do maior, em cm²?`, v: A * kk * kk, exp: `A área fica multiplicada por ${kk}² = ${kk * kk}: ${A} × ${kk * kk} = ${A * kk * kk} cm².` };
+  },
+  trig9: (k) => {
+    if (k === 0) { const [txt, v] = pick([['sen 30°', 0.5], ['cos 60°', 0.5], ['tg 45°', 1], ['sen 90°', 1], ['cos 0°', 1], ['sen 0°', 0]]); return { t: `Quanto vale ${txt}? (Use vírgula se precisar.)`, v, exp: `${txt} = ${fmtN(v)}. Vale a pena memorizar os ângulos notáveis 30°, 45° e 60°.` }; }
+    const [a, b, c] = pick(TRIPLAS);
+    if (k === 1) return { t: `Num triângulo retângulo, o cateto oposto ao ângulo α mede ${a} cm e a hipotenusa mede ${c} cm. Quanto vale sen α?`, v: a / c, s: frac(a, c), exp: `sen α = cateto oposto ÷ hipotenusa = ${a}/${c}${mdc(a, c) > 1 ? ' = ' + frac(a, c) : ''}.` };
+    if (k === 2) return { t: `Num triângulo retângulo, o cateto adjacente ao ângulo α mede ${b} cm e a hipotenusa mede ${c} cm. Quanto vale cos α?`, v: b / c, s: frac(b, c), exp: `cos α = cateto adjacente ÷ hipotenusa = ${b}/${c}${mdc(b, c) > 1 ? ' = ' + frac(b, c) : ''}.` };
+    if (k === 3) return { t: `Num triângulo retângulo, o cateto oposto ao ângulo α mede ${a} cm e o adjacente mede ${b} cm. Quanto vale tg α?`, v: a / b, s: frac(a, b), exp: `tg α = cateto oposto ÷ cateto adjacente = ${a}/${b}${mdc(a, b) > 1 ? ' = ' + frac(a, b) : ''}.` };
+    if (k === 4) { const H = r(2, 20) * 2; return { t: `Num triângulo retângulo, a hipotenusa mede ${H} cm e um dos ângulos agudos mede 30°. Quanto mede o cateto oposto a esse ângulo, em cm?`, v: H / 2, exp: `sen 30° = 0,5 = oposto ÷ ${H}. Então o oposto mede ${H} × 0,5 = ${H / 2} cm.` }; }
+    return pick([(() => { const C = r(2, 15) * 2; return { t: `Uma rampa de ${C} m de comprimento forma um ângulo de 30° com o chão. A que altura ela chega, em metros?`, v: C / 2, exp: `A altura é o cateto oposto ao ângulo de 30°: ${C} × sen 30° = ${C} × 0,5 = ${C / 2} m.` }; })(), (() => { const S = r(5, 40); return { t: `Quando o sol está a 45° de altura, a sombra de um prédio mede ${S} m. Qual é a altura do prédio, em metros?`, v: S, exp: `tg 45° = 1 = altura ÷ sombra. Então a altura é igual à sombra: ${S} m.` }; })()]);
+  },
+  /* ---------- 9º ano · Probabilidade e estatística ---------- */
+  prob9: (k) => {
+    if (k === 0) { const [txt, f, n] = pick([['um número par', 3, 6], ['um número maior que 4', 2, 6], ['o número 6', 1, 6], ['um número primo', 3, 6], ['um múltiplo de 3', 2, 6], ['um número menor que 5', 4, 6]]); return { t: `Lançando um dado comum, qual é a probabilidade de sair ${txt}?`, v: f / n, s: frac(f, n), exp: `São ${f} resultados favoráveis em ${n} possíveis: ${f}/${n}${mdc(f, n) > 1 ? ' = ' + frac(f, n) : ''}.` }; }
+    if (k === 1) { const [txt, f] = pick([['duas caras', 1], ['pelo menos uma cara', 3], ['uma cara e uma coroa, em qualquer ordem', 2], ['duas coroas', 1]]); return { t: `Lançando duas moedas, qual é a probabilidade de sair ${txt}?`, v: f / 4, s: frac(f, 4), exp: `Os resultados possíveis são cara-cara, cara-coroa, coroa-cara e coroa-coroa (4 no total). São ${f} favoráveis: ${f}/4${mdc(f, 4) > 1 ? ' = ' + frac(f, 4) : ''}.` }; }
+    if (k === 2) { const n = r(3, 8); return { t: `Com ${n} letras diferentes, quantos códigos de 2 letras distintas podem ser formados (a ordem importa)?`, v: n * (n - 1), exp: `${n} escolhas para a 1ª letra e ${n - 1} para a 2ª: ${n} × ${n - 1} = ${n * (n - 1)}.` }; }
+    if (k === 3) { const [w, n] = pick([['SOL', 3], ['LUA', 3], ['MAR', 3], ['GATO', 4], ['RIO', 3], ['PATO', 4], ['LIVRO', 5], ['MUNDO', 5]]); const f = [1, 1, 2, 6, 24, 120][n]; return { t: `Quantos anagramas tem a palavra ${w}?`, v: f, exp: `As ${n} letras são diferentes: ${Array.from({ length: n }, (_, i) => n - i).join(' × ')} = ${f}.` }; }
+    if (k === 4) { let n1, n2, p1, p2, v; do { n1 = r(4, 10); n2 = r(4, 10); p1 = r(1, 3); p2 = r(1, 3); v = (n1 * p1 + n2 * p2) / (p1 + p2); } while (p1 === p2 || Math.round(v * 10) !== v * 10); return { t: `Numa disciplina, a prova vale peso ${p1} e o trabalho vale peso ${p2}. Um aluno tirou ${n1} na prova e ${n2} no trabalho. Qual é a média ponderada?`, v, exp: `(${n1} × ${p1} + ${n2} × ${p2}) ÷ (${p1} + ${p2}) = ${n1 * p1 + n2 * p2} ÷ ${p1 + p2} = ${fmtN(v)}.` }; }
+    const T = pick([20, 25, 40, 50]), F = r(1, T - 1); return { t: `Numa sala há ${T - F} meninos e ${F} meninas. Sorteando um aluno, qual é a probabilidade, em %, de ser uma menina?`, v: F * 100 / T, exp: `${F} meninas em ${T} alunos: ${F}/${T} = ${fmtN(F * 100 / T)}%.` };
+  }
+};
+/* Conteúdos para a Arena, o Chefão da Sala e a Torre (facil = k 0–1, media = 2–3, dificil = 4–5) */
+const C89 = (id, nome, el, gens) => ({ id, nome, el, g: { facil: () => GEN89[pick(gens)](r(0, 1)), media: () => GEN89[pick(gens)](r(2, 3)), dificil: () => GEN89[pick(gens)](r(4, 5)) } });
+CONTEUDOS['8'] = [
+  C89('8pot', 'Potências e raízes', 'fogo', ['pot8', 'raiz8', 'cient8']),
+  C89('8pct', 'Porcentagem e juros', 'agua', ['pct8']),
+  C89('8est', 'Estatística e probabilidade', 'agua', ['est8']),
+  C89('8alg', 'Expressões e produtos notáveis', 'raio', ['alg8', 'prod8']),
+  C89('8sis', 'Sistemas de equações', 'raio', ['sis8']),
+  C89('8ang', 'Ângulos e polígonos', 'planta', ['ang8']),
+  C89('8circ', 'Círculo e volume', 'pedra', ['circ8'])
+];
+CONTEUDOS['9'] = [
+  C89('9rad', 'Radicais e potências', 'fogo', ['rad9', 'potf9']),
+  C89('9juros', 'Juros compostos', 'agua', ['juros9']),
+  C89('9eq2', 'Equação do 2º grau', 'raio', ['eq29']),
+  C89('9func', 'Funções', 'raio', ['func9']),
+  C89('9pit', 'Pitágoras e semelhança', 'planta', ['pit9', 'sem9']),
+  C89('9trig', 'Trigonometria', 'planta', ['trig9']),
+  C89('9prob', 'Probabilidade e estatística', 'pedra', ['prob9'])
+];
+
 /* ================== Trilha do Treino Solo ==================
-   Mundo 1 = 6º ano, Mundo 2 = 7º ano. Todos começam na Adição e só liberam a
-   próxima etapa concluindo a anterior. Cada etapa tem uma chave de conteúdo (st),
+   Mundo 1 = 6º ano, Mundo 2 = 7º ano, Mundo 3 = 8º ano, Mundo 4 = 9º ano. Dentro de um mundo,
+   cada etapa libera a próxima. Um mundo abre quando o anterior termina ou, do 8º ano em diante,
+   quando o aluno é daquele ano (pela turma ou escolhendo o ano escolar). Cada etapa tem uma chave de conteúdo (st),
    usada nas Estatísticas e no botão Treinar. */
 const NOMES_ST = {
   '6op': 'Operações com naturais', '6pot': 'Potências', '6mult': 'Múltiplos e divisores', '6fr': 'Frações', '6dec': 'Números decimais', '6pct': 'Porcentagem',
   '6geo': 'Polígonos e ângulos', '6cart': 'Plano cartesiano', '6med': 'Perímetro e área', '6massa': 'Massa e capacidade', '6tempo': 'Tempo', '6alg': 'Igualdades e sequências', '6part': 'Partilha e proporção',
   '7int': 'Números inteiros', '7fr': 'Operações com frações', '7pct': 'Porcentagem (7º)', '7eq': 'Equações do 1º grau', '7prop': 'Razão e proporção', '7ang': 'Ângulos', '7med': 'Área e volume',
+  '8pot': 'Potências e raízes', '8pct': 'Porcentagem e juros', '8est': 'Estatística (8º)', '8alg': 'Álgebra e produtos notáveis', '8sis': 'Sistemas de equações', '8ang': 'Ângulos e polígonos (8º)', '8circ': 'Círculo e volume',
+  '9rad': 'Radicais e potências', '9juros': 'Juros compostos', '9eq2': 'Equação do 2º grau', '9func': 'Funções', '9pit': 'Pitágoras e semelhança', '9trig': 'Trigonometria', '9prob': 'Probabilidade (9º)',
   'desafio': 'Desafios olímpicos'
 };
-const ST_EL = { '6op': 'fogo', '6pot': 'fogo', '6mult': 'fogo', '6fr': 'agua', '6dec': 'agua', '6pct': 'agua', '6geo': 'planta', '6cart': 'planta', '6med': 'pedra', '6massa': 'pedra', '6tempo': 'pedra', '6alg': 'raio', '6part': 'raio', '7int': 'fogo', '7fr': 'agua', '7pct': 'agua', '7eq': 'raio', '7prop': 'raio', '7ang': 'planta', '7med': 'pedra' };
+const ST_EL = { '6op': 'fogo', '6pot': 'fogo', '6mult': 'fogo', '6fr': 'agua', '6dec': 'agua', '6pct': 'agua', '6geo': 'planta', '6cart': 'planta', '6med': 'pedra', '6massa': 'pedra', '6tempo': 'pedra', '6alg': 'raio', '6part': 'raio', '7int': 'fogo', '7fr': 'agua', '7pct': 'agua', '7eq': 'raio', '7prop': 'raio', '7ang': 'planta', '7med': 'pedra', '8pot': 'fogo', '8pct': 'agua', '8est': 'agua', '8alg': 'raio', '8sis': 'raio', '8ang': 'planta', '8circ': 'pedra', '9rad': 'fogo', '9juros': 'agua', '9eq2': 'raio', '9func': 'raio', '9pit': 'planta', '9trig': 'planta', '9prob': 'pedra' };
 const nv3 = (k) => k < 2 ? 'facil' : k < 4 ? 'media' : 'dificil';
 const doBanco = (serie, id) => (k) => { const c = CONTEUDOS[serie].find(x => x.id === id); const q = c.g[nv3(k)](); return { t: q.t, v: q.v, s: q.s }; };
 const mil = (n) => fmtN(n);
@@ -2006,8 +2210,24 @@ const MUNDOS = [
     { el: 'raio', unidade: 'Equações e proporção', etapas: [['Equações do 1º grau', '7eq', '7eq'], ['Razão e proporção', '7prop', '7prop']] },
     { el: 'planta', unidade: 'Ângulos', etapas: [['Ângulos e polígonos', '7ang', '7ang']] },
     { el: 'pedra', unidade: 'Área e volume', etapas: [['Área e volume', '7med', '7med']] }
+  ] },
+  { n: 3, nome: 'Mundo 3 · 8º ano', regioes: [
+    { el: 'fogo', unidade: 'Potências e raízes', etapas: [['Potências', 'pot8', '8pot'], ['Raízes', 'raiz8', '8pot'], ['Notação científica', 'cient8', '8pot']] },
+    { el: 'agua', unidade: 'Porcentagem e estatística', etapas: [['Porcentagem e juros simples', 'pct8', '8pct'], ['Estatística e probabilidade', 'est8', '8est']] },
+    { el: 'raio', unidade: 'Álgebra', etapas: [['Expressões algébricas', 'alg8', '8alg'], ['Produtos notáveis', 'prod8', '8alg'], ['Sistemas de equações', 'sis8', '8sis']] },
+    { el: 'planta', unidade: 'Ângulos e polígonos', etapas: [['Ângulos e polígonos', 'ang8', '8ang']] },
+    { el: 'pedra', unidade: 'Círculo e volume', etapas: [['Círculo e cilindro', 'circ8', '8circ']] }
+  ] },
+  { n: 4, nome: 'Mundo 4 · 9º ano', regioes: [
+    { el: 'fogo', unidade: 'Números reais', etapas: [['Radicais', 'rad9', '9rad'], ['Potências com expoente fracionário', 'potf9', '9rad']] },
+    { el: 'agua', unidade: 'Matemática financeira', etapas: [['Juros compostos', 'juros9', '9juros']] },
+    { el: 'raio', unidade: 'Equações e funções', etapas: [['Equação do 2º grau', 'eq29', '9eq2'], ['Funções', 'func9', '9func']] },
+    { el: 'planta', unidade: 'Geometria', etapas: [['Teorema de Pitágoras', 'pit9', '9pit'], ['Semelhança', 'sem9', '9pit'], ['Trigonometria', 'trig9', '9trig']] },
+    { el: 'pedra', unidade: 'Probabilidade e estatística', etapas: [['Probabilidade e estatística', 'prob9', '9prob']] }
   ] }
 ];
+Object.assign(GEN, GEN89);
+const MUNDO_SERIE = [6, 7, 8, 9];
 ['7fr', '7pct', '7eq', '7prop', '7ang', '7med'].forEach(id => { GEN[id] = GEN7(id); });
 GEN['7int-a'] = (k) => { const c = CONTEUDOS['7'].find(x => x.id === '7int'); const q = c.g.facil(); return Object.assign({ t: q.t, v: q.v }, { exp: 'Sinais diferentes: subtraia e fique com o sinal do maior. A resposta é ' + fmtN(q.v) + '.' }); };
 GEN['7int-b'] = (k) => { const c = CONTEUDOS['7'].find(x => x.id === '7int'); const q = c.g.media(); return Object.assign({ t: q.t, v: q.v }, { exp: 'Sinais iguais dão positivo; sinais diferentes dão negativo. A resposta é ' + fmtN(q.v) + '.' }); };
@@ -2037,7 +2257,8 @@ function questaoDaEtapa(g, k) {
 
 /* ================== Ilha dos Desafios ==================
    Questões originais no estilo das olimpíadas (Canguru, OBMEP), em múltipla escolha.
-   Nível 1: 6º e 7º ano · Nível 2: 8º e 9º ano. c = índice da alternativa certa (0 = A). */
+   Nível 1: 6º e 7º ano · Nível 2: 8º e 9º ano. Três alternativas; c = índice da certa no banco.
+   A ordem das alternativas é embaralhada a cada vez, para a letra certa não virar padrão. */
 const DES_FIG = {
   grade3: `<svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Quadrado dividido em 3 por 3 quadradinhos"><g fill="none" stroke="#5EE6FF" stroke-width="3"><rect x="6" y="6" width="108" height="108"/><path d="M42 6v108M78 6v108M6 42h108M6 78h108"/></g></svg>`,
   cruz: `<svg viewBox="0 0 132 132" width="120" height="120" role="img" aria-label="Cruz formada por 5 quadradinhos iguais"><g fill="#5EE6FF33" stroke="#5EE6FF" stroke-width="3"><rect x="46" y="6" width="40" height="40"/><rect x="6" y="46" width="40" height="40"/><rect x="46" y="46" width="40" height="40"/><rect x="86" y="46" width="40" height="40"/><rect x="46" y="86" width="40" height="40"/></g><text x="66" y="30" fill="#F2F3FF" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">2 cm</text></svg>`,
@@ -2047,47 +2268,47 @@ const DES_FIG = {
 };
 const DESAFIOS = [
   /* ---------- Nível 1 · 6º e 7º ano ---------- */
-  { id: 'n1-01', n: 1, tema: 'Lógica', t: 'Ana, Beto e Caio têm idades diferentes. Ana não é a mais nova. Caio é mais velho que Ana. Quem é o mais novo?', ops: ['Ana', 'Beto', 'Caio', 'Ana e Beto têm a mesma idade', 'Não dá para saber'], c: 1, exp: 'Caio é mais velho que Ana, e Ana não é a mais nova. Então quem sobra como mais novo é o Beto.' },
-  { id: 'n1-02', n: 1, tema: 'Números', t: 'Qual é o menor número de três algarismos cuja soma dos algarismos é 20?', ops: ['199', '299', '389', '398', '992'], c: 1, exp: 'Para o número ser o menor possível, a centena deve ser a menor possível. Com centena 1, os outros dois teriam que somar 19, mas o máximo é 9 + 9 = 18. Com centena 2: 2 + 9 + 9 = 20, ou seja, 299.' },
-  { id: 'n1-03', n: 1, tema: 'Contagem', t: 'Quantos números de 1 a 100 têm o algarismo 7 pelo menos uma vez?', ops: ['10', '11', '18', '19', '20'], c: 3, exp: 'Com 7 nas unidades: 7, 17, …, 97 (10 números). Com 7 nas dezenas: 70 a 79 (10 números). O 77 foi contado duas vezes: 10 + 10 − 1 = 19.' },
-  { id: 'n1-04', n: 1, tema: 'Padrões', t: 'Na sequência 2, 5, 11, 23, 47, … cada termo é o dobro do anterior mais 1. Qual é o próximo termo?', ops: ['71', '94', '95', '96', '99'], c: 2, exp: 'O dobro de 47 é 94; somando 1, dá 95.' },
-  { id: 'n1-05', n: 1, tema: 'Geometria', t: 'Um quadrado de lado 6 cm foi dividido em 4 retângulos iguais por 3 cortes paralelos a um dos lados. Qual é o perímetro de cada retângulo?', fig: 'quadrado4', ops: ['12 cm', '13,5 cm', '15 cm', '18 cm', '24 cm'], c: 2, exp: 'Cada retângulo mede 6 cm por 6 ÷ 4 = 1,5 cm. O perímetro é 6 + 1,5 + 6 + 1,5 = 15 cm.' },
-  { id: 'n1-06', n: 1, tema: 'Lógica', t: 'Numa ilha, os cavaleiros sempre falam a verdade e os mentirosos sempre mentem. Lia diz: “Eu e o Téo somos mentirosos.” O que são Lia e Téo?', ops: ['Os dois são cavaleiros', 'Os dois são mentirosos', 'Lia é cavaleira e Téo é mentiroso', 'Lia é mentirosa e Téo é cavaleiro', 'Não dá para saber'], c: 3, exp: 'Se Lia fosse cavaleira, a frase seria verdade, e ela seria mentirosa: impossível. Então Lia mente, e a frase é falsa: os dois não são mentirosos. Logo, Téo é cavaleiro.' },
-  { id: 'n1-07', n: 1, tema: 'Números', t: 'Joana pensou num número, multiplicou por 3, somou 12 e dividiu o resultado por 3. Obteve 11. Em que número ela pensou?', ops: ['5', '7', '9', '11', '33'], c: 1, exp: 'Desfazendo de trás para a frente: 11 × 3 = 33; 33 − 12 = 21; 21 ÷ 3 = 7.' },
-  { id: 'n1-08', n: 1, tema: 'Contagem', t: 'Numa reunião, 6 amigos se cumprimentaram. Cada um apertou a mão de cada um dos outros uma única vez. Quantos apertos de mão aconteceram?', ops: ['12', '15', '18', '30', '36'], c: 1, exp: 'Cada um aperta a mão de 5 pessoas: 6 × 5 = 30. Mas cada aperto foi contado duas vezes (uma para cada pessoa): 30 ÷ 2 = 15.' },
-  { id: 'n1-09', n: 1, tema: 'Números', t: 'Hoje é quarta-feira. Que dia da semana será daqui a 100 dias?', ops: ['Segunda-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'], c: 3, exp: 'A cada 7 dias o dia da semana se repete. 100 = 14 × 7 + 2. Então é como andar só 2 dias: quarta → quinta → sexta.' },
-  { id: 'n1-10', n: 1, tema: 'Geometria', t: 'Quantos quadrados, de todos os tamanhos, aparecem na figura?', fig: 'grade3', ops: ['9', '10', '13', '14', '16'], c: 3, exp: 'Há 9 quadrados pequenos, 4 quadrados de 2 × 2 e 1 quadrado grande: 9 + 4 + 1 = 14.' },
-  { id: 'n1-11', n: 1, tema: 'Lógica', t: 'Numa balança, 3 maçãs pesam o mesmo que 2 peras. Em outra, 1 pera pesa o mesmo que 3 laranjas. Quantas laranjas pesam o mesmo que 6 maçãs?', ops: ['6', '8', '9', '12', '18'], c: 3, exp: '6 maçãs = 2 × (3 maçãs) = 2 × (2 peras) = 4 peras. E 4 peras = 4 × 3 = 12 laranjas.' },
-  { id: 'n1-12', n: 1, tema: 'Números', t: 'A soma de três números inteiros consecutivos é 54. Qual é o maior deles?', ops: ['17', '18', '19', '20', '27'], c: 2, exp: 'O do meio é 54 ÷ 3 = 18. Os três são 17, 18 e 19; o maior é 19.' },
-  { id: 'n1-13', n: 1, tema: 'Frações', t: 'Um tanque estava com 3/4 da sua capacidade de água. Gastou-se metade dessa água. Que fração do tanque ainda tem água?', ops: ['1/8', '1/4', '3/8', '1/2', '3/4'], c: 2, exp: 'Metade de 3/4 é 3/4 ÷ 2 = 3/8. Sobrou 3/8 do tanque.' },
-  { id: 'n1-14', n: 1, tema: 'Padrões', t: 'Com palitos, formam-se quadrados em fila: 1 quadrado usa 4 palitos, 2 quadrados usam 7, 3 quadrados usam 10. Quantos palitos são precisos para 20 quadrados?', ops: ['60', '61', '63', '80', '81'], c: 1, exp: 'O primeiro quadrado usa 4 palitos e cada novo quadrado usa mais 3. Para 20: 4 + 19 × 3 = 61.' },
-  { id: 'n1-15', n: 1, tema: 'Lógica', t: 'Numa fila, Bia é a 7ª contando da frente e a 9ª contando de trás. Quantas pessoas há na fila?', ops: ['14', '15', '16', '17', '63'], c: 1, exp: 'Há 6 pessoas na frente da Bia e 8 atrás dela. Com ela: 6 + 1 + 8 = 15.' },
-  { id: 'n1-16', n: 1, tema: 'Geometria', t: 'Qual é o menor ângulo formado pelos ponteiros de um relógio às 4 horas em ponto?', ops: ['100°', '110°', '120°', '130°', '140°'], c: 2, exp: 'O relógio tem 12 marcas e uma volta tem 360°: cada marca vale 30°. Às 4 horas os ponteiros estão a 4 marcas: 4 × 30° = 120°.' },
-  { id: 'n1-17', n: 1, tema: 'Contagem', t: 'De quantas maneiras diferentes 3 amigos podem se sentar em 3 cadeiras enfileiradas?', ops: ['3', '6', '8', '9', '12'], c: 1, exp: 'Para a 1ª cadeira há 3 escolhas, para a 2ª sobram 2, e para a 3ª sobra 1: 3 × 2 × 1 = 6.' },
-  { id: 'n1-18', n: 1, tema: 'Números', t: 'Pedro tem só moedas de 25 e de 10 centavos: são 9 moedas, que somam R$ 1,65. Quantas moedas de 25 centavos ele tem?', ops: ['3', '4', '5', '6', '7'], c: 2, exp: 'Se as 9 fossem de 10 centavos, seriam 90 centavos. Faltam 75. Cada troca de uma moeda de 10 por uma de 25 soma 15 centavos: 75 ÷ 15 = 5 moedas de 25.' },
-  { id: 'n1-19', n: 1, tema: 'Geometria', t: 'A figura é uma cruz formada por 5 quadradinhos iguais, de lado 2 cm. Qual é o perímetro da cruz?', fig: 'cruz', ops: ['20 cm', '24 cm', '28 cm', '32 cm', '40 cm'], c: 1, exp: 'O contorno da cruz tem 12 lados de quadradinho (3 em cada braço). 12 × 2 cm = 24 cm.' },
-  { id: 'n1-20', n: 1, tema: 'Números', t: 'A média das notas de Rui em 4 provas é 7. Que nota ele precisa tirar na 5ª prova para a média das 5 provas ser 7,4?', ops: ['7,4', '8', '8,5', '9', '10'], c: 3, exp: 'As 4 provas somam 4 × 7 = 28. Para a média de 5 provas ser 7,4, a soma precisa ser 5 × 7,4 = 37. Falta 37 − 28 = 9.' },
-  { id: 'n1-21', n: 1, tema: 'Padrões', t: 'A sequência ABCDEABCDEABCDE… continua sempre assim. Qual é a 103ª letra?', ops: ['A', 'B', 'C', 'D', 'E'], c: 2, exp: 'O bloco ABCDE tem 5 letras. 103 = 20 × 5 + 3: depois de 20 blocos completos, a 3ª letra do bloco é C.' },
-  { id: 'n1-22', n: 1, tema: 'Lógica', t: 'Num dado comum, a soma das faces opostas é sempre 7. Um dado está sobre a mesa com o 2 virado para cima. Qual número está encostado na mesa?', ops: ['1', '3', '4', '5', '6'], c: 3, exp: 'A face de baixo é a oposta à de cima: 7 − 2 = 5.' },
-  { id: 'n1-23', n: 1, tema: 'Contagem', t: 'Quantos números pares de dois algarismos têm os dois algarismos iguais?', ops: ['4', '5', '9', '10', '45'], c: 0, exp: 'Os de algarismos iguais são 11, 22, …, 99. Os pares são 22, 44, 66 e 88: são 4.' },
-  { id: 'n1-24', n: 1, tema: 'Proporção', t: 'Uma receita usa 3 ovos para fazer 12 bolinhos. Quantos ovos são necessários para 40 bolinhos?', ops: ['8', '9', '10', '12', '13'], c: 2, exp: 'Cada ovo rende 12 ÷ 3 = 4 bolinhos. Para 40 bolinhos: 40 ÷ 4 = 10 ovos.' },
-  { id: 'n1-25', n: 1, tema: 'Geometria', t: 'Um retângulo tem perímetro de 30 cm e um de seus lados mede 6 cm. Qual é a área desse retângulo?', ops: ['36 cm²', '45 cm²', '54 cm²', '60 cm²', '90 cm²'], c: 2, exp: 'Dois lados de 6 cm somam 12 cm; os outros dois somam 30 − 12 = 18 cm, então cada um mede 9 cm. Área: 6 × 9 = 54 cm².' },
+  { id: 'n1-01', n: 1, tema: 'Lógica', t: 'Ana, Beto e Caio têm idades diferentes. Ana não é a mais nova. Caio é mais velho que Ana. Quem é o mais novo?', ops: ['Ana', 'Beto', 'Caio'], c: 1, exp: 'Caio é mais velho que Ana, e Ana não é a mais nova. Então quem sobra como mais novo é o Beto.' },
+  { id: 'n1-02', n: 1, tema: 'Números', t: 'Qual é o menor número de três algarismos cuja soma dos algarismos é 20?', ops: ['199', '299', '389'], c: 1, exp: 'Para o número ser o menor possível, a centena deve ser a menor possível. Com centena 1, os outros dois teriam que somar 19, mas o máximo é 9 + 9 = 18. Com centena 2: 2 + 9 + 9 = 20, ou seja, 299.' },
+  { id: 'n1-03', n: 1, tema: 'Contagem', t: 'Quantos números de 1 a 100 têm o algarismo 7 pelo menos uma vez?', ops: ['18', '19', '20'], c: 1, exp: 'Com 7 nas unidades: 7, 17, …, 97 (10 números). Com 7 nas dezenas: 70 a 79 (10 números). O 77 foi contado duas vezes: 10 + 10 − 1 = 19.' },
+  { id: 'n1-04', n: 1, tema: 'Padrões', t: 'Na sequência 2, 5, 11, 23, 47, … cada termo é o dobro do anterior mais 1. Qual é o próximo termo?', ops: ['94', '95', '96'], c: 1, exp: 'O dobro de 47 é 94; somando 1, dá 95.' },
+  { id: 'n1-05', n: 1, tema: 'Geometria', t: 'Um quadrado de lado 6 cm foi dividido em 4 retângulos iguais por 3 cortes paralelos a um dos lados. Qual é o perímetro de cada retângulo?', fig: 'quadrado4', ops: ['13,5 cm', '15 cm', '24 cm'], c: 1, exp: 'Cada retângulo mede 6 cm por 6 ÷ 4 = 1,5 cm. O perímetro é 6 + 1,5 + 6 + 1,5 = 15 cm.' },
+  { id: 'n1-06', n: 1, tema: 'Lógica', t: 'Numa ilha, os cavaleiros sempre falam a verdade e os mentirosos sempre mentem. Lia diz: “Eu e o Téo somos mentirosos.” O que são Lia e Téo?', ops: ['Os dois são mentirosos', 'Lia é cavaleira e Téo é mentiroso', 'Lia é mentirosa e Téo é cavaleiro'], c: 2, exp: 'Se Lia fosse cavaleira, a frase seria verdade, e ela seria mentirosa: impossível. Então Lia mente, e a frase é falsa: os dois não são mentirosos. Logo, Téo é cavaleiro.' },
+  { id: 'n1-07', n: 1, tema: 'Números', t: 'Joana pensou num número, multiplicou por 3, somou 12 e dividiu o resultado por 3. Obteve 11. Em que número ela pensou?', ops: ['5', '7', '11'], c: 1, exp: 'Desfazendo de trás para a frente: 11 × 3 = 33; 33 − 12 = 21; 21 ÷ 3 = 7.' },
+  { id: 'n1-08', n: 1, tema: 'Contagem', t: 'Numa reunião, 6 amigos se cumprimentaram. Cada um apertou a mão de cada um dos outros uma única vez. Quantos apertos de mão aconteceram?', ops: ['15', '30', '36'], c: 0, exp: 'Cada um aperta a mão de 5 pessoas: 6 × 5 = 30. Mas cada aperto foi contado duas vezes (uma para cada pessoa): 30 ÷ 2 = 15.' },
+  { id: 'n1-09', n: 1, tema: 'Números', t: 'Hoje é quarta-feira. Que dia da semana será daqui a 100 dias?', ops: ['Quinta-feira', 'Sexta-feira', 'Sábado'], c: 1, exp: 'A cada 7 dias o dia da semana se repete. 100 = 14 × 7 + 2. Então é como andar só 2 dias: quarta → quinta → sexta.' },
+  { id: 'n1-10', n: 1, tema: 'Geometria', t: 'Quantos quadrados, de todos os tamanhos, aparecem na figura?', fig: 'grade3', ops: ['9', '13', '14'], c: 2, exp: 'Há 9 quadrados pequenos, 4 quadrados de 2 × 2 e 1 quadrado grande: 9 + 4 + 1 = 14.' },
+  { id: 'n1-11', n: 1, tema: 'Lógica', t: 'Numa balança, 3 maçãs pesam o mesmo que 2 peras. Em outra, 1 pera pesa o mesmo que 3 laranjas. Quantas laranjas pesam o mesmo que 6 maçãs?', ops: ['8', '9', '12'], c: 2, exp: '6 maçãs = 2 × (3 maçãs) = 2 × (2 peras) = 4 peras. E 4 peras = 4 × 3 = 12 laranjas.' },
+  { id: 'n1-12', n: 1, tema: 'Números', t: 'A soma de três números inteiros consecutivos é 54. Qual é o maior deles?', ops: ['18', '19', '20'], c: 1, exp: 'O do meio é 54 ÷ 3 = 18. Os três são 17, 18 e 19; o maior é 19.' },
+  { id: 'n1-13', n: 1, tema: 'Frações', t: 'Um tanque estava com 3/4 da sua capacidade de água. Gastou-se metade dessa água. Que fração do tanque ainda tem água?', ops: ['1/4', '3/8', '1/2'], c: 1, exp: 'Metade de 3/4 é 3/4 ÷ 2 = 3/8. Sobrou 3/8 do tanque.' },
+  { id: 'n1-14', n: 1, tema: 'Padrões', t: 'Com palitos, formam-se quadrados em fila: 1 quadrado usa 4 palitos, 2 quadrados usam 7, 3 quadrados usam 10. Quantos palitos são precisos para 20 quadrados?', ops: ['60', '61', '80'], c: 1, exp: 'O primeiro quadrado usa 4 palitos e cada novo quadrado usa mais 3. Para 20: 4 + 19 × 3 = 61.' },
+  { id: 'n1-15', n: 1, tema: 'Lógica', t: 'Numa fila, Bia é a 7ª contando da frente e a 9ª contando de trás. Quantas pessoas há na fila?', ops: ['15', '16', '17'], c: 0, exp: 'Há 6 pessoas na frente da Bia e 8 atrás dela. Com ela: 6 + 1 + 8 = 15.' },
+  { id: 'n1-16', n: 1, tema: 'Geometria', t: 'Qual é o menor ângulo formado pelos ponteiros de um relógio às 4 horas em ponto?', ops: ['110°', '120°', '140°'], c: 1, exp: 'O relógio tem 12 marcas e uma volta tem 360°: cada marca vale 30°. Às 4 horas os ponteiros estão a 4 marcas: 4 × 30° = 120°.' },
+  { id: 'n1-17', n: 1, tema: 'Contagem', t: 'De quantas maneiras diferentes 3 amigos podem se sentar em 3 cadeiras enfileiradas?', ops: ['3', '6', '9'], c: 1, exp: 'Para a 1ª cadeira há 3 escolhas, para a 2ª sobram 2, e para a 3ª sobra 1: 3 × 2 × 1 = 6.' },
+  { id: 'n1-18', n: 1, tema: 'Números', t: 'Pedro tem só moedas de 25 e de 10 centavos: são 9 moedas, que somam R$ 1,65. Quantas moedas de 25 centavos ele tem?', ops: ['4', '5', '6'], c: 1, exp: 'Se as 9 fossem de 10 centavos, seriam 90 centavos. Faltam 75. Cada troca de uma moeda de 10 por uma de 25 soma 15 centavos: 75 ÷ 15 = 5 moedas de 25.' },
+  { id: 'n1-19', n: 1, tema: 'Geometria', t: 'A figura é uma cruz formada por 5 quadradinhos iguais, de lado 2 cm. Qual é o perímetro da cruz?', fig: 'cruz', ops: ['20 cm', '24 cm', '40 cm'], c: 1, exp: 'O contorno da cruz tem 12 lados de quadradinho (3 em cada braço). 12 × 2 cm = 24 cm.' },
+  { id: 'n1-20', n: 1, tema: 'Números', t: 'A média das notas de Rui em 4 provas é 7. Que nota ele precisa tirar na 5ª prova para a média das 5 provas ser 7,4?', ops: ['7,4', '8', '9'], c: 2, exp: 'As 4 provas somam 4 × 7 = 28. Para a média de 5 provas ser 7,4, a soma precisa ser 5 × 7,4 = 37. Falta 37 − 28 = 9.' },
+  { id: 'n1-21', n: 1, tema: 'Padrões', t: 'A sequência ABCDEABCDEABCDE… continua sempre assim. Qual é a 103ª letra?', ops: ['B', 'C', 'D'], c: 1, exp: 'O bloco ABCDE tem 5 letras. 103 = 20 × 5 + 3: depois de 20 blocos completos, a 3ª letra do bloco é C.' },
+  { id: 'n1-22', n: 1, tema: 'Lógica', t: 'Num dado comum, a soma das faces opostas é sempre 7. Um dado está sobre a mesa com o 2 virado para cima. Qual número está encostado na mesa?', ops: ['4', '5', '6'], c: 1, exp: 'A face de baixo é a oposta à de cima: 7 − 2 = 5.' },
+  { id: 'n1-23', n: 1, tema: 'Contagem', t: 'Quantos números pares de dois algarismos têm os dois algarismos iguais?', ops: ['4', '5', '9'], c: 0, exp: 'Os de algarismos iguais são 11, 22, …, 99. Os pares são 22, 44, 66 e 88: são 4.' },
+  { id: 'n1-24', n: 1, tema: 'Proporção', t: 'Uma receita usa 3 ovos para fazer 12 bolinhos. Quantos ovos são necessários para 40 bolinhos?', ops: ['9', '10', '12'], c: 1, exp: 'Cada ovo rende 12 ÷ 3 = 4 bolinhos. Para 40 bolinhos: 40 ÷ 4 = 10 ovos.' },
+  { id: 'n1-25', n: 1, tema: 'Geometria', t: 'Um retângulo tem perímetro de 30 cm e um de seus lados mede 6 cm. Qual é a área desse retângulo?', ops: ['45 cm²', '54 cm²', '90 cm²'], c: 1, exp: 'Dois lados de 6 cm somam 12 cm; os outros dois somam 30 − 12 = 18 cm, então cada um mede 9 cm. Área: 6 × 9 = 54 cm².' },
   /* ---------- Nível 2 · 8º e 9º ano ---------- */
-  { id: 'n2-01', n: 2, tema: 'Números', t: 'Qual é o algarismo das unidades do produto de 20 fatores iguais a 3, isto é, 3²⁰?', ops: ['0', '1', '3', '7', '9'], c: 1, exp: 'As unidades das potências de 3 se repetem de 4 em 4: 3, 9, 7, 1. Como 20 é múltiplo de 4, a unidade é 1.' },
-  { id: 'n2-02', n: 2, tema: 'Números', t: 'Quantos divisores positivos tem o número 36?', ops: ['6', '8', '9', '10', '12'], c: 2, exp: 'Os divisores são 1, 2, 3, 4, 6, 9, 12, 18 e 36: são 9.' },
-  { id: 'n2-03', n: 2, tema: 'Álgebra', t: 'Se x + 1/x = 5, quanto vale x² + 1/x²?', ops: ['10', '23', '24', '25', '27'], c: 1, exp: 'Elevando ao quadrado: (x + 1/x)² = x² + 2 + 1/x² = 25. Então x² + 1/x² = 25 − 2 = 23.' },
-  { id: 'n2-04', n: 2, tema: 'Geometria', t: 'Uma escada de 5 m está apoiada num muro, com o pé a 3 m da base do muro. A que altura a escada toca o muro?', fig: 'escada', ops: ['2 m', '3 m', '4 m', '4,5 m', '8 m'], c: 2, exp: 'A escada, o muro e o chão formam um triângulo retângulo. Pelo Teorema de Pitágoras: altura² = 5² − 3² = 25 − 9 = 16, então a altura é 4 m.' },
-  { id: 'n2-05', n: 2, tema: 'Contagem', t: 'Quantos números de três algarismos distintos podem ser formados usando apenas os algarismos 1, 2, 3 e 4?', ops: ['12', '24', '36', '64', '81'], c: 1, exp: '4 escolhas para a centena, 3 para a dezena e 2 para a unidade: 4 × 3 × 2 = 24.' },
-  { id: 'n2-06', n: 2, tema: 'Probabilidade', t: 'Lançando dois dados comuns, qual é a probabilidade de a soma das faces ser 7?', ops: ['1/12', '1/9', '1/6', '7/36', '1/3'], c: 2, exp: 'Há 6 × 6 = 36 resultados. Dão soma 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1), que são 6. Probabilidade: 6/36 = 1/6.' },
-  { id: 'n2-07', n: 2, tema: 'Álgebra', t: 'Num estacionamento há só carros e motos: são 20 veículos e 64 rodas. Quantas são as motos?', ops: ['6', '8', '10', '12', '14'], c: 1, exp: 'Se os 20 fossem motos, seriam 40 rodas. Sobram 24 rodas; cada carro tem 2 rodas a mais que uma moto: 24 ÷ 2 = 12 carros. Motos: 20 − 12 = 8.' },
-  { id: 'n2-08', n: 2, tema: 'Porcentagem', t: 'O preço de um produto subiu 20% e, depois, o novo preço caiu 20%. Comparado com o preço original, o preço final é:', ops: ['igual', '2% menor', '4% menor', '4% maior', '20% menor'], c: 2, exp: 'Subir 20% é multiplicar por 1,2; cair 20% é multiplicar por 0,8. 1,2 × 0,8 = 0,96: o preço final é 96% do original, ou seja, 4% menor.' },
-  { id: 'n2-09', n: 2, tema: 'Geometria', t: 'Quanto mede cada ângulo interno de um hexágono regular?', ops: ['100°', '108°', '120°', '135°', '144°'], c: 2, exp: 'A soma dos ângulos internos de um polígono de n lados é (n − 2) × 180°. Para o hexágono: 4 × 180° = 720°. Cada ângulo: 720° ÷ 6 = 120°.' },
-  { id: 'n2-10', n: 2, tema: 'Números', t: 'Qual é o menor número inteiro positivo maior que 1 que deixa resto 1 quando dividido por 2, por 3, por 4 e por 5?', ops: ['31', '41', '59', '61', '121'], c: 3, exp: 'Esse número menos 1 precisa ser múltiplo de 2, 3, 4 e 5 ao mesmo tempo. O menor múltiplo comum é 60. Então o número é 60 + 1 = 61.' },
-  { id: 'n2-11', n: 2, tema: 'Álgebra', t: 'Qual é a soma das raízes da equação x² − 7x + 10 = 0?', ops: ['−7', '2', '5', '7', '10'], c: 3, exp: 'As raízes são 2 e 5, porque 2 + 5 = 7 e 2 × 5 = 10. A soma é 7.' },
-  { id: 'n2-12', n: 2, tema: 'Lógica', t: 'Há três caixas: uma só com balas, uma só com chicletes e uma com os dois. Todas as etiquetas estão trocadas, nenhuma está certa. Tirando um único doce de qual caixa dá para descobrir o conteúdo das três?', ops: ['Da etiquetada “balas”', 'Da etiquetada “chicletes”', 'Da etiquetada “misturado”', 'De qualquer uma', 'Não é possível com um só doce'], c: 2, exp: 'A caixa “misturado” está errada, então tem só um tipo. Se sair uma bala, ela é a das balas. A caixa “chicletes” não pode ter chicletes nem balas, então é a misturada, e a “balas” fica com os chicletes. Com chiclete o raciocínio é o mesmo.' },
-  { id: 'n2-13', n: 2, tema: 'Geometria', t: 'Um círculo está dentro de um quadrado de lado 10 cm, tocando os quatro lados. Qual é a área da parte do quadrado que fica fora do círculo? Use π = 3,14.', fig: 'circulo', ops: ['15,7 cm²', '21,5 cm²', '31,4 cm²', '50 cm²', '78,5 cm²'], c: 1, exp: 'O raio do círculo é 5 cm. Área do quadrado: 100 cm². Área do círculo: 3,14 × 5² = 78,5 cm². Fora do círculo: 100 − 78,5 = 21,5 cm².' },
-  { id: 'n2-14', n: 2, tema: 'Padrões', t: 'Qual é o valor da soma 1 + 2 + 3 + … + 100?', ops: ['5000', '5050', '5100', '10000', '10100'], c: 1, exp: 'Juntando os números aos pares, 1 + 100, 2 + 99, …, cada par soma 101. São 50 pares: 50 × 101 = 5050.' },
-  { id: 'n2-15', n: 2, tema: 'Proporção', t: 'Um ciclista percorre metade de um caminho a 10 km/h e a outra metade a 15 km/h. Qual é a velocidade média no caminho todo?', ops: ['11 km/h', '12 km/h', '12,5 km/h', '13 km/h', '25 km/h'], c: 1, exp: 'Imagine um caminho de 60 km. A primeira metade (30 km) leva 3 h e a segunda leva 2 h. Total: 60 km em 5 h = 12 km/h. Não é a média simples, porque ele passa mais tempo na parte lenta.' }
+  { id: 'n2-01', n: 2, tema: 'Números', t: 'Qual é o algarismo das unidades do produto de 20 fatores iguais a 3, isto é, 3²⁰?', ops: ['1', '3', '9'], c: 0, exp: 'As unidades das potências de 3 se repetem de 4 em 4: 3, 9, 7, 1. Como 20 é múltiplo de 4, a unidade é 1.' },
+  { id: 'n2-02', n: 2, tema: 'Números', t: 'Quantos divisores positivos tem o número 36?', ops: ['8', '9', '12'], c: 1, exp: 'Os divisores são 1, 2, 3, 4, 6, 9, 12, 18 e 36: são 9.' },
+  { id: 'n2-03', n: 2, tema: 'Álgebra', t: 'Se x + 1/x = 5, quanto vale x² + 1/x²?', ops: ['23', '25', '27'], c: 0, exp: 'Elevando ao quadrado: (x + 1/x)² = x² + 2 + 1/x² = 25. Então x² + 1/x² = 25 − 2 = 23.' },
+  { id: 'n2-04', n: 2, tema: 'Geometria', t: 'Uma escada de 5 m está apoiada num muro, com o pé a 3 m da base do muro. A que altura a escada toca o muro?', fig: 'escada', ops: ['2 m', '4 m', '8 m'], c: 1, exp: 'A escada, o muro e o chão formam um triângulo retângulo. Pelo Teorema de Pitágoras: altura² = 5² − 3² = 25 − 9 = 16, então a altura é 4 m.' },
+  { id: 'n2-05', n: 2, tema: 'Contagem', t: 'Quantos números de três algarismos distintos podem ser formados usando apenas os algarismos 1, 2, 3 e 4?', ops: ['12', '24', '64'], c: 1, exp: '4 escolhas para a centena, 3 para a dezena e 2 para a unidade: 4 × 3 × 2 = 24.' },
+  { id: 'n2-06', n: 2, tema: 'Probabilidade', t: 'Lançando dois dados comuns, qual é a probabilidade de a soma das faces ser 7?', ops: ['1/12', '1/6', '7/36'], c: 1, exp: 'Há 6 × 6 = 36 resultados. Dão soma 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1), que são 6. Probabilidade: 6/36 = 1/6.' },
+  { id: 'n2-07', n: 2, tema: 'Álgebra', t: 'Num estacionamento há só carros e motos: são 20 veículos e 64 rodas. Quantas são as motos?', ops: ['8', '10', '12'], c: 0, exp: 'Se os 20 fossem motos, seriam 40 rodas. Sobram 24 rodas; cada carro tem 2 rodas a mais que uma moto: 24 ÷ 2 = 12 carros. Motos: 20 − 12 = 8.' },
+  { id: 'n2-08', n: 2, tema: 'Porcentagem', t: 'O preço de um produto subiu 20% e, depois, o novo preço caiu 20%. Comparado com o preço original, o preço final é:', ops: ['igual', '4% menor', '4% maior'], c: 1, exp: 'Subir 20% é multiplicar por 1,2; cair 20% é multiplicar por 0,8. 1,2 × 0,8 = 0,96: o preço final é 96% do original, ou seja, 4% menor.' },
+  { id: 'n2-09', n: 2, tema: 'Geometria', t: 'Quanto mede cada ângulo interno de um hexágono regular?', ops: ['108°', '120°', '135°'], c: 1, exp: 'A soma dos ângulos internos de um polígono de n lados é (n − 2) × 180°. Para o hexágono: 4 × 180° = 720°. Cada ângulo: 720° ÷ 6 = 120°.' },
+  { id: 'n2-10', n: 2, tema: 'Números', t: 'Qual é o menor número inteiro positivo maior que 1 que deixa resto 1 quando dividido por 2, por 3, por 4 e por 5?', ops: ['31', '59', '61'], c: 2, exp: 'Esse número menos 1 precisa ser múltiplo de 2, 3, 4 e 5 ao mesmo tempo. O menor múltiplo comum é 60. Então o número é 60 + 1 = 61.' },
+  { id: 'n2-11', n: 2, tema: 'Álgebra', t: 'Qual é a soma das raízes da equação x² − 7x + 10 = 0?', ops: ['−7', '7', '10'], c: 1, exp: 'As raízes são 2 e 5, porque 2 + 5 = 7 e 2 × 5 = 10. A soma é 7.' },
+  { id: 'n2-12', n: 2, tema: 'Lógica', t: 'Há três caixas: uma só com balas, uma só com chicletes e uma com os dois. Todas as etiquetas estão trocadas, nenhuma está certa. Tirando um único doce de qual caixa dá para descobrir o conteúdo das três?', ops: ['Da etiquetada “balas”', 'Da etiquetada “misturado”', 'Não é possível com um só doce'], c: 1, exp: 'A caixa “misturado” está errada, então tem só um tipo. Se sair uma bala, ela é a das balas. A caixa “chicletes” não pode ter chicletes nem balas, então é a misturada, e a “balas” fica com os chicletes. Com chiclete o raciocínio é o mesmo.' },
+  { id: 'n2-13', n: 2, tema: 'Geometria', t: 'Um círculo está dentro de um quadrado de lado 10 cm, tocando os quatro lados. Qual é a área da parte do quadrado que fica fora do círculo? Use π = 3,14.', fig: 'circulo', ops: ['21,5 cm²', '31,4 cm²', '78,5 cm²'], c: 0, exp: 'O raio do círculo é 5 cm. Área do quadrado: 100 cm². Área do círculo: 3,14 × 5² = 78,5 cm². Fora do círculo: 100 − 78,5 = 21,5 cm².' },
+  { id: 'n2-14', n: 2, tema: 'Padrões', t: 'Qual é o valor da soma 1 + 2 + 3 + … + 100?', ops: ['5000', '5050', '10100'], c: 1, exp: 'Juntando os números aos pares, 1 + 100, 2 + 99, …, cada par soma 101. São 50 pares: 50 × 101 = 5050.' },
+  { id: 'n2-15', n: 2, tema: 'Proporção', t: 'Um ciclista percorre metade de um caminho a 10 km/h e a outra metade a 15 km/h. Qual é a velocidade média no caminho todo?', ops: ['12 km/h', '12,5 km/h', '25 km/h'], c: 0, exp: 'Imagine um caminho de 60 km. A primeira metade (30 km) leva 3 h e a segunda leva 2 h. Total: 60 km em 5 h = 12 km/h. Não é a média simples, porque ele passa mais tempo na parte lenta.' }
 ];
 const DES_POR_PROVA = 5;
 const DES_NIVEIS = [
@@ -2103,8 +2324,9 @@ const DES_PROVAS = [];
 DES_NIVEIS.forEach(N => { const qs = DESAFIOS.filter(q => q.n === N.n); for (let i = 0; i < qs.length; i += DES_POR_PROVA) DES_PROVAS.push({ id: 'p' + N.n + '-' + (i / DES_POR_PROVA + 1), n: N.n, k: i / DES_POR_PROVA + 1, ids: qs.slice(i, i + DES_POR_PROVA).map(q => q.id) }); });
 const desQ = (id) => DESAFIOS.find(q => q.id === id);
 const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+const embaralhar = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 /* transforma uma questão do banco no formato da lição (múltipla escolha: valor = nº da alternativa) */
-const desParaLicao = (q) => ({ id: q.id, texto: q.t, ops: q.ops, fig: q.fig ? DES_FIG[q.fig] : '', valor: q.c + 1, resposta: LETRAS[q.c] + ') ' + q.ops[q.c], exp: q.exp, st: 'desafio' });
+const desParaLicao = (q) => { const ord = embaralhar(q.ops.map((_, i) => i)), ops = ord.map(i => q.ops[i]), c = ord.indexOf(q.c); return { id: q.id, texto: q.t, ops, fig: q.fig ? DES_FIG[q.fig] : '', valor: c + 1, resposta: LETRAS[c] + ') ' + ops[c], exp: q.exp, st: 'desafio' }; };
 
 /* ---------- estado do aluno ---------- */
 function desEstado() { if (!P.des || typeof P.des !== 'object') P.des = {}; const d = P.des; if (!Array.isArray(d.res)) d.res = []; if (!d.prov || typeof d.prov !== 'object') d.prov = {}; if (!d.sem || typeof d.sem !== 'object') d.sem = {}; return d; }
@@ -2299,8 +2521,23 @@ document.addEventListener('click', e => { if (e.target.closest('[data-ajustes]')
 
 /* ---------- 5. Início ---------- */
 const UI = { regiao: null, destaque: null };
-const atual = () => P.estrelas.length;
-const mundoLiberado = (mi) => mi === 0 || atual() >= MUNDOS[0].regioes.reduce((a, R) => a + R.total, 0);
+/* Progresso da trilha: P.estrelas[g] guarda as estrelas da etapa g (vazio = não feita).
+   Dentro de um mundo, cada etapa libera a próxima. */
+const feita = (g) => typeof P.estrelas[g] === 'number';
+const etapasFeitas = () => P.estrelas.filter(x => typeof x === 'number').length;
+const mundoCompleto = (mi) => ETAPAS.every((e, g) => e.mi !== mi || feita(g));
+const serieAluno = () => +(P.serie || 0);
+const mundoLiberado = (mi) => mi === 0 || !!P.gm || mundoCompleto(mi - 1) || (mi >= 2 && serieAluno() >= MUNDO_SERIE[mi]);
+const proxDoMundo = (mi) => ETAPAS.findIndex((e, g) => e.mi === mi && !feita(g));
+const etapaLivre = (g) => feita(g) || (mundoLiberado(ETAPAS[g].mi) && g === proxDoMundo(ETAPAS[g].mi));
+/* etapa sugerida agora: a do mundo do ano do aluno (8º/9º) ou a primeira ainda não feita */
+const atual = () => {
+  const ms = MUNDO_SERIE.indexOf(serieAluno());
+  if (ms >= 2 && mundoLiberado(ms) && proxDoMundo(ms) >= 0) return proxDoMundo(ms);
+  const g = ETAPAS.findIndex((e, g) => !feita(g) && mundoLiberado(e.mi));
+  return g < 0 ? ETAPAS.length : g;
+};
+const feitasNaRegiao = (R) => { let n = 0; for (let g = R.inicio; g < R.inicio + R.total; g++) if (feita(g)) n++; return n; };
 const ILHA = [[8, 270], [208, 206], [12, 142], [210, 78], [110, 6]];
 function renderInicio() {
   migrarPerfil();
@@ -2334,23 +2571,23 @@ function mapaHTML() {
   const [mi, ri] = UI.regiao, M = MUNDOS[mi];
   let h = `<div class="lg-mapa"><p class="rot" style="margin-top:4px">MAPA DE TREINO</p>`
     + `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--texto2);white-space:nowrap">Treino de hoje: ${P.dia.xpTreino}/${LIMITE_TREINO} XP</span><span class="barra" style="flex:1;height:5px;border:0;background:#22264A"><i style="width:${P.dia.xpTreino}%;background:#36C46B"></i></span></div>`
-    + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi && !UI.desafios}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${W.nome.toUpperCase()}</button>`).join('')}<button class="mundo des" data-mundo="des" aria-pressed="${!!UI.desafios}">${desLiberada() ? TROFEU('#B79BFF', 13) : CADEADO('#8B8FB8', 13)}DESAFIOS</button></div>`;
+    + `<div style="display:flex;gap:6px">${MUNDOS.map((W, k) => `<button class="mundo" data-mundo="${k}" aria-pressed="${k === mi && !UI.desafios}" aria-label="${W.nome}${mundoLiberado(k) ? '' : ', bloqueado'}">${mundoLiberado(k) ? '' : CADEADO('#8B8FB8', 13)}${MUNDO_SERIE[k]}º ANO</button>`).join('')}<button class="mundo des" data-mundo="des" aria-pressed="${!!UI.desafios}">${desLiberada() ? TROFEU('#B79BFF', 13) : CADEADO('#8B8FB8', 13)}DESAFIOS</button></div>`;
   if (UI.desafios) { const D = desafiosHTML(); return h + D.a + D.b + `</div><div class="lg-etapas"></div>`; }
   const pts = M.regioes.map((R, k) => (ILHA[k][0] + 66) + ',' + (ILHA[k][1] + 52));
-  const livres = M.regioes.filter(R => a >= R.inicio).length;
+  const livres = M.regioes.filter(R => etapaLivre(R.inicio)).length;
   h += `<div class="mapa" id="mapa"><div id="mapa-in" style="position:absolute;left:0;top:0;width:354px;height:392px;transform-origin:0 0"><svg viewBox="0 0 354 392" width="354" height="392" aria-hidden="true" style="position:absolute;left:0;top:0"><polyline points="${pts.join(' ')}" fill="none" stroke="#2A2E55" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/><polyline points="${pts.slice(0, livres).join(' ')}" fill="none" stroke="#FFD23F" stroke-width="6" stroke-dasharray="2 8" stroke-linecap="round"/></svg>`
     + M.regioes.map((R, k) => {
-      const E = EL[R.el], feitasR = Math.max(0, Math.min(R.total, a - R.inicio)), bloq = a < R.inicio, sel = k === ri, aqui = a >= R.inicio && a < R.inicio + R.total;
+      const E = EL[R.el], feitasR = feitasNaRegiao(R), bloq = !etapaLivre(R.inicio), sel = k === ri, aqui = a >= R.inicio && a < R.inicio + R.total;
       return `<button class="ilha${sel ? ' sel' : ''}${bloq ? ' bloq' : ''}" data-regiao="${k}" aria-pressed="${sel}" aria-label="${nomeIlha(R.el)}, ${R.unidade}, ${feitasR} de ${R.total}${bloq ? ', bloqueada' : ''}" style="left:${ILHA[k][0]}px;top:${ILHA[k][1]}px;--c:${E.cor}">`
         + `<span class="ilha-arte" style="animation-delay:-${k * 0.7}s">${ILHAS_SVG[R.el]}</span>`
         + `<span class="ilha-rot"><span style="display:flex;align-items:center;gap:5px;width:100%"><i style="width:8px;height:8px;flex:none;background:${E.cor}"></i><span class="cp" style="flex:1;font-size:12px">${E.nome}</span>${bloq ? CADEADO('#8B8FB8', 12) : ''}<span class="cp" style="font-size:11px;color:var(--texto2)">${feitasR}/${R.total}</span></span>`
         + `<span style="display:block;width:100%;height:4px;background:#0E0F1E"><span style="display:block;height:100%;width:${feitasR / R.total * 100}%;background:${E.cor}"></span></span></span></button>`
         + (aqui ? `<div class="flutua" style="position:absolute;left:${ILHA[k][0] + (k % 2 ? -22 : 112)}px;top:${ILHA[k][1] + 26}px;pointer-events:none;z-index:2">${avatarHTML(P.av, 1)}</div>` : '');
     }).join('') + `</div></div></div><div class="lg-etapas">`;
-  const R = M.regioes[ri], E = EL[R.el], feitasR = Math.max(0, Math.min(R.total, a - R.inicio));
+  const R = M.regioes[ri], E = EL[R.el], feitasR = feitasNaRegiao(R);
   h += `<div class="cartao" style="display:flex;flex-direction:column;gap:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><i style="width:10px;height:10px;background:${E.cor}"></i><span style="flex:1;display:flex;flex-direction:column;gap:1px"><span class="cp" style="font-size:13px;letter-spacing:2px">${nomeRegiao(R.el).toUpperCase()}</span><span style="font-size:12px;color:var(--texto2)">${R.unidade}</span></span><span class="cp" style="font-size:13px;color:var(--texto2)">${feitasR}/${R.total}</span></div>`
     + ETAPAS.map((e, g) => [e, g]).filter(([e]) => e.mi === mi && e.ri === ri).map(([e, g]) => {
-      const st = g < a ? 'feita' : g === a ? 'atual' : 'bloq', dest = UI.destaque === g;
+      const st = feita(g) ? 'feita' : etapaLivre(g) ? 'atual' : 'bloq', dest = UI.destaque === g;
       return `<button class="etapa${st === 'atual' ? ' atual' : ''}${dest ? ' destaque' : ''}" data-etapa="${g}" aria-label="${e.nome}${st === 'feita' ? ', ' + P.estrelas[g] + ' de 3 estrelas' : st === 'atual' ? ', próxima etapa' : ', bloqueada'}">`
         + `<span class="bol cp" style="background:${st === 'bloq' ? '#22264A' : E.cor}">${e.chefe ? COROA('#0E0F1E') : st === 'bloq' ? CADEADO() : e.i + 1}</span>`
         + `<span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:${st === 'bloq' ? '#6E7299' : 'var(--texto)'}">${e.nome}</span>`
@@ -2369,7 +2606,7 @@ function ligarMapa() {
     if (b.dataset.mundo === 'des') { if (!desLiberada()) { avisar('A Ilha dos Desafios abre no nível ' + DES_NIVEL_MIN + '. Continue treinando!'); return; } UI.desafios = true; renderInicio(); return; }
     UI.desafios = false;
     const k = +b.dataset.mundo;
-    if (!mundoLiberado(k)) { avisar('O Mundo 2 (7º ano) abre quando você vencer o Chefão do Raio do Mundo 1.'); return; }
+    if (!mundoLiberado(k)) { if (k >= 2) escolherSerie(k); else avisar('O Mundo 2 (7º ano) abre quando você vencer o Chefão do Raio do Mundo 1.'); return; }
     UI.regiao = [k, 0]; UI.destaque = null; renderInicio(); const m = $('t-inicio').querySelector('.mapa'); if (m) m.scrollIntoView({ block: 'start' });
   });
   t.querySelectorAll('[data-regiao]').forEach(b => b.onclick = () => { UI.regiao = [UI.regiao[0], +b.dataset.regiao]; UI.destaque = null; const y = t.scrollTop; renderInicio(); $('t-inicio').scrollTop = y; });
@@ -2382,10 +2619,25 @@ function ligarMapa() {
     P.dia.bau = true; P.moedas += BAU; salvarPerfil(); const y = t.scrollTop; renderInicio(); $('t-inicio').scrollTop = y; avisar('Baú aberto! +' + BAU + ' moedas.');
   };
 }
+/* Mundo 3 (8º) e Mundo 4 (9º): abrem pelo ano escolar do aluno, sem precisar refazer os anos anteriores */
+function escolherSerie(mi) {
+  const M = MUNDOS[mi], ano = MUNDO_SERIE[mi], turma = typeof CONTA !== 'undefined' && CONTA && CONTA.turma;
+  if (turma) { avisar('O ' + M.nome + ' abre quando você termina o ' + MUNDOS[mi - 1].nome + '. Sua turma é do ' + turma.serie + 'º ano.'); return; }
+  abrirFolha(cabFolha(M.nome.toUpperCase())
+    + `<p style="margin:0;font-size:15px">Este mundo abre quando você termina o ${MUNDOS[mi - 1].nome}.</p>`
+    + `<p class="aviso">Se você já está no ${ano}º ano ou mais adiante, pode abrir agora. Os mundos dos anos anteriores continuam abertos para revisar.</p>`
+    + `<p class="rot">EM QUE ANO VOCÊ ESTÁ?</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${[6, 7, 8, 9].map(n => `<button class="btn ${n >= ano ? 'btn-prim' : 'btn-sec'}" data-serie="${n}" style="min-height:48px">${n}º ANO</button>`).join('')}</div>`, M.nome);
+  $('folha').querySelectorAll('[data-serie]').forEach(b => b.onclick = () => {
+    const n = +b.dataset.serie; fecharFolha();
+    P.serie = String(n); salvarPerfil();
+    if (n < ano) { if (n >= 8) renderInicio(); avisar('Combinado! Continue a trilha do seu ano. Este mundo abre depois do ' + MUNDOS[mi - 1].nome + '.'); return; } UI.desafios = false; UI.regiao = [MUNDO_SERIE.indexOf(n) >= 0 ? MUNDO_SERIE.indexOf(n) : mi, 0]; UI.destaque = null;
+    avisar(MUNDOS[MUNDO_SERIE.indexOf(n)].nome + ' liberado! Bons estudos.'); renderInicio();
+  });
+}
 function abrirEtapa(g) {
-  const a = atual(), e = ETAPAS[g];
-  if (g > a) { avisar('Termine “' + ETAPAS[a].nome + '” para liberar esta etapa.'); return; }
-  const R = MUNDOS[e.mi].regioes[e.ri], E = EL[R.el], feita = g < a, n = QTD(e);
+  const e = ETAPAS[g];
+  if (!etapaLivre(g)) { const p = proxDoMundo(e.mi); if (!mundoLiberado(e.mi)) escolherSerie(e.mi); else avisar('Termine “' + ETAPAS[p].nome + '” para liberar esta etapa.'); return; }
+  const R = MUNDOS[e.mi].regioes[e.ri], E = EL[R.el], feita = typeof P.estrelas[g] === 'number', n = QTD(e);
   abrirFolha(`<div style="display:flex;align-items:center;gap:8px;border-top:3px solid ${E.cor};margin:-18px -18px 0;padding:14px 18px 0"><i style="width:10px;height:10px;background:${E.cor}"></i><p class="rot" style="flex:1">${nomeRegiao(R.el).toUpperCase()} · ${e.chefe ? 'CHEFÃO' : 'ETAPA ' + (e.i + 1) + ' DE ' + R.total}</p><button class="voltar" style="background:transparent" data-fechar aria-label="Fechar">${ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#A9ADD6', 20)}</button></div>`
     + `<p class="cp" style="margin:0;font-size:24px">${e.nome}</p>`
     + (feita ? `<div style="display:flex;align-items:center;gap:10px">${estrelasHTML(P.estrelas[g], 18)}<p class="aviso">Sua marca: ${P.estrelas[g]} de 3 estrelas.${P.estrelas[g] < 3 ? ' Refaça para buscar as 3.' : ''}</p></div>` : '')
@@ -2398,7 +2650,7 @@ function abrirEtapa(g) {
 }
 function irParaEtapa(st) {
   const a = atual();
-  const cands = ETAPAS.map((e, g) => [e, g]).filter(([e, g]) => e.st === st && g <= a);
+  const cands = ETAPAS.map((e, g) => [e, g]).filter(([e, g]) => e.st === st && etapaLivre(g));
   let g;
   if (cands.length) g = cands[cands.length - 1][1];
   else { g = a; avisar('Esse conteúdo aparece mais à frente na trilha. Continue de onde parou!'); }
@@ -2549,15 +2801,15 @@ function seguirLicao() {
 function fimLicao() {
   if (L && L.des) { fimDesafio(); return; }
   limparTimers();
-  const e = ETAPAS[L.g], n = L.qs.length, feitas = L.hist.length, ac = L.hist.filter(Boolean).length, passou = L.cor > 0 && feitas >= n, est = passou ? L.cor : 0, novo = L.g === atual();
+  const e = ETAPAS[L.g], n = L.qs.length, feitas = L.hist.length, ac = L.hist.filter(Boolean).length, passou = L.cor > 0 && feitas >= n, est = passou ? L.cor : 0, novo = !feita(L.g);
   let moedas = 0, liberou = '';
   if (passou) {
     if (novo) {
-      P.estrelas.push(est); moedas = e.chefe ? 20 : 5; P.moedas += moedas;
+      P.estrelas[L.g] = est; moedas = e.chefe ? 20 : 5; P.moedas += moedas;
       const m = progredirMissao('etapa', 1); if (m) L.missoes.push(m);
       const prox = ETAPAS[L.g + 1];
       if (!prox) liberou = 'Você completou a trilha inteira!';
-      else if (prox.mi !== e.mi) liberou = 'Mundo 2 (7º ano) liberado!';
+      else if (prox.mi !== e.mi) liberou = mundoCompleto(e.mi) ? 'Você completou o ' + MUNDOS[e.mi].nome + '! ' + MUNDOS[prox.mi].nome + ' liberado!' : 'Ilha concluída!';
       else if (prox.ri !== e.ri) liberou = 'Nova ilha liberada: ' + nomeRegiao(MUNDOS[prox.mi].regioes[prox.ri].el) + '!';
       else liberou = 'Próxima etapa liberada: ' + prox.nome;
       if (prox) { UI.regiao = [prox.mi, prox.ri]; UI.destaque = null; }
@@ -2616,7 +2868,7 @@ function renderConta() {
     + `<div class="carteirinha"><div class="palco-c">${molduraAv(P.moldura, avatarHTML(P.av, 4))}<div class="flutua" style="position:absolute;right:14px;top:22px;filter:drop-shadow(0 0 10px ${E.cor}88)">${criaHTML(P.el, nivelVisto(), 92)}</div><p class="rot" style="position:absolute;left:10px;top:10px;padding:3px 8px;background:var(--card);border:1px solid var(--borda);color:var(--ciano)">CARTEIRINHA DA ARENA</p><button id="ct-liga-mini" aria-label="Liga ${esc(ligaNome(ligaIdx()))}" style="position:absolute;left:10px;bottom:10px;border:0;background:transparent;padding:0;display:flex;align-items:center;gap:6px">${ligaMini(ligaIdx(), 34)}<span class="cp" style="font-size:12px;color:var(--texto)">${esc(ligaNome(ligaIdx()).toUpperCase())}</span></button></div>`
     + `<div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px"><p class="cp" style="margin:0;font-size:22px;color:var(--amarelo)">${esc(nickExib())}</p>`
     + `<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="cp selo-nv">NÍVEL ${nv.n}</span><span class="cp selo-nv" style="background:${E.cor}22;color:${E.cor}">${esc(nomeCria(P.el, nivelVisto()).toUpperCase())}</span>${P.gm ? '<span class="cp selo-nv" style="background:rgba(255,210,63,.15);color:var(--amarelo)">PROFESSOR · GM</span>' : ''}</div>`
-    + `<p class="aviso" style="font-size:12px">${P.partidas} partida${P.partidas === 1 ? '' : 's'} · ${P.xp} XP no total · ${P.estrelas.length} etapa${P.estrelas.length === 1 ? '' : 's'} da trilha</p></div></div>`
+    + `<p class="aviso" style="font-size:12px">${P.partidas} partida${P.partidas === 1 ? '' : 's'} · ${P.xp} XP no total · ${etapasFeitas()} etapa${etapasFeitas() === 1 ? '' : 's'} da trilha</p></div></div>`
     + ligaCartaoHTML()
     + seqCartaoHTML()
     + desCartaoHTML()
@@ -2960,7 +3212,7 @@ function checarPremioIlha(e) {
   const gs = ETAPAS.map((x, g) => [x, g]).filter(([x]) => x.mi === e.mi && x.ri === e.ri).map(([, g]) => g);
   let h = '';
   if (!P.premiosIlha[k] && gs.every(g => P.estrelas[g] === 3)) { P.premiosIlha[k] = true; h += premioOvo(R.el); }
-  if (!P.premiosIlha.inf && P.estrelas.length === ETAPAS.length && P.estrelas.every(x => x === 3)) { P.premiosIlha.inf = true; h += premioOvo('infinito'); }
+  if (!P.premiosIlha.inf && ETAPAS.every((x, g) => x.mi > 1 || P.estrelas[g] === 3)) { P.premiosIlha.inf = true; h += premioOvo('infinito'); }
   return h ? `<div style="display:flex;flex-direction:column;gap:8px;flex:1">${h}</div>` : '';
 }
 
@@ -3097,7 +3349,7 @@ function folhaNovaTurma() {
   const cfg = folhaNovaTurma.cfg = folhaNovaTurma.cfg || { serie: '6', turno: 'Manhã' };
   const chip = (g, v, r) => `<button type="button" class="chip" data-tg="${g}" data-tv="${v}" aria-pressed="${cfg[g] === v}">${r}</button>`;
   abrirFolha(cabFolha('NOVA TURMA') + `<div class="campo"><label class="rot" for="tn-nome">NOME DA TURMA</label><input id="tn-nome" maxlength="20" placeholder="Ex.: 6º A" value="${esc(cfg.nome || '')}"></div>`
-    + `<p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano')}${chip('serie', '7', '7º ano')}</div><p class="rot">TURNO</p><div class="chips">${chip('turno', 'Manhã', 'Manhã')}${chip('turno', 'Tarde', 'Tarde')}</div>`
+    + `<p class="rot">SÉRIE</p><div class="chips">${['6', '7', '8', '9'].map(n => chip('serie', n, n + 'º ano')).join('')}</div><p class="rot">TURNO</p><div class="chips">${chip('turno', 'Manhã', 'Manhã')}${chip('turno', 'Tarde', 'Tarde')}</div>`
     + `<p class="aviso" id="tn-erro" role="alert"></p><button class="btn btn-prim" id="tn-ok">CRIAR TURMA</button>`, 'Nova turma');
   $('folha').querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { cfg.nome = $('tn-nome').value; cfg[b.dataset.tg] = b.dataset.tv; folhaNovaTurma(); });
   $('tn-ok').onclick = () => {
@@ -3273,7 +3525,7 @@ function folhaChefao() {
   abrirFolha(cabFolha('CHEFÃO DA SALA')
     + `<div style="display:flex;align-items:center;gap:12px"><div style="width:90px;flex:none">${CHEFE_SALA_SVG.replace(/width="240" height="230"/, 'width="90" height="86"')}</div><p class="aviso" style="font-size:13px">A turma inteira enfrenta a <b style="color:#FF7BEA">Pirâmide das Fórmulas</b>. Cada acerto dá direito a Atacar, Curar ou Escudo. Todos ganham ${RECOMP_CH.xp} XP e ${RECOMP_CH.moedas} moedas, e o top 3 de dano ganha o dobro.</p></div>`
     + `<p class="rot">VIDA DO CHEFÃO</p><div class="chips">${chip('hp', 1500, '1.500')}${chip('hp', 3000, '3.000')}${chip('hp', 4500, '4.500')}${chip('hp', 6000, '6.000')}</div>`
-    + `<p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano')}${chip('serie', '7', '7º ano')}</div>`
+    + `<p class="rot">SÉRIE</p><div class="chips">${['6', '7', '8', '9'].map(n => chip('serie', n, n + 'º ano')).join('')}</div>`
     + `<p class="rot">CONTEÚDO</p><div class="chips">${chip('conteudo', 'mix', 'Misturado')}${lista.map(x => chip('conteudo', x.id, x.nome)).join('')}</div>`
     + `<p class="aviso" style="font-size:12px">${RODADAS_CH} rodadas de ${TEMPO_CH} s. No fim de cada rodada o chefão tira ${CH_ATAQUE} de vida de todos. Curar recupera ${CH_CURA}. A cada ${CH_GOLPE_CADA} rodadas, se metade da turma acertar, sai o Golpe da Turma (metade do dano da rodada). Se a turma toda acertar, todos ganham +${CH_CURA_TURMA} de vida, até quem tinha caído.</p>`
     + `<button class="btn btn-prim" id="ch-criar">ABRIR O EVENTO →</button>`, 'Chefão da Sala');
@@ -3821,7 +4073,7 @@ function renderFolhaGuilda(msg) {
     + `<p class="rot">FORMA</p>` + opc('forma', Object.keys(G_FORMAS), GF.forma, v => emblemaSVG({ forma: v, cor: GF.cor, sim: GF.sim }, 30))
     + `<p class="rot">COR</p>` + opc('cor', G_CORES, GF.cor, v => `<i style="width:26px;height:26px;background:${v};border-radius:50%"></i>`)
     + `<p class="rot">SÍMBOLO</p>` + opc('sim', Object.keys(G_SIMBOLOS), GF.sim, v => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="background:#2A2E55">${G_SIMBOLOS[v]}</svg>`)
-    + (precisaSerie ? `<p class="rot">ANO ESCOLAR DA GUILDA</p><div style="display:flex;gap:6px">${['6', '7'].map(s => `<button type="button" data-gf="serie" data-v="${s}" aria-pressed="${GF.serie === s}" class="btn ${GF.serie === s ? 'btn-prim' : 'btn-sec'}" style="flex:1;min-height:40px">${s}º ANO</button>`).join('')}</div>` : '')
+    + (precisaSerie ? `<p class="rot">ANO ESCOLAR DA GUILDA</p><div style="display:flex;gap:6px">${['6', '7', '8', '9'].map(s => `<button type="button" data-gf="serie" data-v="${s}" aria-pressed="${GF.serie === s}" class="btn ${GF.serie === s ? 'btn-prim' : 'btn-sec'}" style="flex:1;min-height:40px">${s}º ANO</button>`).join('')}</div>` : '')
     + `<p class="aviso" id="gf-erro" role="alert" style="color:var(--vermelho)">${esc(msg || '')}</p>`
     + `<button class="btn btn-prim" id="gf-ok">${GF.modo === 'criar' ? 'CRIAR GUILDA' : 'SALVAR'}</button>`, GF.modo === 'criar' ? 'Criar guilda' : 'Editar guilda');
   $('gf-nome').oninput = () => { GF.nome = $('gf-nome').value; };
@@ -4085,7 +4337,7 @@ function renderAdmin(carregando) {
   if (carregando) { t.innerHTML = h + `<p class="cp pulsa" style="text-align:center;margin-top:40px;letter-spacing:2px">CARREGANDO…</p>`; return; }
   if (ADM.aba === 'jogadores') {
     const J = ADM.jog || [], n = (f) => J.filter(f).length;
-    const filtros = [['todos', 'Todos', J.length], ['6', '6º ano', n(j => j.turma && j.turma.serie === '6')], ['7', '7º ano', n(j => j.turma && j.turma.serie === '7')], ['sem', 'Sem turma', n(j => !j.gm && !j.turma)], ['gm', 'GMs', n(j => j.gm)], ['bloq', 'Bloqueados', n(j => j.bloqueado)]];
+    const filtros = [['todos', 'Todos', J.length], ['6', '6º ano', n(j => j.turma && j.turma.serie === '6')], ['7', '7º ano', n(j => j.turma && j.turma.serie === '7')], ['8', '8º ano', n(j => j.turma && j.turma.serie === '8')], ['9', '9º ano', n(j => j.turma && j.turma.serie === '9')], ['sem', 'Sem turma', n(j => !j.gm && !j.turma)], ['gm', 'GMs', n(j => j.gm)], ['bloq', 'Bloqueados', n(j => j.bloqueado)]];
     h += `<div class="campo" style="flex:none"><label class="rot" for="adm-busca">BUSCAR POR NICK OU USUÁRIO</label><input id="adm-busca" autocomplete="off" value="${esc(ADM.busca)}" placeholder="ex.: joao"></div>`
       + `<div style="display:flex;gap:6px;overflow-x:auto;flex:none;padding-bottom:2px">${filtros.map(([k, l, c]) => `<button class="chip" data-adm-f="${k}" aria-pressed="${ADM.filtro === k}" style="flex:none">${l} · ${c}</button>`).join('')}</div>`
       + `<div class="cartao" id="adm-lista" style="display:flex;flex-direction:column;padding-top:4px;padding-bottom:4px">${linhasJogHTML()}</div>`;
@@ -4254,6 +4506,7 @@ async function posLogin() {
 async function aplicarConta() {
   PAPEL = CONTA.gm ? 'gm' : 'aluno';
   P = Object.assign({}, CONTA.dados || {}, { nick: CONTA.nick, gm: !!CONTA.gm, login: CONTA.usuario });
+  if (CONTA.turma && CONTA.turma.serie) P.serie = String(CONTA.turma.serie);
   migrarPerfil(); salvarLocal();
   rpc('registrar_acesso').catch(() => { });
 }
@@ -4348,7 +4601,7 @@ function entrarTurmaFolha() {
   abrirFolha(cabFolha('ENTRAR NUMA TURMA') + `<div class="campo"><label class="rot" for="tc-cod">CÓDIGO DA TURMA</label><input id="tc-cod" maxlength="5" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:6px;font-size:22px;text-align:center"></div><p class="aviso" id="tc-erro" role="alert"></p><button class="btn btn-prim" id="tc-ok">ENTRAR NA TURMA</button><p class="aviso" style="font-size:12px">O professor mostra o código na aba Turma.</p>`, 'Entrar numa turma');
   $('tc-ok').onclick = async () => {
     const c = $('tc-cod').value.trim().toUpperCase(); if (!/^[A-Z]{5}$/.test(c)) { $('tc-erro').textContent = 'O código tem 5 letras.'; return; }
-    try { const t = await rpc('entrar_turma', { p_codigo: c }); CONTA.turma = t; fecharFolha(); renderConta(); avisar('Você entrou na turma ' + t.nome + '!'); }
+    try { const t = await rpc('entrar_turma', { p_codigo: c }); CONTA.turma = t; if (t.serie) { P.serie = String(t.serie); salvarPerfil(); } fecharFolha(); renderConta(); avisar('Você entrou na turma ' + t.nome + '!'); }
     catch (e) { $('tc-erro').textContent = msgErro(e); }
   };
 }
@@ -4396,7 +4649,7 @@ async function renderTurmaOnline(recarregar) {
 function folhaNovaTurmaOnline() {
   const cfg = folhaNovaTurmaOnline.cfg = folhaNovaTurmaOnline.cfg || { serie: '6', turno: 'Manhã' };
   const chip = (g, v, r) => `<button type="button" class="chip" data-tg="${g}" data-tv="${v}" aria-pressed="${cfg[g] === v}">${r}</button>`;
-  abrirFolha(cabFolha('NOVA TURMA') + `<div class="campo"><label class="rot" for="tn-nome">NOME DA TURMA</label><input id="tn-nome" maxlength="20" placeholder="Ex.: 6º A" value="${esc(cfg.nome || '')}"></div><p class="rot">SÉRIE</p><div class="chips">${chip('serie', '6', '6º ano')}${chip('serie', '7', '7º ano')}</div><p class="rot">TURNO</p><div class="chips">${chip('turno', 'Manhã', 'Manhã')}${chip('turno', 'Tarde', 'Tarde')}</div><p class="aviso" id="tn-erro" role="alert"></p><button class="btn btn-prim" id="tn-ok">CRIAR TURMA</button>`, 'Nova turma');
+  abrirFolha(cabFolha('NOVA TURMA') + `<div class="campo"><label class="rot" for="tn-nome">NOME DA TURMA</label><input id="tn-nome" maxlength="20" placeholder="Ex.: 6º A" value="${esc(cfg.nome || '')}"></div><p class="rot">SÉRIE</p><div class="chips">${['6', '7', '8', '9'].map(n => chip('serie', n, n + 'º ano')).join('')}</div><p class="rot">TURNO</p><div class="chips">${chip('turno', 'Manhã', 'Manhã')}${chip('turno', 'Tarde', 'Tarde')}</div><p class="aviso" id="tn-erro" role="alert"></p><button class="btn btn-prim" id="tn-ok">CRIAR TURMA</button>`, 'Nova turma');
   $('folha').querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { cfg.nome = $('tn-nome').value; cfg[b.dataset.tg] = b.dataset.tv; folhaNovaTurmaOnline(); });
   $('tn-ok').onclick = async () => {
     const nome = $('tn-nome').value.trim(); if (nome.length < 2) { $('tn-erro').textContent = 'Dê um nome para a turma.'; return; }
