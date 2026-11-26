@@ -497,7 +497,7 @@ background-color:#12142A;background-image:linear-gradient(rgba(94,230,255,.13) 1
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><p class="cp" id="sala-status" style="margin:0;font-size:13px;letter-spacing:2px"></p><div id="sala-pips" style="display:flex;gap:4px"></div></div>
 <div class="arena"><div class="piso" aria-hidden="true"></div><div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:150px;background:linear-gradient(180deg,#0E0F1E 55%,rgba(14,15,30,0))"></div><div class="fileira" id="fileira"></div></div>
-<div id="sala-host" style="display:none;gap:8px"><button class="btn btn-sec" id="add-robo" style="min-height:44px">+ ROBÔ</button><button class="btn btn-sec" id="tirar-robo" style="min-height:44px">− ROBÔ</button></div>
+<div id="sala-host" style="display:none;gap:8px"><button class="btn btn-sec" id="add-robo" style="min-height:44px">+ ROBÔ</button><button class="btn btn-sec" id="tirar-robo" style="min-height:44px">− ROBÔ</button><button class="btn btn-sec" id="som-sala" style="min-height:44px;display:none" aria-pressed="false">🔊 SOM DOS ALUNOS</button></div>
 <p class="aviso" id="sala-nota"></p>
 <p class="rot">MENSAGENS RÁPIDAS</p>
 <div class="msgs" id="msgs"></div>
@@ -858,6 +858,97 @@ const CHEFE_SALA_SVG = "<svg viewBox=\"0 0 240 230\" width=\"240\" height=\"230\
 const FX = {"raio": "<svg class=\"fx-raio-r1\" viewBox=\"0 0 60 200\" width=\"60\" height=\"200\" style=\"position: absolute; left: 22px; top: -90px; overflow: visible\"><polyline points=\"38,0 22,48 40,52 16,104 36,108 12,160 30,164 24,200\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"38,0 22,48 40,52 16,104 36,108 12,160 30,164 24,200\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><svg class=\"fx-raio-r2\" viewBox=\"0 0 40 150\" width=\"40\" height=\"150\" style=\"position: absolute; left: -6px; top: -50px; overflow: visible\"><polyline points=\"10,0 26,40 12,44 30,90 14,94 24,150\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"10,0 26,40 12,44 30,90 14,94 24,150\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><svg class=\"fx-raio-r3\" viewBox=\"0 0 40 150\" width=\"40\" height=\"150\" style=\"position: absolute; left: 72px; top: -60px; overflow: visible\"><polyline points=\"30,0 14,42 28,46 10,92 26,96 16,150\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"30,0 14,42 28,46 10,92 26,96 16,150\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><span class=\"fx-anel\" style=\"position: absolute; left: 20px; top: 40px; width: 60px; height: 60px; box-sizing: border-box; border: 4px solid #FFD23F; border-radius: 50%; box-shadow: 0 0 16px #F5B80A\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 44px; --dy: -30px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -44px; --dy: -26px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 40px; --dy: 34px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -40px; --dy: 30px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 0px; --dy: -50px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 8px; --dy: 50px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 56px; --dy: 4px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -56px; --dy: 0px\"></span>", "agua": "<span class=\"fx-onda\" style=\"position: absolute; left: -10px; top: 84px; width: 120px; height: 56px; background: linear-gradient(180deg, #8FDBFF, #2F6BFF); opacity: .85; clip-path: polygon(0 20%, 10% 0, 20% 20%, 30% 0, 40% 20%, 50% 0, 60% 20%, 70% 0, 80% 20%, 90% 0, 100% 20%, 100% 100%, 0 100%)\"></span><span class=\"fx-anel\" style=\"position: absolute; left: 6px; top: 116px; width: 88px; height: 22px; box-sizing: border-box; border: 3px solid #8FDBFF; border-radius: 50%\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #8FDBFF; --dx: -50px; --dy: -70px; --d: .1s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #FFFFFF; --dx: 50px; --dy: -74px; --d: .12s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #4AA8FF; --dx: -30px; --dy: -96px; --d: .15s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #8FDBFF; --dx: 30px; --dy: -92px; --d: .18s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #FFFFFF; --dx: -64px; --dy: -40px; --d: .22s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #4AA8FF; --dx: 64px; --dy: -44px; --d: .2s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #FFFFFF; --dx: -12px; --dy: -110px; --d: .25s\"></span><span class=\"fx-gota\" style=\"position: absolute; left: 47px; top: 96px; width: 6px; height: 8px; background: #8FDBFF; --dx: 14px; --dy: -104px; --d: .28s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 24px; top: 100px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid #E6F7FF; border-radius: 50%; --dx: -6px; --d: .35s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 52px; top: 100px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid #E6F7FF; border-radius: 50%; --dx: 8px; --d: .4s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 70px; top: 100px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid #E6F7FF; border-radius: 50%; --dx: -4px; --d: .45s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 38px; top: 100px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid #E6F7FF; border-radius: 50%; --dx: 10px; --d: .5s\"></span>", "fogo": "<span class=\"fx-brilho\" style=\"position: absolute; left: -10px; top: 30px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,122,69,0.75), rgba(255,122,69,0))\"></span><span class=\"fx-chama\" style=\"position: absolute; left: 0px; top: 100px; width: 22px; height: 40px; clip-path: polygon(50% 0, 62% 22%, 75% 12%, 80% 40%, 100% 55%, 92% 100%, 8% 100%, 0 55%, 20% 40%, 25% 12%, 38% 22%); background: linear-gradient(0deg, #E8475F 0%, #FF7A45 45%, #FFD23F 85%); --d: .12s\"></span><span class=\"fx-chama\" style=\"position: absolute; left: 78px; top: 96px; width: 22px; height: 44px; clip-path: polygon(50% 0, 62% 22%, 75% 12%, 80% 40%, 100% 55%, 92% 100%, 8% 100%, 0 55%, 20% 40%, 25% 12%, 38% 22%); background: linear-gradient(0deg, #E8475F 0%, #FF7A45 45%, #FFD23F 85%); --d: .16s\"></span><span class=\"fx-chama\" style=\"position: absolute; left: 10px; top: 78px; width: 30px; height: 62px; clip-path: polygon(50% 0, 62% 22%, 75% 12%, 80% 40%, 100% 55%, 92% 100%, 8% 100%, 0 55%, 20% 40%, 25% 12%, 38% 22%); background: linear-gradient(0deg, #E8475F 0%, #FF7A45 45%, #FFD23F 85%); --d: .04s\"></span><span class=\"fx-chama\" style=\"position: absolute; left: 60px; top: 74px; width: 30px; height: 66px; clip-path: polygon(50% 0, 62% 22%, 75% 12%, 80% 40%, 100% 55%, 92% 100%, 8% 100%, 0 55%, 20% 40%, 25% 12%, 38% 22%); background: linear-gradient(0deg, #E8475F 0%, #FF7A45 45%, #FFD23F 85%); --d: .08s\"></span><span class=\"fx-chama\" style=\"position: absolute; left: 30px; top: 46px; width: 40px; height: 94px; clip-path: polygon(50% 0, 62% 22%, 75% 12%, 80% 40%, 100% 55%, 92% 100%, 8% 100%, 0 55%, 20% 40%, 25% 12%, 38% 22%); background: linear-gradient(0deg, #E8475F 0%, #FF7A45 45%, #FFD23F 85%); --d: 0s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 20px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: -10px; --d: .2s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 40px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: 6px; --d: .3s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 58px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: -4px; --d: .25s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 76px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: 12px; --d: .35s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 32px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: 14px; --d: .45s\"></span><span class=\"fx-sobe\" style=\"position: absolute; left: 66px; top: 110px; width: 4px; height: 4px; background: #FFD23F; box-shadow: 0 0 4px #FF7A45; --dx: -14px; --d: .5s\"></span>", "planta": "<svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 40px; overflow: visible; --x0: -120px; --y0: -40px; --dx: 50px; --dy: -40px; --d: 0s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 60px; overflow: visible; --x0: -130px; --y0: 10px; --dx: 56px; --dy: 10px; --d: .05s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 80px; overflow: visible; --x0: -120px; --y0: -10px; --dx: 46px; --dy: 40px; --d: .1s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 50px; overflow: visible; --x0: -140px; --y0: 30px; --dx: -50px; --dy: -30px; --d: .15s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 70px; overflow: visible; --x0: -110px; --y0: -50px; --dx: -56px; --dy: 20px; --d: .2s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 90px; overflow: visible; --x0: -130px; --y0: 20px; --dx: 10px; --dy: 56px; --d: .25s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><svg class=\"fx-folha\" viewBox=\"0 0 16 10\" width=\"16\" height=\"10\" style=\"position: absolute; left: 42px; top: 64px; overflow: visible; --x0: -150px; --y0: -20px; --dx: -10px; --dy: -60px; --d: .3s\"><path d=\"M0 5 Q8 -3 16 5 Q8 13 0 5Z\" fill=\"#36C46B\"></path><path d=\"M1 5H15\" stroke=\"#1F7A42\" stroke-width=\"1.5\"></path></svg><span class=\"fx-anel\" style=\"position: absolute; left: 20px; top: 40px; width: 60px; height: 60px; box-sizing: border-box; border: 4px dashed #36C46B; border-radius: 50%\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 5px; height: 5px; background: #B8F5C9; box-shadow: 0 0 6px #36C46B; --dx: 40px; --dy: -36px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 5px; height: 5px; background: #B8F5C9; box-shadow: 0 0 6px #36C46B; --dx: -40px; --dy: -30px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 5px; height: 5px; background: #B8F5C9; box-shadow: 0 0 6px #36C46B; --dx: 36px; --dy: 36px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 5px; height: 5px; background: #B8F5C9; box-shadow: 0 0 6px #36C46B; --dx: -36px; --dy: 34px\"></span>", "pedra": "<svg class=\"fx-cai\" viewBox=\"0 0 8 7\" width=\"24\" height=\"21\" shape-rendering=\"crispEdges\" style=\"position: absolute; left: 10px; top: 64px; --d: .1s\"><path d=\"M2 0h4v1h1v1h1v4h-1v1H1v-1H0V2h1V1h1z\" fill=\"#4A3628\"></path><path d=\"M2 1h4v1h1v4H1V2h1z\" fill=\"#C29A7E\"></path><path d=\"M2 2h2v1H2z\" fill=\"#E2C4AE\"></path></svg><svg class=\"fx-cai\" viewBox=\"0 0 8 7\" width=\"32\" height=\"28\" shape-rendering=\"crispEdges\" style=\"position: absolute; left: 52px; top: 40px; --d: 0s\"><path d=\"M2 0h4v1h1v1h1v4h-1v1H1v-1H0V2h1V1h1z\" fill=\"#4A3628\"></path><path d=\"M2 1h4v1h1v4H1V2h1z\" fill=\"#C29A7E\"></path><path d=\"M2 2h2v1H2z\" fill=\"#E2C4AE\"></path></svg><svg class=\"fx-cai\" viewBox=\"0 0 8 7\" width=\"22\" height=\"19\" shape-rendering=\"crispEdges\" style=\"position: absolute; left: 32px; top: 90px; --d: .2s\"><path d=\"M2 0h4v1h1v1h1v4h-1v1H1v-1H0V2h1V1h1z\" fill=\"#4A3628\"></path><path d=\"M2 1h4v1h1v4H1V2h1z\" fill=\"#C29A7E\"></path><path d=\"M2 2h2v1H2z\" fill=\"#E2C4AE\"></path></svg><svg class=\"fx-cai\" viewBox=\"0 0 8 7\" width=\"26\" height=\"23\" shape-rendering=\"crispEdges\" style=\"position: absolute; left: 68px; top: 86px; --d: .15s\"><path d=\"M2 0h4v1h1v1h1v4h-1v1H1v-1H0V2h1V1h1z\" fill=\"#4A3628\"></path><path d=\"M2 1h4v1h1v4H1V2h1z\" fill=\"#C29A7E\"></path><path d=\"M2 2h2v1H2z\" fill=\"#E2C4AE\"></path></svg><span class=\"fx-poeira\" style=\"position: absolute; left: 0px; top: 112px; width: 30px; height: 18px; border-radius: 50%; background: rgba(194,154,126,0.6); --dx: -14px\"></span><span class=\"fx-poeira\" style=\"position: absolute; left: 35px; top: 112px; width: 30px; height: 18px; border-radius: 50%; background: rgba(194,154,126,0.6); --dx: 0px\"></span><span class=\"fx-poeira\" style=\"position: absolute; left: 70px; top: 112px; width: 30px; height: 18px; border-radius: 50%; background: rgba(194,154,126,0.6); --dx: 14px\"></span>", "infinito": "<div style=\"position:absolute;inset:0;filter:hue-rotate(215deg) saturate(1.4)\"><svg class=\"fx-raio-r1\" viewBox=\"0 0 60 200\" width=\"60\" height=\"200\" style=\"position: absolute; left: 22px; top: -90px; overflow: visible\"><polyline points=\"38,0 22,48 40,52 16,104 36,108 12,160 30,164 24,200\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"38,0 22,48 40,52 16,104 36,108 12,160 30,164 24,200\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><svg class=\"fx-raio-r2\" viewBox=\"0 0 40 150\" width=\"40\" height=\"150\" style=\"position: absolute; left: -6px; top: -50px; overflow: visible\"><polyline points=\"10,0 26,40 12,44 30,90 14,94 24,150\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"10,0 26,40 12,44 30,90 14,94 24,150\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><svg class=\"fx-raio-r3\" viewBox=\"0 0 40 150\" width=\"40\" height=\"150\" style=\"position: absolute; left: 72px; top: -60px; overflow: visible\"><polyline points=\"30,0 14,42 28,46 10,92 26,96 16,150\" fill=\"none\" stroke=\"#F5B80A\" stroke-width=\"10\" stroke-linejoin=\"bevel\"></polyline><polyline points=\"30,0 14,42 28,46 10,92 26,96 16,150\" fill=\"none\" stroke=\"#FFFBE0\" stroke-width=\"4\" stroke-linejoin=\"bevel\"></polyline></svg><span class=\"fx-anel\" style=\"position: absolute; left: 20px; top: 40px; width: 60px; height: 60px; box-sizing: border-box; border: 4px solid #FFD23F; border-radius: 50%; box-shadow: 0 0 16px #F5B80A\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 44px; --dy: -30px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -44px; --dy: -26px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 40px; --dy: 34px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -40px; --dy: 30px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 0px; --dy: -50px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 8px; --dy: 50px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: 56px; --dy: 4px\"></span><span class=\"fx-voa\" style=\"position: absolute; left: 47px; top: 67px; width: 6px; height: 6px; background: #FFF3B0; box-shadow: 0 0 6px #F5B80A; --dx: -56px; --dy: 0px\"></span></div>"};
 </script>
 <script>
+/* ================== Sons (efeitos 8-bit gerados no navegador, sem arquivos) ================== */
+const SOM = {
+  ctx: null, mestre: null, ultimo: {}, sala: false,
+  ligado: (() => { try { return localStorage.getItem('codex_som') !== '0'; } catch (e) { return true; } })(),
+};
+function somCtx() {
+  if (!SOM.ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { SOM.ctx = new AC(); SOM.mestre = SOM.ctx.createGain(); SOM.mestre.gain.value = 0.16; SOM.mestre.connect(SOM.ctx.destination); } catch (e) { SOM.ctx = null; return null; }
+  }
+  if (SOM.ctx.state === 'suspended') SOM.ctx.resume().catch(() => {});
+  return SOM.ctx;
+}
+/* o navegador só libera o áudio depois do primeiro toque */
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (SOM.ligado) somCtx(); }, { passive: true }));
+const somAtivo = () => SOM.ligado && !SOM.sala;
+
+function tom(f, ini, dur, { tipo = 'square', vol = 0.5, ate = null, ataque = 0.005 } = {}) {
+  const c = SOM.ctx, o = c.createOscillator(), g = c.createGain(), t = c.currentTime + ini;
+  o.type = tipo; o.frequency.setValueAtTime(f, t);
+  if (ate) o.frequency.exponentialRampToValueAtTime(ate, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + ataque); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(SOM.mestre); o.start(t); o.stop(t + dur + 0.02);
+}
+function ruido(ini, dur, { vol = 0.4, de = 1800, ate = 300, tipo = 'lowpass' } = {}) {
+  const c = SOM.ctx, n = Math.max(1, Math.floor(c.sampleRate * dur)), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime + ini;
+  s.buffer = buf; f.type = tipo; f.frequency.setValueAtTime(de, t); f.frequency.exponentialRampToValueAtTime(Math.max(40, ate), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(SOM.mestre); s.start(t); s.stop(t + dur + 0.02);
+}
+const NOTA = n => 440 * Math.pow(2, (n - 69) / 12);   // número MIDI → Hz
+function arpejo(notas, passo, opts) { notas.forEach((n, i) => tom(NOTA(n), i * passo, passo * 1.6, opts)); }
+
+const SONS = {
+  acerto: () => { tom(NOTA(76), 0, 0.09, { vol: 0.35 }); tom(NOTA(83), 0.08, 0.16, { vol: 0.35 }); },
+  erro: () => { tom(196, 0, 0.16, { tipo: 'triangle', vol: 0.5, ate: 150 }); tom(147, 0.13, 0.24, { tipo: 'triangle', vol: 0.45, ate: 104 }); },
+  golpe: () => { ruido(0, 0.16, { vol: 0.5, de: 2600, ate: 200 }); tom(150, 0, 0.14, { tipo: 'square', vol: 0.3, ate: 55 }); },
+  golpeForte: () => { ruido(0, 0.28, { vol: 0.6, de: 3200, ate: 120 }); tom(120, 0, 0.26, { tipo: 'square', vol: 0.35, ate: 40 }); tom(NOTA(84), 0, 0.06, { vol: 0.15 }); },
+  dano: () => { tom(240, 0, 0.12, { tipo: 'square', vol: 0.28, ate: 90 }); ruido(0.02, 0.1, { vol: 0.25, de: 1200, ate: 300 }); },
+  escudo: () => arpejo([79, 84, 88], 0.05, { tipo: 'triangle', vol: 0.3 }),
+  escudoQuebra: () => { ruido(0, 0.22, { vol: 0.45, de: 6000, ate: 900, tipo: 'highpass' }); tom(NOTA(88), 0, 0.12, { tipo: 'triangle', vol: 0.2, ate: NOTA(76) }); },
+  cura: () => arpejo([72, 76, 79, 84], 0.07, { tipo: 'sine', vol: 0.35 }),
+  ko: () => { tom(NOTA(67), 0, 0.5, { tipo: 'square', vol: 0.3, ate: NOTA(43) }); },
+  tique: () => tom(NOTA(93), 0, 0.04, { tipo: 'square', vol: 0.18 }),
+  tiqueFinal: () => tom(NOTA(81), 0, 0.08, { tipo: 'square', vol: 0.25 }),
+  moeda: () => { tom(NOTA(83), 0, 0.07, { vol: 0.25 }); tom(NOTA(88), 0.06, 0.18, { vol: 0.25 }); },
+  ponto: () => tom(NOTA(86), 0, 0.05, { tipo: 'triangle', vol: 0.22 }),
+  nivel: () => { arpejo([72, 76, 79, 84], 0.08, { vol: 0.3 }); tom(NOTA(88), 0.34, 0.4, { vol: 0.28 }); },
+  vitoria: () => { arpejo([67, 72, 76], 0.11, { vol: 0.3 }); tom(NOTA(79), 0.36, 0.18, { vol: 0.3 }); tom(NOTA(76), 0.52, 0.1, { vol: 0.3 }); tom(NOTA(84), 0.62, 0.5, { vol: 0.32 }); },
+  fim: () => { tom(NOTA(72), 0, 0.2, { tipo: 'triangle', vol: 0.35 }); tom(NOTA(67), 0.2, 0.2, { tipo: 'triangle', vol: 0.35 }); tom(NOTA(64), 0.4, 0.45, { tipo: 'triangle', vol: 0.35 }); },
+  chama: () => { ruido(0, 0.45, { vol: 0.35, de: 400, ate: 4000, tipo: 'bandpass' }); arpejo([76, 79, 83], 0.06, { vol: 0.18 }); },
+  estrela: () => { tom(NOTA(91), 0, 0.12, { tipo: 'triangle', vol: 0.3 }); tom(NOTA(96), 0.05, 0.2, { tipo: 'sine', vol: 0.2 }); },
+  roleta: () => tom(NOTA(84 + Math.floor(Math.random() * 3)), 0, 0.03, { tipo: 'square', vol: 0.15 }),
+  ovo: () => arpejo([72, 79, 84, 91], 0.09, { tipo: 'triangle', vol: 0.32 }),
+  racha: () => { ruido(0, 0.08, { vol: 0.5, de: 5000, ate: 1500, tipo: 'highpass' }); ruido(0.12, 0.06, { vol: 0.4, de: 5000, ate: 1500, tipo: 'highpass' }); },
+  eclosao: () => { ruido(0, 0.5, { vol: 0.3, de: 300, ate: 6000, tipo: 'bandpass' }); arpejo([72, 76, 79, 84, 88, 91], 0.06, { tipo: 'triangle', vol: 0.3 }); },
+  missao: () => arpejo([79, 83, 86], 0.06, { tipo: 'triangle', vol: 0.25 }),
+};
+/* toca um efeito; ignora repetições do mesmo som em menos de 60 ms */
+function som(nome) {
+  if (!somAtivo() || !SONS[nome]) return;
+  const c = somCtx(); if (!c || c.state !== 'running') return;
+  const agora = performance.now(); if (agora - (SOM.ultimo[nome] || 0) < 60) return; SOM.ultimo[nome] = agora;
+  try { SONS[nome](); } catch (e) { /* som nunca pode travar o jogo */ }
+}
+const ICO_SOM = (on) => on
+  ? '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#A9ADD6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>'
+  : '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="#62668F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+function somBotaoHTML() {
+  return `<button class="voltar" data-som aria-pressed="${SOM.ligado}" aria-label="${SOM.ligado ? 'Desligar os sons' : 'Ligar os sons'}" title="${SOM.sala ? 'O professor silenciou a sala' : 'Sons do jogo'}" style="width:40px;height:40px;${SOM.sala ? 'opacity:.5' : ''}">${ICO_SOM(SOM.ligado && !SOM.sala)}</button>`;
+}
+function somAtualizarBotoes() {
+  document.querySelectorAll('[data-som]').forEach(b => { b.outerHTML = somBotaoHTML(); });
+  const a = $('aj-som'); if (a) { a.textContent = SOM.ligado ? 'EFEITOS SONOROS: LIGADOS' : 'EFEITOS SONOROS: DESLIGADOS'; a.setAttribute('aria-pressed', SOM.ligado); }
+}
+function somAlternar() {
+  SOM.ligado = !SOM.ligado;
+  try { localStorage.setItem('codex_som', SOM.ligado ? '1' : '0'); } catch (e) {}
+  somAtualizarBotoes();
+  if (SOM.ligado) { somCtx(); setTimeout(() => som('acerto'), 30); }
+  if (SOM.sala) avisar('O professor silenciou os sons desta sala.');
+}
+function somSala(mudo) {
+  mudo = !!mudo; if (mudo === SOM.sala) return;
+  SOM.sala = mudo; somAtualizarBotoes();
+  if (mudo) avisar('O professor silenciou os sons da sala.');
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-som]')) somAlternar(); if (e.target.closest('#aj-som')) somAlternar(); });
+
 /* ================== Base ================== */
 const $ = (id) => document.getElementById(id);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -898,7 +989,7 @@ function mostrar(nome) {
   if (nome === 'batalha') requestAnimationFrame(ajustarCena);
 }
 let toastT;
-function avisar(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800); }
+function avisar(msg) { if (/^Missão concluída/.test(msg)) som('missao'); const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800); }
 function abrirFolha(html, rotulo) { $('folha').innerHTML = html; $('folha').setAttribute('aria-label', rotulo || 'Opções'); $('folha-fundo').classList.add('on'); }
 function fecharFolha() { $('folha-fundo').classList.remove('on'); $('folha').innerHTML = ''; }
 $('folha-fundo').addEventListener('click', e => { if (e.target.id === 'folha-fundo') fecharFolha(); });
@@ -1016,6 +1107,7 @@ $('girar').onclick = () => {
   const w = $('trilho').parentElement.clientWidth || 358;
   const tr = $('trilho'); tr.style.transition = 'transform 3.2s cubic-bezier(.12,.8,.2,1)';
   requestAnimationFrame(() => { tr.style.transform = `translateX(${w / 2 - (idx * CAP + 42)}px)`; });
+  let tq = 0; for (let k = 0; k < 26; k++) { tq += 40 + k * k * 0.32; depois(tq, () => som('roleta')); }
   depois(3400, () => {
     P = { nick: rascunho.nick, av: rascunho.av, el, colecao: [el], xp: 0, partidas: 0, criado: Date.now(), login: ultimoLogin, gm: PAPEL === 'gm' }; migrarPerfil(); salvarPerfil(); concluirCadastro();
     const E = EL[el], unidade = (ELEMENTOS[el] || {}).unidade || '';
@@ -1024,7 +1116,7 @@ $('girar').onclick = () => {
       + `<p class="cp" style="margin:0;font-size:26px;letter-spacing:2px;color:${E.cor}">OVO DE ${E.nome.toUpperCase()}</p>`
       + (el === 'infinito' ? `<p class="aviso">Bônus do Infinito: <b style="color:${E.cor}">+5 de dano</b> contra todos os elementos.</p>` : `<p class="aviso">Bônus de elemento: <b style="color:${E.cor}">+5 de dano</b> nas questões de ${esc(unidade)}.</p>`)
       + `<p class="aviso" style="color:var(--texto)">Este ovo é seu para sempre. Ele choca quando você chegar ao nível 1.</p>`;
-    r.style.display = 'flex'; $('girar').style.display = 'none'; $('ovo-entrar').style.display = '';
+    r.style.display = 'flex'; som('ovo'); $('girar').style.display = 'none'; $('ovo-entrar').style.display = '';
   });
 };
 $('ovo-entrar').onclick = () => { limparTimers(); irAba('inicio'); };
@@ -1074,6 +1166,7 @@ function folhaCriar() {
 const codigoNovo = () => Array.from({ length: 5 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
 function abrirAjustes() {
   abrirFolha(cabFolha('AJUSTES') + `<p class="aviso">${VERSAO} · Códex do Infinito · SESI Gama. ${ONLINE ? 'Seu progresso fica salvo na sua conta.' : 'O perfil fica salvo só neste aparelho e navegador.'}</p>`
+    + `<button class="btn btn-sec" id="aj-som" aria-pressed="${SOM.ligado}" style="flex:none;min-height:48px">${SOM.ligado ? 'EFEITOS SONOROS: LIGADOS' : 'EFEITOS SONOROS: DESLIGADOS'}</button>`
     + `<button class="btn btn-sec" id="apagar" style="flex:none;min-height:48px;color:var(--vermelho)">APAGAR MEU PERFIL E RECOMEÇAR</button>`, 'Ajustes');
   $('apagar').onclick = () => {
     if ($('apagar').dataset.conf) { if (ONLINE && CONTA) { rpc('apagar_minha_conta').then(() => sbCliente().auth.signOut()).then(() => { try { localStorage.removeItem(chave()); } catch (e) { } CONTA = null; P = null; fecharFolha(); mostrar('login'); avisar('Conta apagada.'); }, e => avisar(msgErro(e))); return; } try { localStorage.removeItem(chave()); } catch (e) { } P = null; fecharFolha(); mostrar('login'); avisar('Perfil apagado.'); return; }
@@ -1209,6 +1302,7 @@ function svMsg(cid, m) {
   const j = SV.jog.find(x => x.id === id); if (!j) return;
   if (m.t === 'pronto' && SV.fase === 'lobby' && !SV.contando) { j.pronto = !!m.v; svSala(); svChecar(); }
   else if (m.t === 'fala' && ['Boa sorte!', 'Bora!', 'Valendo!', 'Bom jogo'].includes(m.txt)) svTodos({ t: 'fala', id, txt: m.txt });
+  else if (m.t === 'mudo' && id === 'h') { SV.cfg.mudo = !SV.cfg.mudo; svSala(); }
   else if (m.t === 'robo' && id === 'h' && SV.fase === 'lobby' && !SV.contando) {
     if (m.v > 0 && SV.jog.length < MAX_SALA) { let n; do { n = nickAleatorio(); } while (SV.jog.some(x => x.nick === n)); SV.jog.push({ id: 'r' + (SV.prox++), nick: n, av: avAleatorio(), el: pk(ELS), nivel: Math.floor(rand(1, 16)), liga: Math.floor(rand(0, 6)), tipo: 'robo', pronto: true, on: true }); }
     if (m.v < 0) { const i = SV.jog.map(x => x.tipo).lastIndexOf('robo'); if (i >= 0) SV.jog.splice(i, 1); }
@@ -1414,7 +1508,7 @@ function cliPerdeu() {
   C = null; irAba('inicio'); avisar('A sala foi fechada pelo anfitrião.');
 }
 function sairDaSala(silencioso) {
-  limparTimers(); clearInterval(relogio);
+  limparTimers(); clearInterval(relogio); somSala(false);
   if (C && C.host) { if (C.chefao) csEncerrar(); else svEncerrar(); }
   if (C) C.saindo = true;
   clearInterval(chRel); CH = null;
@@ -1428,7 +1522,7 @@ function cliRecebe(m) {
     case 'bemvindo': C.meuId = m.id; C.entrando = false; carregando(''); break;
     case 'recusado': carregando(''); avisar(m.motivo); C.entrando = false; sairDaSala(true); break;
     case 'sala':
-      C.sala = m;
+      C.sala = m; if (!C.host) somSala(m.cfg && m.cfg.mudo);
       if (C.meuId && (C.host || !C.entrando) && !$('t-batalha').classList.contains('ativa') && !$('t-resultado').classList.contains('ativa')) { if (!$('t-sala').classList.contains('ativa')) mostrar('sala'); renderSala(); }
       else if ($('t-resultado').classList.contains('ativa')) atualizarBotaoDeNovo();
       break;
@@ -1468,6 +1562,7 @@ function renderSala() {
   const robos = todos.filter(j => j.tipo === 'robo').length;
   $('sala-host').style.display = C.host && lobby ? 'flex' : 'none';
   $('add-robo').disabled = total >= MAX_SALA || s.contando; $('tirar-robo').disabled = !robos || s.contando;
+  const ms = $('som-sala'); ms.style.display = C.host && P && P.gm ? '' : 'none'; ms.textContent = s.cfg.mudo ? '🔇 ALUNOS SEM SOM' : '🔊 SOM DOS ALUNOS'; ms.setAttribute('aria-pressed', !!s.cfg.mudo);
   $('sala-nota').textContent = s.sozinho ? 'Sem internet: só você e os robôs, neste aparelho.' : C.host ? 'Passe o código para os colegas. Se você sair, a sala fecha para todos.' : (lobby ? 'Toque em “Estou pronto”. A partida começa quando todos estiverem prontos.' : 'O anfitrião vai reabrir a sala para a próxima partida.');
   const cols = 4, slots = total > 4 || (C.host && total >= 4) ? MAX_SALA : 4, mini = slots > 4;
   $('fileira').style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
@@ -1493,6 +1588,7 @@ $('copiar').onclick = () => { const c = minhaSala() && minhaSala().codigo; try {
 $('sala-sair').onclick = () => sairDaSala();
 $('pronto').onclick = () => { const s = minhaSala(); if (!s) return; const eu = s.jog.find(j => j.id === C.meuId); cliEnviar({ t: 'pronto', v: !(eu && eu.pronto) }); };
 $('add-robo').onclick = () => cliEnviar({ t: 'robo', v: 1 });
+$('som-sala').onclick = () => cliEnviar({ t: 'mudo' });
 $('tirar-robo').onclick = () => cliEnviar({ t: 'robo', v: -1 });
 
 /* ================== 7. Batalha ================== */
@@ -1679,6 +1775,7 @@ function tique() {
   const cor = mostra <= 10 ? '#FF4D6D' : mostra <= 20 ? '#FFD23F' : '#5EE6FF', anel = $('anel-arco');
   anel.style.strokeDashoffset = (113.1 * (1 - mostra / TEMPO)).toFixed(1); anel.style.stroke = cor;
   $('anel-num').textContent = Math.ceil(mostra); $('anel-num').style.color = cor;
+  const seg = Math.ceil(mostra); if (B.fase === 'pergunta' && seg <= 5 && seg > 0 && B.ultSeg !== seg) { B.ultSeg = seg; som(seg <= 3 ? 'tiqueFinal' : 'tique'); }
   if (B.fase === 'pergunta' && el >= TEMPO) {
     B.fase = 'espera'; B.meuTempo = TEMPO; B.meuTxt = '';
     renderMsg([{ t: 'Tempo esgotado! ', c: 'dano' }, { t: 'Aguardando os outros…' }]); renderPainel();
@@ -1694,6 +1791,7 @@ function enviar() {
 function corrigido(ok) {
   B.meuOk = ok;
   if (B.fase !== 'conferindo' && B.fase !== 'espera') return;
+  if (ok) som('acerto');
   if (ok && EU().hp > 0) { B.fase = 'acao'; renderMsg([{ t: 'Você acertou! ', c: 'eu' }, { t: 'O que você vai fazer?' }]); }
   else { B.fase = 'espera'; renderMsg(EU().hp <= 0 ? [{ t: 'Resposta enviada. ' }, { t: 'Espectador: seu acerto vale XP.' }] : [{ t: 'Resposta enviada. ' }, { t: 'Aguardando os outros…' }]); }
   atualizarCena(); renderPainel();
@@ -1716,6 +1814,7 @@ function narrar(m) {
   B.jog.forEach(j => { j.hp = m.inicio.hp[j.id]; j.esc = false; j.furia = m.furia[j.id]; });
   B.hist.push({ texto: m.texto, resposta: m.resposta, sua: B.meuTxt || 'sem resposta', ok: !!meu.ok });
   registrarResposta(B.q && B.q.conteudoId, !!meu.ok);
+  if (!meu.ok) som('erro');
   if (meu.ok) { const mm = progredirMissao('acertos', 1); if (mm) depois(400, () => avisar('Missão concluída: ' + mm.txt + ' · ' + recompensa(mm))); }
   if (B.meuTempo != null && B.meuTxt) (B.tempos = B.tempos || []).push(B.meuTempo);
   m.falas.forEach(f => { if (f.ef && f.ef.tipo === 'atk' && f.ef.alvo === me) B.recebido = (B.recebido || 0) + (parseInt(String(f.ef.valor).replace(/[^0-9]/g, ''), 10) || 0); });
@@ -1752,6 +1851,7 @@ function efeito(ef) {
   const popTxt = { atk: ef.valor, cura: ef.valor, bloq: 'ESCUDO QUEBROU', esc: 'ESCUDO', ko: 'FORA' }[ef.tipo];
   const popCor = { atk: '#FF4D6D', ko: '#FF4D6D', cura: '#36C46B' }[ef.tipo] || '#5EE6FF';
   if (popTxt) pop.innerHTML = `<span style="color:${popCor}">${popTxt}</span>`;
+  som(ef.tipo === 'atk' ? ((parseInt(String(ef.valor).replace(/[^0-9]/g, ''), 10) || 0) >= 35 ? 'golpeForte' : 'golpe') : { bloq: 'escudoQuebra', esc: 'escudo', cura: 'cura', ko: 'ko' }[ef.tipo]);
   if (ef.de) reanimar($('avw-' + ef.de), 'fx-ageA');
   if (ef.tipo === 'atk' || ef.tipo === 'bloq') {
     const box = $('fx-' + ef.alvo); box.className = ''; box.innerHTML = ''; void box.offsetWidth; box.className = 'fx-fxA'; box.innerHTML = FX[ef.el];
@@ -1817,7 +1917,8 @@ function abrirResultado(m) {
   $('res-correcao').textContent = 'CORREÇÃO · ' + eu.acertos + '/' + jogadas;
   $('res-itens').innerHTML = ''; $('res-xp').textContent = '+0'; $('res-eclosao').style.display = 'none';
   renderNivelRes(); atualizarBotaoDeNovo(); mostrar('resultado');
-  itens.forEach((it, i) => depois(900 + i * 1500, () => { $('res-itens').insertAdjacentHTML('beforeend', it.seq ? `<div class="xp-lin entra" style="color:#FF9A4D"><span style="display:flex;align-items:center;gap:5px">${CHAMA(16)}${esc(it.rot)}</span><b style="color:#FF9A4D">+${it.v}</b></div>` : `<div class="xp-lin entra"><span>${esc(it.rot)}</span><b>+${it.v}</b></div>`); R.alvo = itens.slice(0, i + 1).reduce((a, x) => a + x.v, 0); contar(); }));
+  som(eu.pos === 1 ? 'vitoria' : 'fim'); if (sq.vale && (sq.depois >= 2 || sq.quebrou)) depois(800, () => som('chama'));
+  itens.forEach((it, i) => depois(900 + i * 1500, () => { $('res-itens').insertAdjacentHTML('beforeend', it.seq ? `<div class="xp-lin entra" style="color:#FF9A4D"><span style="display:flex;align-items:center;gap:5px">${CHAMA(16)}${esc(it.rot)}</span><b style="color:#FF9A4D">+${it.v}</b></div>` : `<div class="xp-lin entra"><span>${esc(it.rot)}</span><b>+${it.v}</b></div>`); R.alvo = itens.slice(0, i + 1).reduce((a, x) => a + x.v, 0); som('ponto'); contar(); }));
 }
 function contar() {
   clearInterval(R.cont);
@@ -1840,7 +1941,7 @@ function renderNivelRes() {
   $('res-eclosao').textContent = vistoCria() === 0 ? 'VER A ECLOSÃO →' : 'VER A EVOLUÇÃO →';
 }
 function nivelSubiu(n) {
-  const b = $('nivelup');
+  const b = $('nivelup'); som('nivel');
   b.innerHTML = `<div><p class="cp" style="margin:0;font-size:30px;color:var(--amarelo)">NÍVEL ${n}!</p><p style="margin:4px 0 0;font-size:14px;font-weight:600">Seu avatar subiu de nível!</p></div>`;
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
   clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('on'), 2000);
@@ -2425,6 +2526,7 @@ function fimDesafio() {
     + L.qs.map((q, k) => `<div style="display:flex;gap:10px;border-top:1px solid #22264A;padding-top:6px"><span role="img" aria-label="${L.hist[k] ? 'Acertou' : 'Errou'}" style="display:flex;padding-top:2px">${L.hist[k] ? ICO('<path d="M5 12l5 5 9-10"/>', '#6FE3C1') : ICO('<path d="M6 6l12 12M18 6 6 18"/>', '#FF4D6D')}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-size:13px">${fracHTML(esc(q.texto))}</span><span style="font-size:12px;color:${L.hist[k] ? '#6FE3C1' : 'var(--texto2)'}">Resposta: ${fracHTML(esc(q.resposta))}</span>${L.hist[k] ? '' : `<span style="font-size:12px;color:var(--texto2)">${fracHTML(esc(q.exp))}</span>`}</span></div>`).join('') + `</div>`
     + (D.tipo === 'prova' ? `<button class="btn btn-prim" id="lc-mapa">VOLTAR À ILHA</button>${est < 3 ? `<button class="btn btn-sec" id="lc-denovo" style="flex:none;min-height:44px">${est ? 'REFAZER PARA BUSCAR AS 3 ESTRELAS' : 'TENTAR DE NOVO'}</button>` : ''}` : `<button class="btn btn-prim" id="lc-mapa">VOLTAR À ILHA</button>`);
   $('t-licao').scrollTop = 0; $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
+  som(est > 0 || (D.tipo === 'semana' && ac === 1) ? 'vitoria' : 'fim'); for (let i = 0; i < est; i++) depois(900 + i * 300, () => som('estrela'));
   $('lc-mapa').onclick = () => { $('lc-fim').classList.remove('on'); L = null; UI.desafios = true; irAba('inicio'); };
   if ($('lc-denovo')) $('lc-denovo').onclick = () => { $('lc-fim').classList.remove('on'); const D2 = L.des; L = null; abrirProva(D2.id); };
 }
@@ -2515,6 +2617,7 @@ function topoHTML(titulo) {
     + `<p class="cp" style="margin:0;font-size:16px;display:flex;align-items:center;gap:6px;min-width:0">${titulo ? titulo : `<button data-ligas aria-label="Liga ${esc(ligaNome(ligaIdx()))}" style="border:0;background:transparent;padding:0;flex:none;cursor:pointer">${ligaMini(ligaIdx(), 24)}</button><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nickExib())}</span>`}</p>`
     + `<div style="display:flex;align-items:center;gap:6px"><span class="cp selo-nv">NÍVEL ${nv.n}</span><div class="barra" style="flex:1;max-width:120px;height:7px" role="progressbar" aria-label="Nível ${nv.n}: ${nv.r} de ${nv.need} XP"><i style="width:${nv.r / nv.need * 100}%"></i></div></div></div>`
     + `<p class="cp moedas" aria-label="Moedas: ${P.moedas}">${MOEDA}${P.moedas}</p>`
+    + somBotaoHTML()
     + `<button class="voltar" data-ajustes aria-label="Ajustes" style="width:40px;height:40px">${ICO('<path d="M20 7h-9M14 17H4"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>', '#A9ADD6')}</button></div>`;
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-ajustes]')) abrirAjustes(); if (e.target.closest('[data-ligas]')) abrirLigas(); });
@@ -2767,12 +2870,14 @@ function conferirLicao() {
     const m = progredirMissao('acertos', 1); if (m) L.missoes.push(m);
   }
   salvarPerfil(); renderLicao();
+  som(ok ? 'acerto' : 'erro');
   if (ok) ataqueOvo(); else ataqueMonstro();
 }
 function ataqueMonstro() {
   reanimar($('lc-boneco'), 'lc-investe');
   depois(260, () => {
     if (!L) return;
+    som('dano');
     reanimar($('lc-av'), 'treme-x');
     reanimar($('lc-tela'), 'lc-dano');
     const c = $('lc-cor') && $('lc-cor').children[L.cor]; if (c) reanimar(c, 'lc-quebra');
@@ -2783,7 +2888,7 @@ function ataqueOvo() {
   reanimar($('lc-bola'), 'lc-dispara');
   depois(450, () => {
     if (!L) return;
-    L.impacto = true;
+    L.impacto = true; som('golpe');
     const box = $('lc-fx'); box.className = ''; box.innerHTML = ''; void box.offsetWidth; box.className = 'fx-fxA'; box.innerHTML = FX[P.el];
     depois(1400, () => { if ($('lc-fx')) $('lc-fx').innerHTML = ''; });
     reanimar($('lc-boneco'), 'fx-hitA');
@@ -2832,6 +2937,7 @@ function fimLicao() {
     + (passou ? `<button class="btn btn-prim" id="lc-mapa">VOLTAR AO MAPA</button>` : `<button class="btn btn-prim" id="lc-denovo">TENTAR DE NOVO</button><button class="btn btn-sec" id="lc-mapa" style="flex:none;min-height:44px">VOLTAR AO MAPA</button>`)
     + (passou && est < 3 ? `<button class="btn btn-sec" id="lc-denovo" style="flex:none;min-height:44px">REFAZER PARA BUSCAR AS 3 ESTRELAS</button>` : '');
   $('t-licao').scrollTop = 0; $('lc-fim').classList.add('on'); $('lc-fim').scrollTop = 0;
+  som(passou ? 'vitoria' : 'fim'); for (let i = 0; i < est; i++) depois(900 + i * 300, () => som('estrela')); if (moedas) depois(900 + est * 300 + 200, () => som('moeda')); if (subiu) depois(1800 + est * 300, () => som('nivel'));
   $('lc-mapa').onclick = () => { $('lc-fim').classList.remove('on'); L = null; irAba('inicio'); };
   if ($('lc-denovo')) $('lc-denovo').onclick = () => { $('lc-fim').classList.remove('on'); iniciarLicao(L.g); };
 }
@@ -2903,7 +3009,7 @@ function cuidar(id) {
   const c = CUIDADOS.find(x => x.id === id);
   if (P.dia.cuidados[id]) { avisar(c.nome + ' já foi feito hoje. Volte amanhã!'); return; }
   if (P.moedas < c.custo) { avisar('Faltam moedas. Ganhe mais no Treino Solo e nas missões do dia.'); return; }
-  P.moedas -= c.custo; P.dia.cuidados[id] = true;
+  P.moedas -= c.custo; P.dia.cuidados[id] = true; som('cura');
   const todos = CUIDADOS.every(x => P.dia.cuidados[x.id]);
   P.vinculo = Math.min(100, P.vinculo + (todos ? 20 : 15));
   falaOvo = id === 'conversar' ? pk(FALAS_OVO) : { aquecer: 'Que quentinho!', polir: 'Estou brilhando!', ninar: 'Zzz… que canção bonita…' }[id];
@@ -3156,7 +3262,7 @@ function animarEvolucao(el, de, para) {
   if (eclosao) {
     evoDepois(400, () => { EVO.fase = 'treme'; deImg.className = 'evo-treme'; });
     evoDepois(2000, () => {
-      EVO.fase = 'racha';
+      EVO.fase = 'racha'; som('racha');
       $('evo-de').insertAdjacentHTML('beforeend', `<svg class="evo-racha" viewBox="0 0 230 230" width="230" height="230" aria-hidden="true" style="position:absolute;left:0;top:0;filter:drop-shadow(0 0 6px ${E.cor})"><path d="M115 46 L104 80 L120 98 L100 128 L116 156" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M120 98 L146 110 L140 136" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><path d="M100 128 L76 138 L82 164" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/></svg>`);
       ['+', '÷', '¾', '×', '=', '%', '2³', '−'].forEach((t, i) => { const a = i / 8 * Math.PI * 2; cena.insertAdjacentHTML('beforeend', `<span class="evo-simb" style="--dx:${Math.round(Math.cos(a) * 140)}px;--dy:${Math.round(Math.sin(a) * 140)}px;--d:${(i * .12).toFixed(2)}s;color:${i % 2 ? '#FFD23F' : E.cor};text-shadow:0 0 10px ${E.cor}">${t}</span>`); });
     });
@@ -3175,7 +3281,7 @@ function animarEvolucao(el, de, para) {
 }
 function evoFlash() { const f = $('evo-flash'); f.className = 'evo-flash'; f.style.cssText = `z-index:5;background:radial-gradient(circle at 50% 42%,#FFFFFF,${EL[EVO.el].cor}CC 40%,transparent 75%)`; }
 function evoNasce() {
-  EVO.ts.forEach(clearTimeout); EVO.ts = []; EVO.fase = 'nasce';
+  EVO.ts.forEach(clearTimeout); EVO.ts = []; EVO.fase = 'nasce'; som('eclosao');
   const E = EL[EVO.el], nomes = NOMES_CRIA[EVO.el], para = EVO.para, eclosao = EVO.de === 0, cena = $('evo-cena');
   $('evo-de').style.display = 'none'; $('evo-raios').style.opacity = '.5';
   cena.querySelectorAll('.evo-simb').forEach(x => x.remove());
@@ -3401,7 +3507,7 @@ function csPara(id, m) {
   const cid = Object.keys(CS.cids).find(k => CS.cids[k] === id); if (cid) canal.enviar(cid, m);
 }
 function csTodos(m) { if (canal && canal.todos) { csPara('h', m); canal.todos(m); return; } CS.jog.forEach(j => { if (j.tipo !== 'robo' && j.on) csPara(j.id, m); }); }
-function csSala() { csTodos({ t: 'ch-sala', codigo: CS.codigo, hpMax: CS.hpMax, jog: CS.jog.map(csPub), fase: CS.fase, sozinho: canal.tipo === 'sozinho' }); }
+function csSala() { csTodos({ t: 'ch-sala', mudo: !!CS.mudo, codigo: CS.codigo, hpMax: CS.hpMax, jog: CS.jog.map(csPub), fase: CS.fase, sozinho: canal.tipo === 'sozinho' }); }
 function csEstado(id) { csPara(id, { t: 'ch-inicio', hp: CS.hp, hpMax: CS.hpMax, r: CS.r, jog: CS.jog.map(csPub), placar: csPlacar() }); if (CS.q) csPara(id, { t: 'ch-q', r: CS.r, q: { texto: CS.q.texto, conteudo: CS.q.conteudo, conteudoId: CS.q.conteudoId, elemento: CS.q.elemento }, resta: Math.max(5, TEMPO_CH - csEl()) }); }
 function csSaiu(cid) { const id = CS.cids[cid]; delete CS.cids[cid]; const j = CS.jog.find(x => x.id === id); if (!j) return; if (CS.fase === 'lobby') CS.jog = CS.jog.filter(x => x !== j); else j.on = false; csSala(); }
 const csEl = () => (performance.now() - CS.t0) / 1000;
@@ -3424,6 +3530,7 @@ function csMsg(cid, m) {
   if (m.t === 'ch-comecar' && id === 'h' && CS.fase === 'lobby') csComecar();
   else if (m.t === 'ch-robos' && id === 'h' && CS.fase === 'lobby') { for (let k = 0; k < 5 && CS.jog.length < 45; k++) { let n; do { n = nickAleatorio(); } while (CS.jog.some(x => x.nick === n)); CS.jog.push(csNovo('r' + (CS.prox++), { nick: n, av: avAleatorio(), el: pk(ELS), nivel: Math.floor(rand(1, 16)), liga: Math.floor(rand(0, 6)) }, 'robo')); } csSala(); }
   else if (m.t === 'ch-encerrar' && id === 'h' && CS.fase === 'jogo') csFim(false);
+  else if (m.t === 'ch-mudo' && id === 'h') { CS.mudo = !CS.mudo; csSala(); }
   else if (m.t === 'resp') csResp(id, String(m.txt || '').slice(0, 20));
   else if (m.t === 'acao') csAcao(id, m.tipo);
   else if (m.t === 'fala' && ['Boa sorte!', 'Bora!', 'Valendo!', 'Bom jogo'].includes(m.txt)) csTodos({ t: 'ch-fala', nick: j.nick, txt: m.txt });
@@ -3552,6 +3659,7 @@ let CH = null, chRel = null;
 function chRecebe(m) {
   switch (m.t) {
     case 'ch-sala':
+      if (!C.host) somSala(m.mudo);
       if (!CH || CH.fase === 'lobby') { CH = CH || { feed: [], placar: [], dig: '', fase: 'lobby' }; CH.sala = m; CH.hpMax = m.hpMax; CH.hp = CH.hp == null ? m.hpMax : CH.hp; if (!$('t-chefao').classList.contains('ativa')) mostrar('chefao'); renderChefao(); }
       else { CH.sala = m; }
       break;
@@ -3571,7 +3679,7 @@ function chRecebe(m) {
       registrarResposta(CH.q && CH.q.conteudoId, m.ok); CH.hist.push({ texto: CH.q.texto, ok: m.ok });
       if (m.ok) { const mm = progredirMissao('acertos', 1); if (mm) avisar('Missão concluída: ' + mm.txt); }
       salvarPerfil();
-      CH.certo = m.ok; CH.resposta = m.resposta; CH.fase = m.ok && m.vivo ? 'acao' : 'espera'; renderChefao(); break;
+      CH.certo = m.ok; CH.resposta = m.resposta; CH.fase = m.ok && m.vivo ? 'acao' : 'espera'; renderChefao(); som(m.ok ? 'acerto' : 'erro'); break;
     case 'ch-evt': {
       if (!CH) return;
       const e = m.evt, eu = e.id === C.meuId, quem = eu ? 'Você' : e.nick;
@@ -3582,6 +3690,7 @@ function chRecebe(m) {
       else { CH.feed.unshift({ txt: quem + ' ergueu um Escudo', cor: '#5EE6FF', eu }); if (eu) CH.esc = true; }
       CH.feed = CH.feed.slice(0, 2);
       chAtualizarChefe(e.tipo === 'atk' ? e.valor : 0, e.tipo === 'atk' ? EL[e.el].cor : null);
+      if (eu) som(e.tipo === 'atk' ? (e.valor >= 35 ? 'golpeForte' : 'golpe') : e.tipo === 'cura' ? 'cura' : 'escudo');
       break;
     }
     case 'ch-chefe': {
@@ -3596,6 +3705,7 @@ function chRecebe(m) {
       Object.assign(CH.ultimo, { golpe: m.golpe || 0, curaTurma: !!m.curaTurma, acertaram: m.acertaram, contados: m.contados });
       CH.fase = 'chefe'; CH.hp = m.hp; renderChefao();
       if (m.golpe) chAtualizarChefe(m.golpe, '#F5B80A');
+      som(m.golpe ? 'golpeForte' : r.bloq ? 'escudo' : m.dano ? 'dano' : null);
       const b = document.querySelector('#t-chefao .ch-eu'); if (b && !r.bloq) reanimar(b, 'boss-hit');
       break;
     }
@@ -3606,6 +3716,7 @@ function chRecebe(m) {
 function chTique() {
   if (!CH || !CH.q) return;
   const resta = Math.max(0, Math.ceil(TEMPO_CH - (performance.now() - CH.t0) / 1000)), e = $('ch-tempo');
+  if (CH.fase === 'pergunta' && resta <= 5 && resta > 0 && CH.ultSeg !== resta) { CH.ultSeg = resta; som(resta <= 3 ? 'tiqueFinal' : 'tique'); }
   if (e) { e.textContent = resta + 's'; e.style.color = resta <= 10 ? 'var(--vermelho)' : resta <= 20 ? 'var(--amarelo)' : 'var(--ciano)'; }
   if (resta <= 0 && CH.fase === 'pergunta') { CH.fase = 'espera'; CH.certo = null; CH.tempo = true; renderChefao(); }
 }
@@ -3666,11 +3777,12 @@ function renderChefao() {
       + `<div style="display:flex;justify-content:center;filter:drop-shadow(0 0 24px rgba(255,123,234,.35))" class="flutua">${CHEFE_SALA_SVG.replace(/width="240" height="230"/, 'width="170" height="163"')}</div>`
       + `<p class="cp" style="margin:0;text-align:center;font-size:14px;letter-spacing:2px">${n} NA SALA</p>`
       + `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${s.jog.map(j => `<span style="display:flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--borda);background:var(--card);font-size:12px;${j.id === C.meuId ? 'color:var(--amarelo)' : ''}">${ligaMini(j.liga, 16)}${criaHTML(j.el, NC(j), 22)}${esc(j.nick)}${j.tipo === 'robo' ? ' 🤖' : ''}</span>`).join('')}</div>`
-      + (host ? `<p class="aviso" style="text-align:center">${s.sozinho ? 'Sem internet: só você e os robôs, neste aparelho.' : 'Passe o código para a turma entrar pelo JOGAR › Entrar com código. Quem chegar depois do começo entra na luta.'}</p><button class="btn btn-sec" id="ch-robos" style="flex:none;min-height:44px">+ 5 ROBÔS (PARA TESTAR)</button><button class="btn btn-prim" id="ch-comecar" style="margin-top:auto">COMEÇAR O EVENTO</button>`
+      + (host ? `<p class="aviso" style="text-align:center">${s.sozinho ? 'Sem internet: só você e os robôs, neste aparelho.' : 'Passe o código para a turma entrar pelo JOGAR › Entrar com código. Quem chegar depois do começo entra na luta.'}</p><button class="btn btn-sec" id="ch-mudo" style="flex:none;min-height:44px" aria-pressed="${!!s.mudo}">${s.mudo ? '🔇 ALUNOS SEM SOM (TOQUE PARA LIGAR)' : '🔊 SOM DOS ALUNOS LIGADO (TOQUE PARA SILENCIAR)'}</button><button class="btn btn-sec" id="ch-robos" style="flex:none;min-height:44px">+ 5 ROBÔS (PARA TESTAR)</button><button class="btn btn-prim" id="ch-comecar" style="margin-top:auto">COMEÇAR O EVENTO</button>`
         : `<p class="cp pulsa" style="margin:auto 0 0;text-align:center;font-size:13px;letter-spacing:2px">AGUARDANDO O PROFESSOR COMEÇAR…</p>`);
     $('ch-sair').onclick = () => { CH = null; sairDaSala(); };
     if ($('ch-comecar')) $('ch-comecar').onclick = () => cliEnviar({ t: 'ch-comecar' });
     if ($('ch-robos')) $('ch-robos').onclick = () => cliEnviar({ t: 'ch-robos' });
+    if ($('ch-mudo')) $('ch-mudo').onclick = () => cliEnviar({ t: 'ch-mudo' });
     return;
   }
   if (f === 'fim') { renderChefaoFim(); return; }
@@ -3728,6 +3840,7 @@ function chFim(m) {
   clearInterval(chRel);
   if (!CH) CH = { feed: [], placar: [] };
   const eu = m.ranking.find(r => r.id === C.meuId) || { pos: '-', dano: 0, acertos: 0, resp: 0 }, dobro = m.top.includes(C.meuId);
+  som(m.venceu ? 'vitoria' : 'fim');
   if (!CH.ganho) {
     CH.ganho = { xp: RECOMP_CH.xp * (dobro ? 2 : 1), moedas: RECOMP_CH.moedas * (dobro ? 2 : 1), dobro };
     CH.xp0 = P.xp; ganharXp(CH.ganho.xp); P.moedas += CH.ganho.moedas; salvarPerfil();
@@ -3850,7 +3963,7 @@ function abrirLoja(aba) {
     f.querySelectorAll('[data-item-comprar]').forEach(b => b.onclick = () => {
       const it = LOJA_ITENS.find(x => x.id === b.dataset.itemComprar);
       if (!it || temItem(it) || P.moedas < it.preco) return;
-      P.moedas -= it.preco; P.itens.push(it.id); P.av[it.campo] = it.v; salvarPerfil();
+      P.moedas -= it.preco; P.itens.push(it.id); P.av[it.campo] = it.v; salvarPerfil(); som('moeda');
       avisar(it.nome + ' comprado e em uso!'); abrirLoja(); atualizarMolduraTela();
     });
     f.querySelectorAll('[data-item-usar]').forEach(b => b.onclick = () => {
@@ -3880,7 +3993,7 @@ function ligarMolduras() {
   f.querySelectorAll('[data-mold-comprar]').forEach(b => b.onclick = () => {
     const m = MOLD[b.dataset.moldComprar];
     if (!m || !P.conq[m.id] || P.molduras.includes(m.id) || P.moedas < m.preco) return;
-    P.moedas -= m.preco; P.molduras.push(m.id); P.moldura = m.id; salvarPerfil();
+    P.moedas -= m.preco; P.molduras.push(m.id); P.moldura = m.id; salvarPerfil(); som('moeda');
     avisar('Moldura ' + m.nome + ' comprada e em uso!'); abrirLoja(); atualizarMolduraTela();
   });
   f.querySelectorAll('[data-mold-usar]').forEach(b => b.onclick = () => { P.moldura = b.dataset.moldUsar; salvarPerfil(); abrirLoja(); atualizarMolduraTela(); });
@@ -4218,16 +4331,16 @@ function conferirTorre() {
   T.hist.push({ texto: q.texto, resposta: q.resposta, ok });
   registrarResposta(q.conteudoId, ok);
   if (ok) {
-    T.furia++; T.acertos++;
+    T.furia++; T.acertos++; som('acerto');
     const dano = Math.max(5, DANO[Math.min(T.furia, 3)] + (q.elemento === P.el ? 5 : 0) + efetividade(P.el, T.boss.el));
     T.dano += dano; guardarPendente();
     reanimar($('tr-cria'), 'fx-ageA');
     const pop = $('tr-pop'); pop.innerHTML = `<p class="cp tr-num" style="margin:0;font-size:${dano >= 35 ? 30 : 24}px;color:${dano >= 35 ? 'var(--amarelo)' : '#fff'};text-shadow:0 2px 0 #0B0C18">−${dano}</p>`;
-    reanimar($('tr-boss'), 'fx-hitA');
+    reanimar($('tr-boss'), 'fx-hitA'); depois(90, () => som(dano >= 35 ? 'golpeForte' : 'golpe'));
     renderTorreHud();
     T.fase = 'pausa'; depois(320, () => { if (T && T.fase === 'pausa') novaQuestaoTorre(); });
   } else {
-    T.furia = 0; T.erros++; T.cor = Math.max(0, T.cor - 1); guardarPendente();
+    T.furia = 0; T.erros++; som('erro'); T.cor = Math.max(0, T.cor - 1); guardarPendente();
     reanimar($('tr-tela'), 'lc-dano'); reanimar($('tr-cena'), 'treme-x');
     const c = $('tr-cor').children[T.cor]; if (c) reanimar(c, 'lc-quebra');
     renderTorreHud(); T.fase = 'errado'; renderTorrePergunta();
