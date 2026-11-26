@@ -1,8 +1,17 @@
-# Códex do Infinito · SESI Gama
+# Lendas do Infinito · SESI Gama
 
-(Nome provisório. Antes era "RPG de Matemática".)
+(Antes se chamava "Códex do Infinito" e, antes disso, "RPG de Matemática".)
 
 Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age quando acerta uma questão de matemática.
+
+**Versão 2.0 (celular)**
+
+- Nome novo, **Lendas do Infinito**, com logo e ícone novos e a tela de entrada com o anel das ilhas.
+- Visual novo em todas as seções: azul-noite, molduras douradas com cantos cortados e as fontes Cinzel e Sora.
+- Toda a arte refeita em pixel art: avatar Chibi (frente e costas, com todas as opções de antes), 24 criaturas, 10 monstros, 5 chefões de ilha, o Chefão da Sala, as ilhas do mapa e 8 cenários de batalha.
+- O save não mudou: contas, progresso, moedas, itens e turmas continuam iguais.
+- A versão 1.0 continua em `v1/` por algumas semanas, como plano de volta.
+- O formato de computador ainda usa o arranjo da 1.0 com o visual novo; ele será refeito depois.
 
 **Versão 1.0 (com servidor)**
 
