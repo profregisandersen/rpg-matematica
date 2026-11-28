@@ -4,6 +4,17 @@
 
 Protótipo de jogo de batalha por turnos para o 6º e o 7º ano: o aluno só age quando acerta uma questão de matemática.
 
+**Versão 2.1 (recompensas)**
+
+- Criaturas novas, as **criaturas geométricas**: cada elemento tem uma forma da matemática (fogo = triângulo, água = círculo, planta = espiral, pedra = hexágono, raio = zigue-zague, infinito = ∞). No estágio 1 a criatura é lisa como o avatar; a cada evolução a forma vira cristal lapidado. Os ovos ganharam a forma do elemento na casca.
+- Animações de recompensa: moedas voando até o contador, baú que treme e abre, ovo novo, título novo. Todas duram menos de 3 segundos e pulam com um toque.
+- Sons novos: botões, abas, teclado, moedas, compra, baús. Os sons de botões têm uma chave própria nos Ajustes.
+- **Baús** comum, raro e épico (moedas, reações, títulos e peças cosplay; item repetido vira moedas). Nunca são vendidos.
+- **Passe do Bimestre**, grátis: cada 100 XP no bimestre libera um dos 20 prêmios.
+- **Títulos** embaixo do nome (Conta e sala de espera) e **reações** na sala de espera.
+- **Coleção cosplay** na loja: ninja, fada, guerreiro, mago, pirata e astronauta (roupa e acessório de cada um).
+- Ovos por conquista: nível 10 e 30 do avatar e andar 50 da Torre, além das ilhas com 100% das estrelas.
+
 **Versão 2.0 (celular)**
 
 - Nome novo, **Lendas do Infinito**, com logo e ícone novos e a tela de entrada com o anel das ilhas.
